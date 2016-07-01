@@ -3,87 +3,119 @@
 (function(exports) {
 'use strict';
 
-function handleActivity(activity, onsuccess, onerror) {
-  // Note: the MozActivity is intentionally constructed in the caller and
-  // passed down to this function in order to make it possible to pass an
-  // inline option to its constructor in the caller for the sake of static
-  // analysis tools.  Please do not change that!
+  /**
+   * ActivityPicker
+   *
+   * A collection of some MozActivity methods.
+   */
+  var ActivityPicker = {
 
-  if (typeof onsuccess === 'function') {
-    activity.onsuccess = onsuccess;
-  }
+    /**
+     * When user wants to pass a phone call.
+     * @param  {Number} contact number where to dial.
+     * @returns {Promise} DOMRequest promise is always successfully resolved.
+     */
+    dial(number) {
+      return Promise.resolve(new MozActivity({
+        name: 'dial',
+        data: {
+          type: 'webtelephony/number',
+          number: number
+        }
+      }));
+    },
 
-  activity.onerror = typeof onerror === 'function' ? onerror : function(error) {
-    console.warn('Unhandled error spawning activity; ' + error.message);
+    /**
+     * When user wants to send a new Email. The e-mail app can parse mailto 
+     * URI strings provided as either a "url" or "URI" property.
+     * @param  {String} Email id of receiver.
+     * @returns {Promise} DOMRequest promise is always successfully resolved.
+     */
+    email(email) {
+      return Promise.resolve(new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + email
+        }
+      }));
+    },
+
+    /**
+     * When user wants to open a URL.
+     * @param  {String} URL to be visited.
+     * @returns {Promise} DOMRequest promise is always successfully resolved
+     */
+    url(url) {
+      return Promise.resolve(new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: url
+        }
+      }));
+    },
+
+    /**
+     * When user wants to create a new contact entry.
+     * @param  {Object} Contact object.
+     * @returns {Promise} DOMRequest promise is always successfully resolved
+     */
+    createNewContact(contactProps) {
+      return Promise.resolve(new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact',
+          params: contactProps
+        }
+      }));
+    },
+
+    /**
+     * When user wants to update a contact.
+     * @param  {Object} Contact object.
+     * @returns {Promise} DOMRequest promise is always successfully resolved
+     */
+    addToExistingContact(contactProps) {
+      return Promise.resolve(new MozActivity({
+        name: 'update',
+        data: {
+          type: 'webcontacts/contact',
+          params: contactProps
+        }
+      }));
+    },
+
+    /**
+     * When user wants to open a contact.
+     * @param  {Object} Contact object.
+     * @returns {Promise} DOMRequest promise is always successfully resolved
+     */
+    viewContact(contactProps) {
+      return Promise.resolve(new MozActivity({
+        name: 'open',
+        data: {
+          type: 'webcontacts/contact',
+          params: contactProps
+        }
+      }));
+    },
+
+    /**
+     * When user wants to configure the messaging setting of device.
+     * @returns {Promise} DOMRequest promise is always successfully resolved
+     */
+    openSettings() {
+      return Promise.resolve(new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'messaging'
+        }
+      }));
+    }
   };
-}
 
-var ActivityPicker = {
-  dial: function ap_call(number, onsuccess, onerror) {
-    handleActivity(new MozActivity({
-      name: 'dial',
-      data: {
-        type: 'webtelephony/number',
-        number: number
-      }
-    }), onsuccess, onerror);
-  },
-  email: function ap_email(email, onsuccess, onerror) {
-    handleActivity(new MozActivity({
-      name: 'new',
-      data: {
-        type: 'mail',
-        URI: 'mailto:' + email
-      }
-    }), onsuccess, onerror);
-  },
-  url: function ap_browse(url, onsuccess, onerror) {
-    handleActivity(new MozActivity({
-      name: 'view',
-      data: {
-        type: 'url',
-        url: url
-      }
-    }), onsuccess, onerror);
-  },
-  createNewContact: function ap_createNewContact(contactProps) {
-    handleActivity(new MozActivity({
-      name: 'new',
-      data: {
-        type: 'webcontacts/contact',
-        params: contactProps
-      }
-    }));
-  },
-  addToExistingContact: function ap_addToExistingContact(contactProps) {
-    handleActivity(new MozActivity({
-      name: 'update',
-      data: {
-        type: 'webcontacts/contact',
-        params: contactProps
-      }
-    }));
-  },
-  viewContact: function ap_viewContact(contactProps) {
-    handleActivity(new MozActivity({
-      name: 'open',
-      data: {
-        type: 'webcontacts/contact',
-        params: contactProps
-      }
-    }));
-  },
-  openSettings: function ap_openSettings(onsuccess, onerror) {
-    handleActivity(new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'messaging'
-      }
-    }), onsuccess, onerror);
-  }
-};
-
-exports.ActivityPicker = ActivityPicker;
+  exports.ActivityPicker = ActivityPicker;
 
 }(this));
