@@ -32,6 +32,12 @@ marionette('LockScreen > ', function() {
     screenLockPanel.toggleScreenLock();
     settingsApp.close();
     lockScreen.lock();
+    client.executeScript(function() {
+      window.wrappedJSObject.Service.request('turnScreenOff', true);
+    });
+    assert.ok(client.executeScript(function() {
+      return !window.wrappedJSObject.Service.query('screenEnabled');
+    }), 'screen is not off before the notification');
 
     client.switchToFrame();
     client.executeScript(function(title, body) {
@@ -48,6 +54,9 @@ marionette('LockScreen > ', function() {
       .findElement('#notifications-lockscreen-container .notification ' +
                     '.detail .detail-content');
 
+    assert.ok(client.executeScript(function() {
+      return window.wrappedJSObject.Service.query('screenEnabled');
+    }), 'screen is not on after the notification');
     assert.ok(notification.displayed());
     assert.equal(notificationTitleElement.text(), notificationTitle);
     assert.equal(notificationDetailElement.text(), notificationBody);
