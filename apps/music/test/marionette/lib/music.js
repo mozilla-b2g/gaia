@@ -71,6 +71,7 @@ Music.Selector = Object.freeze({
   progressBar: '#player-seek-bar-progress',
   shareButton: 'button[data-action="share"]',
   shareMenu: 'form[data-z-index-level="action-menu"]',
+  repeatButton: '#controls button[data-l10n-id^="repeat-"]',
   pickDoneButton: '#title-done',
   header: '#header',
   titleText: '#header-title',
@@ -197,6 +198,23 @@ Music.prototype = {
     return value ? parseInt(value, 10) : 0;
   },
 
+  getRepeatSetting: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+
+    this.client.switchToFrame(frame);
+
+    var artwork = this.client.findElement(Music.Selector.playerCover);
+    assert.ok(artwork);
+
+    var value = artwork.getAttribute('repeat');
+    assert.ok(value);
+
+    this.switchToMe();
+
+    return value;
+  },
+
   getShuffleSetting: function() {
     var frame = this.playerViewFrame;
     assert.ok(frame);
@@ -307,6 +325,10 @@ Music.prototype = {
 
   get shareButton() {
     return this.client.findElement(Music.Selector.shareButton);
+  },
+
+  get repeatButton() {
+    return this.client.findElement(Music.Selector.repeatButton);
   },
 
   get title() {
@@ -684,8 +706,8 @@ Music.prototype = {
     this.client.switchToFrame(frame);
 
     var cover = this.client.findElement(Music.Selector.playerCover);
-    this.client.switchToShadowRoot(cover);
     assert.ok(cover);
+    this.client.switchToShadowRoot(cover);
     var ratingEl = this.client.findElement('#rating');
     assert.ok(rating);
     this.client.switchToShadowRoot(ratingEl);
@@ -695,6 +717,25 @@ Music.prototype = {
     assert.ok(star);
     star.click();
     this.client.switchToShadowRoot();
+    this.client.switchToShadowRoot();
+
+    this.switchToMe();
+  },
+
+  tapRepeat: function() {
+    this.waitForRatingOverlayHidden();
+    this.showSongInfo();
+
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    var cover = this.client.findElement(Music.Selector.playerCover);
+    assert.ok(cover);
+    this.client.switchToShadowRoot(cover);
+
+    this.repeatButton.tap();
+
     this.client.switchToShadowRoot();
 
     this.switchToMe();
@@ -717,8 +758,8 @@ Music.prototype = {
       this.client.switchToFrame(frame);
 
       var cover = this.client.findElement(Music.Selector.playerCover);
-      this.client.switchToShadowRoot(cover);
       assert.ok(cover);
+      this.client.switchToShadowRoot(cover);
 
       this.shareButton.tap();
 
