@@ -175,6 +175,10 @@
   white-space: nowrap; /* 1 */
 }
 
+.settings-back-btn + .settings_title {
+  padding-left: 3rem;
+}
+
 /**
  * [dir=rtl]
  */
