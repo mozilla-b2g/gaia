@@ -951,6 +951,9 @@ Camera.prototype.startRecording = function(options) {
   function onSuccess() {
     self.ready();
 
+    // We clear faces when video recording starts
+    self.focus.clearFaceDetection();
+
     // User closed app while
     // recording was trying to start
     //
