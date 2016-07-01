@@ -12,6 +12,7 @@ ActivityCallerApp.Selector = Object.freeze({
   launchactivity: '#launchactivity',
   testchainactivity: '#testchainactivity',
   testdefaultactivity: '#testdefaultactivity',
+  testactivitynoreturnvaluewpostresult: '#testactivitynoreturnvaluewpostresult',
   closeButton: '#close',
   inputElement: '#input',
   dateInputElement: '#dateinput',
@@ -36,6 +37,12 @@ ActivityCallerApp.prototype = {
     return this.client.findElement(
       ActivityCallerApp.Selector.testdefaultactivity);
   },
+
+  get testactivitynoreturnvaluewpostresult() {
+    return this.client.findElement(
+      ActivityCallerApp.Selector.testactivitynoreturnvaluewpostresult);
+  },
+
 
   get closeButton() {
     return this.client.findElement(ActivityCallerApp.Selector.closeButton);
@@ -80,6 +87,12 @@ ActivityCallerApp.prototype = {
   startDefaultActivity: function() {
     this.switchTo();
     this.testdefaultactivity.tap();
+    this.client.switchToFrame();
+  },
+
+  startActivityNoReturnValue: function() {
+    this.switchTo();
+    this.testactivitynoreturnvaluewpostresult.tap();
     this.client.switchToFrame();
   },
 

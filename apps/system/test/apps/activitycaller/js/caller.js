@@ -27,6 +27,13 @@ document.getElementById('testdefaultactivity')
     });
   });
 
+document.getElementById('testactivitynoreturnvaluewpostresult')
+  .addEventListener('click', function() {
+    new MozActivity({
+      name: 'test-chain-inline'
+    });
+  });
+
 document.getElementById('close').addEventListener('click', function() {
   window.close();
 });
