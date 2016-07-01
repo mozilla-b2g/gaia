@@ -72,7 +72,17 @@ var MmiManager = {
        * should be possible to get it in the callback. */
       return promise.then(function(result) {
         if (result.success) {
-          self.notifySuccess(result, message);
+          // Add a special case for ussd here (bug 1199141)
+          if (result.serviceCode === 'scUssd') {
+            var ci = self.cardIndexForConnection(conn);
+
+            MmiManager.handleMMIReceived(
+              result.statusMessage,
+              result.additionalInformation,
+              ci);
+          } else {
+            self.notifySuccess(result, message);
+          }
         } else {
           self.notifyError(result, message);
         }
@@ -201,7 +211,7 @@ var MmiManager = {
       case 'scCallBarring':
       case 'scCallWaiting':
         message = this._(mmiResult.statusMessage);
-        // If we are just querying the status of the service, we show a 
+        // If we are just querying the status of the service, we show a
         // different message, so the user knows she hasn't change anything
         if (sentMMI === CALL_BARRING_STATUS_MMI_CODE ||
             sentMMI === CALL_WAITING_STATUS_MMI_CODE) {
@@ -382,7 +392,14 @@ var MmiManager = {
     var self = this;
 
     return this._session.send(message).then(function(request) {
-       self._pendingRequest = request;
+      self._pendingRequest = request;
+
+      // Check if gecko inludes change from bug 1199141
+      if (typeof request !== 'undefined') {
+        request.result.then(function (result) {
+          self.notifySuccess(result, message);
+        });
+      }
     });
   },
 
