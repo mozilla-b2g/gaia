@@ -1,15 +1,17 @@
 /* global MocksHelper, MockService, AppTextSelectionDialog,
-          MockSettingsListener */
+          MockSettingsListener, mockMozActivityInstance */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_activity.js');
 
 var mocksForAppTextSelectionDialog = new MocksHelper([
   'SettingsListener',
-  'Service'
+  'Service',
+  'MozActivity'
 ]).init();
 
 suite('system/AppTextSelectionDialog', function() {
@@ -77,6 +79,7 @@ suite('system/AppTextSelectionDialog', function() {
     mockDetail.detail.caretVisible = true;
     mockDetail.detail.selectionVisible = true;
     mockDetail.detail.selectionEditable = true;
+    mockDetail.detail.selectedTextContent = 'selected text';
     fakeTextSelectInAppEvent.detail = mockDetail;
     td.handleEvent(fakeTextSelectInAppEvent);
 
@@ -279,7 +282,8 @@ suite('system/AppTextSelectionDialog', function() {
         commands: {
           canPaste: true,
           canSelectAll: true
-        }
+        },
+        selectedTextContent: 'selected text'
       };
 
       fakeTextSelectInAppEvent.detail = {
@@ -464,14 +468,16 @@ suite('system/AppTextSelectionDialog', function() {
         'Paste': false,
         'Copy': false,
         'Cut': true,
-        'SelectAll': true
+        'SelectAll': true,
+        'Action': true
       });
 
       verifyClickableOptions({
         'Paste': true,
         'Copy': false,
         'Cut': false,
-        'SelectAll': false
+        'SelectAll': false,
+        'Action': true
       });
     });
 
@@ -480,7 +486,8 @@ suite('system/AppTextSelectionDialog', function() {
         'Paste': true,
         'Copy': true,
         'Cut': true,
-        'SelectAll': true
+        'SelectAll': true,
+        'Action': true
       });
       emitClickEvent(td.elements.selectall);
       assert.equal(stubDoCommand.getCall(0).args[1], 'selectall');
@@ -491,7 +498,8 @@ suite('system/AppTextSelectionDialog', function() {
         'Paste': true,
         'Copy': true,
         'Cut': true,
-        'SelectAll': true
+        'SelectAll': true,
+        'Action': true
       });
       emitClickEvent(td.elements.paste);
       assert.equal(stubDoCommand.getCall(0).args[1], 'paste');
@@ -502,7 +510,8 @@ suite('system/AppTextSelectionDialog', function() {
         'Paste': true,
         'Copy': true,
         'Cut': true,
-        'SelectAll': true
+        'SelectAll': true,
+        'Action': true
       });
       emitClickEvent(td.elements.cut);
       assert.equal(stubDoCommand.getCall(0).args[1], 'cut');
@@ -513,7 +522,8 @@ suite('system/AppTextSelectionDialog', function() {
         'Paste': true,
         'Copy': true,
         'Cut': true,
-        'SelectAll': true
+        'SelectAll': true,
+        'Action': true
       });
       emitClickEvent(td.elements.copy);
       assert.equal(stubDoCommand.getCall(0).args[1], 'copy');
@@ -765,6 +775,40 @@ suite('system/AppTextSelectionDialog', function() {
             td.DISTANCE_FROM_BOUNDARY
         });
       });
+  });
 
+  suite('check action type', function() {
+    test('detectActionType as search action while text length < SHARE_LENGTH',
+    function() {
+      td.selectedTextContent = 'mock text';
+      assert.equal(td._detectActionType(), 'search');
+    });
+
+    test('detectActionType as share action while text length >= SHARE_LENGTH',
+    function() {
+      td.selectedTextContent = 'more longer text will trigger share action';
+      assert.equal(td._detectActionType(), 'share');
+    });
+  });
+
+  suite('handle actions', function() {
+    test('call search activity when actiontype equals search', function() {
+      td.selectedTextContent = 'mock text';
+      td.actionType = 'search';
+      td.actionHandler({});
+      assert.equal(mockMozActivityInstance.name, 'search');
+      assert.equal(mockMozActivityInstance.data.type, 'text/plain');
+      assert.equal(mockMozActivityInstance.data.keyword,
+        td.selectedTextContent);
+    });
+
+    test('call share activity when actiontype equals share', function() {
+      td.selectedTextContent = 'more longer text will trigger share action';
+      td.actionType = 'share';
+      td.actionHandler({});
+      assert.equal(mockMozActivityInstance.name, 'share');
+      assert.equal(mockMozActivityInstance.data.type, 'url');
+      assert.equal(mockMozActivityInstance.data.url, td.selectedTextContent);
+    });
   });
 });

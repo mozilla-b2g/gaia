@@ -1,9 +1,11 @@
-/* global SettingsListener, Service */
+/* global SettingsListener, Service, MozActivity */
 'use strict';
 (function(exports) {
   var DEBUG = false;
   var _id = 0;
   var _globalStates = null;
+  // The tipping point of search or share
+  var SHARE_LENGTH = 30;
 
   // Manipulate global states for app text selection dialog across all apps. All
   // states which are shared by apps should be put in this class.
@@ -213,6 +215,7 @@
         detail.commands.canCut = false;
         detail.commands.canCopy = false;
         detail.commands.canSelectAll = false;
+        detail.commands.canAction = false;
         this.show(detail);
       } else {
         this.hide();
@@ -224,7 +227,20 @@
       // make sure cut command option is only shown on editable element
       detail.commands.canCut = detail.commands.canCut &&
                                  detail.selectionEditable;
+      // always show the action button in selection mode
+      detail.commands.canAction = true;
+      this.selectedTextContent = detail.selectedTextContent;
+      this.actionType = this._detectActionType();
       this.show(detail);
+    };
+
+  AppTextSelectionDialog.prototype._detectActionType =
+    function tsd__detectActionType() {
+      if (this.selectedTextContent.length < SHARE_LENGTH) {
+        return 'search';
+      } else {
+        return 'share';
+      }
     };
 
   AppTextSelectionDialog.prototype._fetchElements =
@@ -238,7 +254,7 @@
         });
       };
 
-      this.elementClasses = ['copy', 'cut', 'paste', 'selectall'];
+      this.elementClasses = ['copy', 'cut', 'paste', 'selectall', 'action'];
 
       // Loop and add element with camel style name to Modal Dialog attribute.
       this.elementClasses.forEach(function createElementRef(name) {
@@ -361,6 +377,41 @@
       this._doCommand(evt, 'selectall', false);
   };
 
+  AppTextSelectionDialog.prototype.actionHandler =
+    function tsd_actionHandler(evt) {
+      this.debug('act as ' + this.actionType +': '+
+        this.selectedTextContent);
+      switch(this.actionType) {
+        case 'share':
+          var shareActivity = new MozActivity({
+            name: 'share',
+            data: {
+              type: 'url',
+              url: this.selectedTextContent
+            }
+          });
+          shareActivity.onerror = (e) => {
+            var msg = 'open activity error:' + shareActivity.error.name;
+            console.error(msg);
+          };
+          break;
+        default: // leverage default search provider
+          var searchActivity = new MozActivity({
+            name: 'search',
+            data: {
+              type: 'text/plain',
+              keyword: this.selectedTextContent
+            }
+          });
+          searchActivity.onerror = (e) => {
+            var msg = 'open activity error:' + searchActivity.error.name;
+            console.error(msg);
+          };
+          break;
+      }
+      this.close();
+  };
+
   AppTextSelectionDialog.prototype.view = function tsd_view() {
     var id = this.CLASS_NAME + this.instanceID;
     var temp = `<div class="textselection-dialog" id="${id}">
@@ -371,13 +422,15 @@
                 </div>
               <div data-action="paste" class="textselection-dialog-paste">
                 </div>
+              <div data-action="action" class="textselection-dialog-action">
+                </div>
             </div>`;
     return temp;
   };
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
     var numOfSelectOptions = 0;
-    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
+    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll', 'Action' ];
 
     // Check this._injected here to make sure this.elements is initialized.
     if (!this._injected) {
@@ -393,6 +446,12 @@
       if (detail.commands['can' + option]) {
         numOfSelectOptions++;
         lastVisibleOption = this.elements[option.toLowerCase()];
+        // append action style
+        if (option === 'Action') {
+          lastVisibleOption.className = 'textselection-dialog-action';
+          lastVisibleOption.classList.add('textselection-dialog-action-'+
+            this.actionType);
+        }
         lastVisibleOption.classList.remove('hidden', 'last-option');
       } else {
         this.elements[option.toLowerCase()].classList.add('hidden');
