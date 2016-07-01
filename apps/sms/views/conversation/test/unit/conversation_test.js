@@ -2962,6 +2962,58 @@ suite('conversation.js >', function() {
       });
     });
 
+    suite('delete current thread', function() {
+      setup(function() {
+        this.sinon.spy(ConversationView, 'updateDraft');
+        this.sinon.spy(MessageManager, 'deleteMessages');
+        this.sinon.stub(MessageManager, 'getMessages');
+        this.sinon.stub(Navigation, 'toPanel').returns(Promise.resolve());
+      });
+
+      test('called confirm with proper message', function(done) {
+        ConversationView.delete(true /* deleteEntireThread */).then(() => {
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'deleteCurrentThread-confirmation', null,
+            {
+              text: 'delete',
+              className: 'danger'
+            }
+          );
+        }).then(done, done);
+      });
+
+      test('when not in an activity, deletes the thread and navigates back',
+      function(done) {
+        // All messages should be removed from the active thread object.
+        ConversationView.activeThread.messages = [];
+        ConversationView.delete(true).then(() => {
+          MessageManager.getMessages.yieldTo('end', [1, 2, 5, 6, 7, 8]);
+
+          sinon.assert.calledWith(
+            MessageManager.deleteMessages, [1, 2, 5, 6, 7, 8]
+          );
+          sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+        }).then(done, done);
+      });
+
+      test('when in an activity, deletes the thread and closes activity',
+      function(done) {
+        ActivityClient.hasPendingRequest.returns(true);
+        // All messages should be removed from the active thread object.
+        ConversationView.activeThread.messages = [];
+        ConversationView.delete(true).then(() => {
+          MessageManager.getMessages.yieldTo('end', [1, 2, 5, 6, 7, 8]);
+
+          sinon.assert.calledWith(
+            MessageManager.deleteMessages, [1, 2, 5, 6, 7, 8]
+          );
+          sinon.assert.called(ConversationView.updateDraft);
+          sinon.assert.called(ActivityClient.postResult);
+        }).then(done, done);
+      });
+    });
+
     test('error still resolves deleteMessages', function(done) {
       MessageManager.getMessage.returns(Promise.reject('error'));
       ConversationView.deleteMessages([]).then(() => {
@@ -6282,7 +6334,7 @@ suite('conversation.js >', function() {
   /* The options menu depends on the situation:
    * - 'Add Subject' if there's none, 'Delete subject' if previously added
    * - 'Delete messages' for existing conversations
-   * - 'Settings' for all cases
+   * - 'Include Someone Else' for all cases
    */
   suite('Options menu', function() {
 
@@ -6319,11 +6371,14 @@ suite('conversation.js >', function() {
       test('should show option for adding subject', function() {
         assert.equal(options[0].l10nId, 'add-subject');
       });
+      test('should show option for delete thread', function() {
+        assert.equal(options[1].l10nId, 'delete-thread');
+      });
       test('should show option for adding recipients', function() {
-        assert.equal(options[1].l10nId, 'includeSomeoneElse-label');
+        assert.equal(options[2].l10nId, 'includeSomeoneElse-label');
       });
       test('should show option for selecting messages', function() {
-        assert.equal(options[2].l10nId, 'selectMessages-label');
+        assert.equal(options[3].l10nId, 'selectMessages-label');
       });
     });
   });

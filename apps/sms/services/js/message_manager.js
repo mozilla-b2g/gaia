@@ -471,8 +471,10 @@ var MessageManager = {
   },
 
   /**
-   * Deletes messages using the message id provided.
-   * @param {number} id The ID of the message to be deleted.
+   * Deletes messages using the parameter provided.
+   * @param {number|SmsMessage|MmmsMessage|Array<number|SmsMessage|MmsMessage>}
+   * id Message id, message instance or list of aforementioned entities used to
+   * identify message(s) to delete.
    * @return {Promise}
    */
   deleteMessages: function mm_deleteMessages(id) {
