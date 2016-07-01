@@ -1,6 +1,6 @@
 /* global ContactsButtons, LazyLoader, utils, WebrtcClient */
 /* global Normalizer, ContactPhotoHelper */
-
+/* global TAG_OPTIONS */
 /* exported DetailsUI */
 
 /*
@@ -283,7 +283,12 @@
       }
 
       // Load what we need
-      LazyLoader.load('/contacts/js/utilities/mozContact.js', () => {
+      LazyLoader.load(
+        [
+          '/contacts/js/utilities/mozContact.js',
+          '/contacts/js/tag_options.js'
+        ],
+        () => {
         for (var i = 0; i < contact.adr.length; i++) {
           var currentAddress = contact.adr[i];
           // Sanity check
@@ -295,6 +300,7 @@
           var escapedStreet = Normalizer.escapeHTML(address, true);
           var locality = currentAddress.locality;
           var escapedLocality = Normalizer.escapeHTML(locality, true);
+          var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
           var country = currentAddress.countryName || '';
           var escapedCountry = Normalizer.escapeHTML(country, true);
           var postalCode = currentAddress.postalCode || '';
@@ -305,6 +311,8 @@
             postalCode: escapedPostalCode,
             locality: escapedLocality || '',
             countryName: escapedCountry,
+            type: _(escapedType) || escapedType ||
+                                          TAG_OPTIONS['address-type'][0].value,
             'type_l10n_id': currentAddress.type,
             i: i
           };
