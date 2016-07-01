@@ -2210,7 +2210,7 @@ var ConversationView = {
 
         params.items.push(
           {
-            l10nId: 'select-text',
+            l10nId: 'copy-text',
             method: (node) => {
               this.enableBubbleSelection(
                 node.querySelector('.message-content-body')
@@ -3149,7 +3149,11 @@ var ConversationView = {
     this.container.removeEventListener('contextmenu', this);
     threadMessagesClass.remove('editable-select-mode');
     node.focus();
-    window.getSelection().selectAllChildren(node);
+    document.addEventListener('copy', function(e) {
+      e.clipboardData.setData('text/plain', node.textContent);
+      e.preventDefault();
+    });
+    document.execCommand('copy');
   }
 };
 
