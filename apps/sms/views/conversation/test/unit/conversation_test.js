@@ -5293,20 +5293,17 @@ suite('conversation.js >', function() {
   });
 
   suite('Sending Behavior (onSendClick)', function() {
-    function clickButton() {
-      clickButtonAndSelectSim(0);
-    }
-
-    function clickButtonAndSelectSim(serviceId) {
+    function clickButtonAndSelectSim(serviceId = 0) {
       ConversationView.onSendClick();
       // we get a string from the MultiSimActionButton
-      ConversationView.simSelectedCallback(undefined, '' + serviceId);
+      return ConversationView.simSelectedCallback(undefined, '' + serviceId);
     }
 
     setup(function() {
       this.sinon.stub(Compose, 'focus');
       this.sinon.stub(Compose, 'getContent');
       this.sinon.stub(Compose, 'isEmpty').returns(false);
+      this.sinon.stub(Utils, 'confirm');
 
       Compose.type = 'sms';
 
@@ -5327,7 +5324,63 @@ suite('conversation.js >', function() {
       ConversationView.initRecipients();
     });
 
-    test('SMS, 1 Recipient, moves to thread', function() {
+    test('send empty SMS to one Recipient', function(done) {
+      Compose.isEmpty.returns(true);
+      Compose.getContent.returns([]); //return empty message
+      Utils.confirm.returns(Promise.resolve());
+
+      var recipient = '999';
+
+      ConversationView.recipients.add({
+        number: recipient
+      });
+
+      clickButtonAndSelectSim().then(() => {
+        sinon.assert.calledWith(
+          Utils.confirm, 'sendEmptyMessage-confirmation', null,
+          {
+            className: 'danger'
+          }
+        );
+
+        sinon.assert.called(Compose.focus);
+        sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+          recipients: [recipient],
+          content: '',
+          serviceId: 0
+        });
+      }, () => {
+        throw new Error('Promise should not be rejected!');
+      }).then(done, done);
+    });
+
+    test('user doesn\'t confirm sending of empty messages', function(done) {
+      Compose.isEmpty.returns(true);
+      Compose.getContent.returns([]);
+      Utils.confirm.returns(Promise.reject());
+
+      var recipient = '999';
+
+      ConversationView.recipients.add({
+        number: recipient
+      });
+
+      clickButtonAndSelectSim().then(() => {
+        throw new Error('Promise should not be resolved!');
+      }, () => {
+        sinon.assert.calledWith(
+          Utils.confirm, 'sendEmptyMessage-confirmation', null,
+          {
+            className: 'danger'
+          }
+        );
+
+        sinon.assert.notCalled(Compose.focus);
+        sinon.assert.notCalled(MessageManager.sendSMS);
+      }).then(done, done);
+    });
+
+    test('SMS, 1 Recipient, moves to thread', function(done) {
       var body = 'foo';
       var recipient = '999';
 
@@ -5337,32 +5390,32 @@ suite('conversation.js >', function() {
 
       Compose.getContent.returns([body]);
 
-      clickButton();
+      clickButtonAndSelectSim().then(() => {
+        sinon.assert.called(Compose.focus);
+        sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+          recipients: [recipient],
+          content: body,
+          serviceId: 0
+        });
 
-      sinon.assert.called(Compose.focus);
-      sinon.assert.calledWithMatch(MessageManager.sendSMS, {
-        recipients: [recipient],
-        content: body,
-        serviceId: 0
-      });
+        var sentMessage = MockMessages.sms({
+          body: body,
+          receiver: recipient
+        });
 
-      var sentMessage = MockMessages.sms({
-        body: body,
-        receiver: recipient
-      });
+        MessageManager.on.withArgs('message-sending').yield({
+          message: sentMessage
+        });
 
-      MessageManager.on.withArgs('message-sending').yield({
-        message: sentMessage
-      });
-
-      sinon.assert.calledWith(
-        Navigation.toPanel,
-        'thread',
-        { id: sentMessage.threadId }
-      );
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'thread',
+          { id: sentMessage.threadId }
+        );
+      }).then(done, done);
     });
 
-    test('MMS, 1 Recipient, moves to thread', function() {
+    test('MMS, 1 Recipient, moves to thread', function(done) {
       var recipient = '999';
 
       ConversationView.recipients.add({
@@ -5372,33 +5425,35 @@ suite('conversation.js >', function() {
       Compose.getContent.returns([mockAttachment(512)]);
       Compose.type = 'mms';
 
-      clickButton();
+      clickButtonAndSelectSim().then(() => {
+        sinon.assert.called(Compose.focus);
+        sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+          recipients: [recipient],
+          serviceId: 0
+        });
 
-      sinon.assert.called(Compose.focus);
-      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
-        recipients: [recipient],
-        serviceId: 0
-      });
+        var sentMessage = MockMessages.mms({
+          receivers: [recipient]
+        });
 
-      var sentMessage = MockMessages.mms({
-        receivers: [recipient]
-      });
+        MessageManager.on.withArgs('message-sending').yield({
+          message: sentMessage
+        });
 
-      MessageManager.on.withArgs('message-sending').yield({
-        message: sentMessage
-      });
-
-      sinon.assert.calledWith(
-        Navigation.toPanel,
-        'thread',
-        { id: sentMessage.threadId }
-      );
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'thread',
+          { id: sentMessage.threadId }
+        );
+      }).then(done, done);
     });
 
-    suite('SMS, >1 Recipient,', function() {
+    suite('SMS, >1 Recipient,', function(done) {
+      var recipients, body;
+
       function sendSmsToSeveralRecipients() {
-        var recipients = ['999', '888'];
-        var body = 'foo';
+        recipients = ['999', '888'];
+        body = 'foo';
 
         recipients.forEach(function(recipient) {
           ConversationView.recipients.add({
@@ -5408,16 +5463,9 @@ suite('conversation.js >', function() {
 
         Compose.getContent.returns([body]);
 
-        clickButton();
+      }
 
-        sinon.assert.notCalled(Compose.focus);
-        sinon.assert.calledWithMatch(
-          MessageManager.sendSMS, {
-          recipients: recipients,
-          content: body,
-          serviceId: 0
-        });
-
+      function messageSendingEvent() {
         recipients.forEach(function(recipient) {
           var sentMessage = MockMessages.sms({
             body: body,
@@ -5430,25 +5478,49 @@ suite('conversation.js >', function() {
         });
       }
 
-      test('moves to thread list', function() {
+      test('moves to thread list', function(done) {
         sendSmsToSeveralRecipients();
-        sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.notCalled(Compose.focus);
+          sinon.assert.calledWithMatch(
+            MessageManager.sendSMS, {
+            recipients: recipients,
+            content: body,
+            serviceId: 0
+          });
+          sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+        }).then(done, done);
+
+        messageSendingEvent();
       });
 
-      test('then closes if we\'re in the activity', function() {
+      test('then closes if we\'re in the activity', function(done) {
         this.sinon.stub(ConversationView, 'backOrClose');
         ActivityClient.hasPendingRequest.returns(true);
 
         sendSmsToSeveralRecipients();
-        sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
 
-        this.sinon.clock.tick(ConversationView.LEAVE_ACTIVITY_DELAY);
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.notCalled(Compose.focus);
+          sinon.assert.calledWithMatch(
+            MessageManager.sendSMS, {
+            recipients: recipients,
+            content: body,
+            serviceId: 0
+          });
+          sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
 
-        sinon.assert.called(ConversationView.backOrClose);
+          this.sinon.clock.tick(ConversationView.LEAVE_ACTIVITY_DELAY);
+
+          sinon.assert.called(ConversationView.backOrClose);
+        }).then(done, done);
+
+        messageSendingEvent();
       });
     });
 
-    test('MMS, >1 Recipient, moves to thread', function() {
+    test('MMS, >1 Recipient, moves to thread', function(done) {
       var recipients = ['999', '888'];
 
       recipients.forEach(function(recipient) {
@@ -5460,28 +5532,28 @@ suite('conversation.js >', function() {
       Compose.getContent.returns([mockAttachment(512)]);
       Compose.type = 'mms';
 
-      clickButton();
+      clickButtonAndSelectSim().then(() => {
+        sinon.assert.called(Compose.focus);
+        sinon.assert.notCalled(Navigation.toPanel);
+        sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+          recipients: recipients,
+          serviceId: 0
+        });
 
-      sinon.assert.called(Compose.focus);
-      sinon.assert.notCalled(Navigation.toPanel);
-      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
-        recipients: recipients,
-        serviceId: 0
-      });
+        var sentMessage = MockMessages.mms({
+          receivers: recipients
+        });
 
-      var sentMessage = MockMessages.mms({
-        receivers: recipients
-      });
+        MessageManager.on.withArgs('message-sending').yield({
+          message: sentMessage
+        });
 
-      MessageManager.on.withArgs('message-sending').yield({
-        message: sentMessage
-      });
-
-      sinon.assert.calledWith(
-        Navigation.toPanel,
-        'thread',
-        { id: sentMessage.threadId }
-      );
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'thread',
+          { id: sentMessage.threadId }
+        );
+      }).then(done, done);
     });
 
     suite('DSDS behavior', function() {
@@ -5491,7 +5563,7 @@ suite('conversation.js >', function() {
       });
 
       test('MMS, SMS serviceId is the same than the MMS serviceId, sends asap',
-      function() {
+      function(done) {
         Settings.mmsServiceId = 1;
         var targetServiceId = 1;
 
@@ -5504,16 +5576,16 @@ suite('conversation.js >', function() {
         Compose.getContent.returns([mockAttachment(512)]);
         Compose.type = 'mms';
 
-        clickButtonAndSelectSim(targetServiceId);
-
-        sinon.assert.calledWithMatch(MessageManager.sendMMS, {
-          recipients: [recipient],
-          serviceId: 1
-        });
+        clickButtonAndSelectSim(targetServiceId).then(() => {
+          sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+            recipients: [recipient],
+            serviceId: 1
+          });
+        }).then(done, done);
       });
 
       test('SMS, SMS serviceId is different than MMS serviceId, sends asap',
-      function() {
+      function(done) {
         Settings.mmsServiceId = 1;
         var targetServiceId = 0;
 
@@ -5526,13 +5598,13 @@ suite('conversation.js >', function() {
 
         Compose.getContent.returns([body]);
 
-        clickButtonAndSelectSim(targetServiceId);
-
-        sinon.assert.calledWithMatch(MessageManager.sendSMS, {
-          recipients: [recipient],
-          content: body,
-          serviceId: 0
-        });
+        clickButtonAndSelectSim(targetServiceId).then(() => {
+          sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+            recipients: [recipient],
+            content: body,
+            serviceId: 0
+          });
+        }).then(done, done);
       });
     });
 
@@ -5545,17 +5617,17 @@ suite('conversation.js >', function() {
         this.sinon.spy(ConversationView, 'onMessageSendRequestCompleted');
       });
 
-      test('called if SMS is successfully sent', function() {
+      test('called if SMS is successfully sent', function(done) {
         MessageManager.sendSMS.yieldsTo('oncomplete', {});
 
         Compose.getContent.returns(['foo']);
 
-        clickButton();
-
-        sinon.assert.called(ConversationView.onMessageSendRequestCompleted);
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.called(ConversationView.onMessageSendRequestCompleted);
+        }).then(done, done);
       });
 
-      test('is not called if SMS is failed to be sent', function() {
+      test('is not called if SMS is failed to be sent', function(done) {
         MessageManager.sendSMS.yieldsTo('oncomplete', {
           hasError: true,
           return: [{
@@ -5565,35 +5637,39 @@ suite('conversation.js >', function() {
 
         Compose.getContent.returns(['foo']);
 
-        clickButton();
-
-        sinon.assert.notCalled(ConversationView.onMessageSendRequestCompleted);
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.notCalled(
+            ConversationView.onMessageSendRequestCompleted
+          );
+        }).then(done, done);
       });
 
-      test('called if MMS is successfully sent', function() {
+      test('called if MMS is successfully sent', function(done) {
         MessageManager.sendMMS.yieldsTo('onsuccess', {});
 
         Compose.getContent.returns([mockAttachment(512)]);
         Compose.type = 'mms';
 
-        clickButton();
-
-        sinon.assert.called(ConversationView.onMessageSendRequestCompleted);
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.called(ConversationView.onMessageSendRequestCompleted);
+        }).then(done, done);
       });
 
-      test('is not called if MMS is failed to be sent', function() {
+      test('is not called if MMS is failed to be sent', function(done) {
         MessageManager.sendMMS.yieldsTo('onerror', new Error('failed'));
 
         Compose.getContent.returns([mockAttachment(512)]);
         Compose.type = 'mms';
 
-        clickButton();
-
-        sinon.assert.notCalled(ConversationView.onMessageSendRequestCompleted);
+        clickButtonAndSelectSim().then(() => {
+          sinon.assert.notCalled(
+            ConversationView.onMessageSendRequestCompleted
+          );
+        }).then(done, done);
       });
     });
 
-    test('Deletes draft if there was a draft', function() {
+    test('Deletes draft if there was a draft', function(done) {
       this.sinon.spy(Drafts, 'delete');
       this.sinon.spy(Drafts, 'store');
 
@@ -5604,13 +5680,13 @@ suite('conversation.js >', function() {
 
       Compose.getContent.returns(['foo']);
 
-      clickButton();
+      clickButtonAndSelectSim().then(() => {
+       sinon.assert.calledOnce(Drafts.delete);
+       sinon.assert.calledOnce(Drafts.store);
+       sinon.assert.callOrder(Drafts.delete, Drafts.store);
 
-      sinon.assert.calledOnce(Drafts.delete);
-      sinon.assert.calledOnce(Drafts.store);
-      sinon.assert.callOrder(Drafts.delete, Drafts.store);
-
-      assert.isNull(ConversationView.draft);
+       assert.isNull(ConversationView.draft);
+     }).then(done, done);
     });
 
     suite('sendMMS errors', function() {
@@ -5624,27 +5700,31 @@ suite('conversation.js >', function() {
 
         Compose.getContent.returns([mockAttachment(512)]);
         Compose.type = 'mms';
-
-        clickButton();
       });
 
-      test('NotFoundError', function() {
-        MessageManager.sendMMS.yieldTo('onerror', { name: 'NotFoundError' });
-        sinon.assert.notCalled(MockErrorDialog.prototype.show);
+      test('NotFoundError', function(done) {
+        clickButtonAndSelectSim().then(() => {
+          MessageManager.sendMMS.yieldTo('onerror', { name: 'NotFoundError' });
+          sinon.assert.notCalled(MockErrorDialog.prototype.show);
+        }).then(done, done);
       });
 
-      test('NonActiveSimCardError', function() {
-        MessageManager.sendMMS.yieldTo('onerror',
-          { name: 'NonActiveSimCardError' });
-        assert.equal(
-          ConversationView.showErrorInFailedEvent, 'NonActiveSimCardError'
-        );
-        sinon.assert.notCalled(MockErrorDialog.prototype.show);
+      test('NonActiveSimCardError', function(done) {
+        clickButtonAndSelectSim().then(() => {
+          MessageManager.sendMMS.yieldTo('onerror',
+            { name: 'NonActiveSimCardError' });
+          assert.equal(
+            ConversationView.showErrorInFailedEvent, 'NonActiveSimCardError'
+          );
+          sinon.assert.notCalled(MockErrorDialog.prototype.show);
+        }).then(done, done);
       });
 
-      test('Generic error', function() {
-        MessageManager.sendMMS.yieldTo('onerror', { name: 'GenericError' });
-        sinon.assert.called(MockErrorDialog.prototype.show);
+      test('Generic error', function(done) {
+        clickButtonAndSelectSim().then(() => {
+          MessageManager.sendMMS.yieldTo('onerror', { name: 'GenericError' });
+          sinon.assert.called(MockErrorDialog.prototype.show);
+       }).then(done, done);
       });
     });
   });

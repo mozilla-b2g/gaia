@@ -374,7 +374,7 @@ suite('ConversationView Integration', function() {
       assert.ok(is.placeholder(children[2]));
     });
 
-    test('Assimilate stranded recipients (sendButton)', function() {
+    test('Assimilate stranded recipients (sendButton)', function(done) {
       // To ensure the onSendClick handler will succeed:
 
       // 1. Add some content to the message
@@ -405,14 +405,14 @@ suite('ConversationView Integration', function() {
 
       // Simulate sendButton click
       ConversationView.onSendClick();
-      ConversationView.simSelectedCallback(undefined, 0);
-
-      // Ensure that the "unaccepted" recipient was assimilated
-      // and included in the recipients list when message was sent
-      sinon.assert.calledWithMatch(MessageManager.sendSMS, {
-        recipients: ['999', '000'],
-        content: 'foo'
-      });
+      ConversationView.simSelectedCallback(undefined, 0).then(() => {
+        // Ensure that the "unaccepted" recipient was assimilated
+        // and included in the recipients list when message was sent
+        sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+          recipients: ['999', '000'],
+          content: 'foo'
+        });
+      }).then(done, done);
     });
 
     /* Bug:909641 test fails on ci

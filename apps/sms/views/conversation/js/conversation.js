@@ -2277,10 +2277,6 @@ var ConversationView = {
   },
 
   onSendClick: function conv_onSendClick() {
-    if (Compose.isEmpty()) {
-      return;
-    }
-
     // Assimilation 3 (see "Assimilations" above)
     // User may return to recipients, type a new recipient
     // manually and then click the sendButton without "accepting"
@@ -2293,16 +2289,21 @@ var ConversationView = {
 
   // FIXME/bug 983411: phoneNumber not needed.
   simSelectedCallback: function conv_simSelected(phoneNumber, cardIndex) {
-    if (Compose.isEmpty()) {
-      return;
-    }
+    var sendConfirmationPromise = Compose.isEmpty() ?
+      Utils.confirm(
+        'sendEmptyMessage-confirmation', null, { className: 'danger' }
+      ) :
+      Promise.resolve();
 
-    cardIndex = +cardIndex;
-    if (isNaN(cardIndex)) {
-      cardIndex = 0;
-    }
+    return sendConfirmationPromise.then(() => {
+      cardIndex = +cardIndex;
 
-    this.sendMessage({ serviceId: cardIndex });
+			if (isNaN(cardIndex)) {
+				cardIndex = 0;
+			}
+
+			this.sendMessage({ serviceId: cardIndex });
+		});
   },
 
   sendMessage: function conv_sendMessage(opts) {
@@ -2343,7 +2344,7 @@ var ConversationView = {
     if (messageType === 'sms') {
       MessageManager.sendSMS({
         recipients: recipients,
-        content: content[0],
+        content: content[0] || '',
         serviceId: serviceId,
         oncomplete: function onComplete(requestResult) {
           if (!requestResult.hasError) {
