@@ -32,20 +32,16 @@
      * @param {string} applicationInstanceId Unique identifier of app instance
      * where client resides in.
      */
-    init(applicationInstanceId) {
+    init(applicationInstanceId, endpoint) {
       if (!applicationInstanceId) {
         throw new Error('AppInstanceId is required!');
       }
-
-      var serviceEndpoint = new SharedWorker(
-        '/services/js/messaging/messaging_service.js'
-      );
 
       appInstanceId = applicationInstanceId;
 
       client = bridge.client({
         service: SERVICE_NAME,
-        endpoint: serviceEndpoint,
+        endpoint: endpoint,
         timeout: TIMEOUT
       });
     },
