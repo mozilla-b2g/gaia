@@ -446,6 +446,10 @@ a.button.disabled {
   pointer-events: none;
 }
 
+a#thumbnails-share-button.disabled, a#thumbnails-delete-button.disabled{
+  pointer-events: all;
+}
+
 .icon.icon-done {
   background: url('images/iconaction_done_30x30.png') no-repeat center center / 3rem !important;
 }
