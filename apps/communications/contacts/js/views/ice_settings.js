@@ -89,6 +89,8 @@ var contacts = window.contacts || {};
     });
 
     iceScreenInitialized = true;
+
+    ICEData.listenForChanges(refresh);
   };
 
   function reloadButtonsState(cb) {
