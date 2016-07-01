@@ -182,6 +182,16 @@ Gallery.prototype = {
     return this.thumbnailsImage[n].getAttribute('data-filename');
   },
 
+  waitForScanEnd: function() {
+    // Check if edit image button is enabled in fullscreen view.
+    // Enabled edit button indicates photodb scanning has ended
+    this.thumbnail.click();
+    this.client.waitFor(function() {
+      return this.editButton.getAttribute('class').indexOf('disabled') < 0;
+    }.bind(this));
+    this.fullscreenBackButton.click();
+  },
+
   /**
    * Start the Gallery, save the client for future ops, and wait for the
    * Gallery to finish an initial render.
