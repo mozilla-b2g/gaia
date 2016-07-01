@@ -44,6 +44,9 @@ var InboxView = {
    */
   notifyAboutSavedDraftWithId: null,
 
+  /**
+   * Initializes the inbox object with a standard template.
+   */
   init: function inbox_init() {
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
@@ -134,6 +137,9 @@ var InboxView = {
     this.sticky = null;
   },
 
+  /**
+   * Initializes a sticky header if this.sticky has been set to true.
+   */
   initStickyHeader: function inbox_initStickyHeader() {
     if (!this.sticky) {
       this.sticky =
@@ -141,6 +147,10 @@ var InboxView = {
     }
   },
 
+  /**
+   * The set of instructions to be executed before entering the inbox.
+   * @param  {Object} args Doesn't seem to be doing anything?
+   */
   beforeEnter: function inbox_beforeEnter(args = {}) {
     // In case user saved draft when Inbox was not the active view, we want to
     // notify that save operation successfully completed once user returns back
@@ -152,12 +162,19 @@ var InboxView = {
     }
   },
 
+  /**
+   * The set of instructions to be executed after the inbox is closed.
+   */
   beforeLeave: function inbox_beforeLeave() {
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
     this.cancelEdit();
   },
 
+  /**
+   * Gets an iterator to run through the set of Threads in the inbox.
+   * @return {Object}
+   */
   getIdIterator: function inbox_getIdIterator() {
     return Threads.keys();
   },
