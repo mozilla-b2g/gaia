@@ -98,14 +98,16 @@ CameraController.prototype.bindEvents = function() {
 
 CameraController.prototype.onRecordingChange = function(recording) {
   var active;
-  if (recording === 'started') {
+  if (recording === 'starting') {
     active = true;
-  } else if (recording === 'stopped') {
+  } else if (recording === 'saving' || recording === 'stopped') {
     active = false;
   } else {
     return;
   }
-  this.app.set('recording', active);
+  if (this.app.get('recording') !== active) {
+    this.app.set('recording', active);
+  }
 };
 
 /**

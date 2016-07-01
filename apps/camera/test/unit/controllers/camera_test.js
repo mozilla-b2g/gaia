@@ -202,19 +202,33 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onRecordingChange', function() {
-    test('Should set `recording` to true if started', function() {
-      this.controller.onRecordingChange('started');
+    test('Should set `recording` to true if starting', function() {
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.onRecordingChange('starting');
       assert.ok(this.app.set.calledWith('recording', true));
     });
 
     test('Should set `recording` to true if stopped', function() {
+      this.app.get.withArgs('recording').returns(true);
       this.controller.onRecordingChange('stopped');
       assert.ok(this.app.set.calledWith('recording', false));
     });
 
-    test('Should not set `recording` if starting or stopping', function() {
+    test('Should set `recording` to true if saving', function() {
+      this.app.get.withArgs('recording').returns(true);
+      this.controller.onRecordingChange('saving');
+      assert.ok(this.app.set.calledWith('recording', false));
+    });
+
+    test('Should not set `recording` if already set', function() {
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.onRecordingChange('saving');
+      assert.ok(this.app.set.notCalled);
+    });
+
+    test('Should not set `recording` if started or stopping', function() {
       var self = this;
-      ['error', 'starting', 'stopping'].forEach(function(recording) {
+      ['error', 'started', 'stopping'].forEach(function(recording) {
         self.controller.onRecordingChange(recording);
         sinon.assert.notCalled(self.app.set);
       });
