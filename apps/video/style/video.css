@@ -157,6 +157,12 @@ span.line-break {
 #thumbnails.select>li:last-child{
   margin-bottom: 9rem;
 }
+/*
+ * for pick mode, it is only 5rem at top
+ */
+#thumbnails.pick > li:last-child {
+  margin-bottom: 5rem;
+}
 
 .thumbnail-group-header {
   font-size: 1.6rem;
