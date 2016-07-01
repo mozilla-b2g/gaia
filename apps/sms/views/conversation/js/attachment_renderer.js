@@ -42,9 +42,12 @@
 
       /**
        * Renders baseMarkup into container node (in this case iframe).
-       * @param baseMarkup Base attachment HTML markup. It should be safely
-       * escaped in advance!
-       * @param attachmentContainer Attachment container node.
+       * @param {Object} data
+       * @param {String} data.markup Base attachment HTML markup. It should be
+       * safely escaped in advance!
+       * @param {String} data.cssClass Class that will be added to the
+       * container.
+       * @param {Node} attachmentContainer Attachment container node.
        * @returns {Promise.<Node>} Content container node is the container node
        * for the attachment base HTML markup that allows consumer code to
        * perform post processing DOM operations.
@@ -82,10 +85,6 @@
             'click',
             () => attachmentContainer.click()
           );
-
-          // Return actual content container node to allow postprocessing of
-          // DOM content without dealing with iframe structure.
-          return contentDocument.body;
         });
       },
 
@@ -111,9 +110,9 @@
       /**
        * Returns the inner DOM node.
        */
-      getContentNode: function(attachmentContainer) {
+      getContentContainer: function(attachmentContainer) {
         return this._whenLoaded(attachmentContainer).then(
-          () => attachmentContainer.contentDocument.documentElement
+          () => attachmentContainer.contentDocument.body
         );
       },
 
@@ -135,10 +134,10 @@
         attachmentContainer.classList.add(data.cssClass);
         attachmentContainer.innerHTML = data.markup;
 
-        return Promise.resolve(attachmentContainer);
+        return Promise.resolve();
       },
 
-      getContentNode: function(attachmentContainer) {
+      getContentContainer: function(attachmentContainer) {
         return Promise.resolve(attachmentContainer);
       },
 
@@ -177,56 +176,42 @@
     // Video type should be revisited with:
     // Bug 924609 - Video thumbnails previews are not showing in MMS when
     // attaching or receiving a video.
-    var thumbnailPromise = this._attachment.type === 'img' &&
-      this._attachment.size < MAX_THUMBNAIL_GENERATION_SIZE ?
-        this.getThumbnail() : Promise.reject();
 
-    return thumbnailPromise.
-      then((thumbnail) => {
-        return {
-          markup: this._getBaseMarkup('attachment-preview-tmpl'),
-          cssClass: 'preview',
-          thumbnail: thumbnail
-        };
-      }).
-      catch((error) => {
-        return {
-          markup: this._getBaseMarkup('attachment-nopreview-tmpl', !!error),
-          cssClass: 'nopreview'
-        };
-      }).
-      then((data) => {
-        return this._renderer.renderTo(data, attachmentContainer).
-          then((contentContainer) => {
-            var thumbnailNode = contentContainer.querySelector('.thumbnail');
-            if (thumbnailNode) {
-              thumbnailNode.style.backgroundImage =
-                'url("' + data.thumbnail.url + data.thumbnail.fragment + '")';
+    var renderingInfo;
+    if (this._attachment.type === 'img' &&
+        this._attachment.size < MAX_THUMBNAIL_GENERATION_SIZE) {
+      renderingInfo = {
+        template: 'attachment-preview-tmpl',
+        cssClass: 'preview'
+      };
+      this._hasThumbnail = true;
+    } else {
+      renderingInfo = {
+        template: 'attachment-nopreview-tmpl',
+        cssClass: 'nopreview'
+      };
+      this._hasThumbnail = false;
+    }
 
-              // It's essential to remember real image URL to revoke it later
-              attachmentContainer.dataset.thumbnail = data.thumbnail.url;
-            }
+    renderingInfo.markup = this._getBaseMarkup(renderingInfo.template);
 
-            var fileNode = contentContainer.querySelector('.file-name');
-            if (this._attachment.name) {
-              fileNode.removeAttribute('data-l10n-id');
-              fileNode.textContent = this._attachment.name.slice(
-                this._attachment.name.lastIndexOf('/') + 1
-              );
-            } else {
-              fileNode.setAttribute('data-l10n-id', 'unnamed-attachment');
-            }
-          });
-      });
+    this._renderingPromise = this._renderer.renderTo(
+      renderingInfo, attachmentContainer
+    );
+
+    return this._renderingPromise.then(
+      () => this.updateThumbnail()
+    );
   };
 
   AttachmentRenderer.prototype.updateFileSize = function() {
     var attachmentContainer = this.getAttachmentContainer();
-    return this._renderer.getContentNode(attachmentContainer).then(
+    return this._renderer.getContentContainer(attachmentContainer).then(
       (contentNode) => {
         var sizeIndicator = contentNode.querySelector('.js-size-indicator');
         if (!sizeIndicator) {
-          throw new Error('updateFileSize should be called after a render().');
+          console.error('updateFileSize should be called after a render().');
+          return;
         }
 
         var sizeL10n = Utils.getSizeForL10n(this._attachment.size);
@@ -237,6 +222,56 @@
     );
   };
 
+  AttachmentRenderer.prototype.updateThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.resolve();
+    }
+
+    if (!this._renderingPromise) {
+      return Promise.reject(
+        new Error('updateThumbnail() needs to be called after a render().')
+      );
+    }
+
+    var attachmentContainer = this.getAttachmentContainer();
+    return this._renderingPromise.then(
+      () => this._renderer.getContentContainer(attachmentContainer)
+    ).then((contentNode) => {
+      var thumbnailNode = contentNode.querySelector('.thumbnail');
+      var attachmentNode = contentNode.querySelector('.attachment');
+      var fileNode = contentNode.querySelector('.file-name');
+
+      if (!thumbnailNode) {
+        return Promise.reject(
+          new Error('no thumbnail node has been found, this should not happen.')
+        );
+      }
+
+      return this.getThumbnail().then((thumbnail) => {
+        thumbnailNode.style.backgroundImage =
+          'url("' + thumbnail.url + thumbnail.fragment + '")';
+
+        // It's essential to remember real image URL to revoke it later
+        window.URL.revokeObjectURL(attachmentContainer.dataset.thumbnail);
+        attachmentContainer.dataset.thumbnail = thumbnail.url;
+
+        if (this._attachment.name) {
+          fileNode.removeAttribute('data-l10n-id');
+          fileNode.textContent = this._attachment.name.slice(
+            this._attachment.name.lastIndexOf('/') + 1
+          );
+        } else {
+          fileNode.setAttribute('data-l10n-id', 'unnamed-attachment');
+        }
+      }).catch((e) => {
+        console.log('Error while getting a thumbnail', e);
+        contentNode.classList.add('nopreview');
+        contentNode.classList.remove('preview');
+        attachmentNode.classList.add('corrupted');
+      });
+    });
+  };
+
   /**
    * Extracts thumbnail for the image.
    * TODO: As we started to use mozSampleSize for thumbnail generation we need
@@ -245,6 +280,12 @@
    * @returns {Promise}
    */
   AttachmentRenderer.prototype.getThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.reject(
+        new Error('We do not show a thumbnail for this attachment.')
+      );
+    }
+
     // The thumbnail format matches the blob format.
     var blob = this._attachment.blob;
 
@@ -281,12 +322,11 @@
    * @param hasError Indicates whether something is wrong with attachment.
    * @returns {string}
    */
-  AttachmentRenderer.prototype._getBaseMarkup = function(templateId, hasError) {
+  AttachmentRenderer.prototype._getBaseMarkup = function(templateId) {
     // interpolate the #attachment-[no]preview-tmpl template
     var sizeL10n = Utils.getSizeForL10n(this._attachment.size);
     return Template(templateId).interpolate({
       type: this._attachment.type,
-      errorClass: hasError ? 'corrupted' : '',
       sizeL10nId: sizeL10n.l10nId,
       sizeL10nArgs: JSON.stringify(sizeL10n.l10nArgs)
     });
