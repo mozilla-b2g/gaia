@@ -12,6 +12,7 @@
 require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/views/shared/js/settings.js');
+require('/views/shared/js/utils.js');
 
 suite('Settings >', function() {
   var nativeSettings;
@@ -36,6 +37,12 @@ suite('Settings >', function() {
       Settings.smsServiceId = 'no service ID';
 
       Settings.init();
+    });
+
+    test('Query send Read Report without settings', function(done) {
+      Settings.sendReadReport.then(
+        (value) => assert.isFalse(value)
+      ).then(done, done);
     });
 
     test('Query Max concatenated Messages without settings', function() {
@@ -113,6 +120,7 @@ suite('Settings >', function() {
       Settings.mmsSizeLimitation = 'whatever is default';
       Settings.maxConcatenatedMessages = 'whatever is default';
       Settings.mmsServiceId = 'no service ID';
+      this.sinon.spy(Settings, 'initSendReadReport');
 
       this.sinon.stub(navigator.mozSettings, 'createLock', function() {
         var api = {
@@ -135,15 +143,12 @@ suite('Settings >', function() {
       realSettings = null;
     });
 
-    test('Query size limitation with settings exist ' +
-         '(Size Limitation = 500KB and maxConcat = 10)', function() {
+    test('Query send Read Report (enabled)' +
+        ' and size limitation with settings exist ' +
+         '(Size Limitation = 500KB and maxConcat = 10)', function(done) {
       Settings.init();
       assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
       assert.equal(Settings.maxConcatenatedMessages, 'whatever is default');
-
-      // only made two calls (maxConcatenatedMessages/mmsSizeLimitation)
-      // to get settings(non-DSDS case)
-      sinon.assert.calledTwice(navigator.mozSettings.createLock);
 
       var setting = 512 * 1024;
       var expected = setting - 5 * 1024;
@@ -159,6 +164,11 @@ suite('Settings >', function() {
         'operatorResource.sms.maxConcat',
         10
       );
+      triggerSettingsReqSuccess('messages.mms.sendReadReport.enabled', true);
+
+      Settings.sendReadReport.then(
+        (result) => assert.isTrue(result)
+      ).then(done, done);
 
       assert.isFalse(Settings.hasSeveralSim());
     });
@@ -176,10 +186,6 @@ suite('Settings >', function() {
 
       test('init is correctly executed', function() {
         assert.equal(Settings.mmsServiceId, 'no service ID');
-
-        // Four calls for
-        // maxConcatenatedMessages/mmsSizeLimitation/mmsServiceId/smsServiceId
-        sinon.assert.callCount(navigator.mozSettings.createLock, 4);
       });
 
       test('Dual SIM state is correctly reported', function() {
@@ -205,9 +211,6 @@ suite('Settings >', function() {
       navigator.mozMobileConnections = [{ iccId: 'SIM 1' }];
       Settings.init();
 
-      // Two calls for
-      // maxConcatenatedMessages/mmsSizeLimitation
-      sinon.assert.calledTwice(navigator.mozSettings.createLock);
       for (var prop in Settings.SERVICE_ID_KEYS) {
         var setting = Settings.SERVICE_ID_KEYS[prop];
         assert.isNull(findSettingsReq(setting));
@@ -221,10 +224,6 @@ suite('Settings >', function() {
     test('in a dual SIM device with only 1 SIM', function() {
       navigator.mozMobileConnections = [{ iccId: 'SIM 1' }, { iccId: null }];
       Settings.init();
-
-      // Four calls for
-      // maxConcatenatedMessages/mmsSizeLimitation/mmsServiceId/smsServiceId
-      sinon.assert.callCount(navigator.mozSettings.createLock, 4);
 
       for (var prop in Settings.SERVICE_ID_KEYS) {
         var setting = Settings.SERVICE_ID_KEYS[prop];

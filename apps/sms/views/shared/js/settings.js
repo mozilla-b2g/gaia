@@ -2,8 +2,9 @@
   Message app settings related value and utilities.
 */
 
-/* exported Settings */
+/* global Utils */
 
+/* exported Settings */
 
 'use strict';
 
@@ -14,6 +15,8 @@ var Settings = {
   },
 
   READ_AHEAD_THREADS_KEY: 'ril.sms.maxReadAheadEntries',
+
+  SEND_READ_REPORT_KEY: 'messages.mms.sendReadReport.enabled',
 
   // we evaluate to 5KB the size overhead of wrapping a payload in a MMS
   MMS_SIZE_OVERHEAD: 5 * 1024,
@@ -30,19 +33,31 @@ var Settings = {
   mmsSizeLimitation: 295 * 1024, // Default mms message size limitation is 295K
   mmsServiceId: null, // Default mms service SIM ID
   smsServiceId: null, // Default sms service SIM ID
+  sendReadReport: Promise.resolve(false),
 
   init: function settings_init() {
     var keyHandlerSet = {
       'dom.mms.operatorSizeLimitation': this.initMmsSizeLimitation.bind(this),
       'operatorResource.sms.maxConcat':
-        this.initSmsMaxConcatenatedMsg.bind(this)
+        this.initSmsMaxConcatenatedMsg.bind(this),
+      [this.SEND_READ_REPORT_KEY]: this.initSendReadReport.bind(this)
     };
     var settings = navigator.mozSettings;
     var conns = navigator.mozMobileConnections;
 
+    //after changing to .then method
+    /*function setHandlerMap(key) {
+      var lock = settings.createLock().get(key);
+      lock.then((result) => {
+        console.log(result);
+         var handler = keyHandlerSet[key];
+         handler(result[key]);
+      });
+    }*/
+
     function setHandlerMap(key) {
       var req = settings.createLock().get(key);
-      req.onsuccess = function settings_getSizeSuccess() {
+      req.onsuccess = function settings_createLockSuccess() {
         var handler = keyHandlerSet[key];
         handler(req.result[key]);
       };
@@ -53,6 +68,9 @@ var Settings = {
     if (!settings) {
       return;
     }
+
+    this._sendReadReportDefer = Utils.Promise.defer();
+    this.sendReadReport = this._sendReadReportDefer.promise;
 
     // Only DSDS will need to handle mmsServiceId
     if (conns && conns.length > 1) {
@@ -70,6 +88,17 @@ var Settings = {
     for (var key in keyHandlerSet) {
       setHandlerMap(key);
     }
+  },
+
+  // return resolve promise with sendReadReport status
+  initSendReadReport: function initSendReadReport(value) {
+    this._sendReadReportDefer.resolve(value);
+    delete this._sendReadReportDefer;
+
+    navigator.mozSettings.addObserver(
+      this.SEND_READ_REPORT_KEY,
+      (e) => this.sendReadReport = Promise.resolve(e.settingValue)
+    );
   },
 
   //Set Maximum concatenated number of our SMS

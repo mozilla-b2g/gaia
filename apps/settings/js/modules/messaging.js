@@ -37,8 +37,9 @@ define(function(require) {
   Messaging.prototype = {
     _disableItems: function m__disableItems(panel, disable) {
       var elementIds = [
-        'menuItem-deliveryReport',
-        'menuItem-readReport',
+        'menuItem-requestDeliveryReport',
+        'menuItem-requestReadReport',
+        'menuItem-sendReadReport',
         'menuItem-autoRetrieve',
         'menuItem-wapPush',
         'menuItem-cellBroadcast',

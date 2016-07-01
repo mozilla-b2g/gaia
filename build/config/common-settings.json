@@ -154,6 +154,7 @@
    "lockscreen.enabled": true,
    "lockscreen.locked": false,
    "lockscreen.unlock-sound.enabled": false,
+   "messages.mms.sendReadReport.enabled": false,
    "message.sent-sound.enabled": true,
    "mms.debugging.enabled": false,
    "network.debugging.enabled": false,

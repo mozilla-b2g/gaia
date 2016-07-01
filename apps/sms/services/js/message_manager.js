@@ -529,8 +529,8 @@ var MessageManager = {
    * false if message is to be marked as unread.
    */
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
-    if (!this._mozMobileMessage || !list.length) {
-      return;
+    if (!this._mozMobileMessage) {
+      return Promise.resolve();
     }
 
     // We chain the calls to the API in a way that we make no call to
@@ -538,26 +538,26 @@ var MessageManager = {
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
 
-    var id = list.pop();
-    // TODO: Third parameter of markMessageRead is return read request.
-    //       Here we always return read request for now, but we can let user
-    //       decide to return request or not in Bug 971658.
-    var req = this._mozMobileMessage.markMessageRead(id, isRead, true);
-    // isRead == false i.e mark as unread case, marking only one message
-    // as unread is sufficient.
-    req.onsuccess = (function onsuccess() {
-      if (!list.length || !isRead) {
-        return;
-      } else if (isRead) {
-        this.markMessagesRead(list, isRead);
-      }
-    }).bind(this);
+    // shouldSendReadReport == true if Send-Read-Reports switch in
+    // Messaging Settings is enabled, else false
 
-    req.onerror = function onerror() {
-      console.error(
-        'Error while marking message %d as read: %s', id, this.error.name
-      );
+    var markMessage = (shouldSendReadReport) => {
+      if (!list.length) {
+        return Promise.resolve();
+      }
+
+      var id = list.pop();
+      var req = this._mozMobileMessage.markMessageRead(
+        id, isRead, shouldSendReadReport);
+
+      // if isRead == false i.e mark as unread case,
+      // marking only one message as unread is sufficient
+      return req.then(() => {
+          isRead ? markMessage(shouldSendReadReport) : Promise.resolve();
+        }, (err) => console.error(err));
     };
+
+    return Settings.sendReadReport.then(markMessage);
   },
 
   /**
