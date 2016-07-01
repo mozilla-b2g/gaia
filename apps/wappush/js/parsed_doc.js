@@ -39,13 +39,7 @@
     this._pxLogicalNodes = null;
 
     /** Array containing APN objects */
-    this._apns = [],
-
-    /** Array containing APN proxy objects  */
-    this._proxies = [];
-
-    /** APNs are ready to use (flag) */
-    this._apnsReady = false;
+    this._apns = [];
   }
 
   ParsedProvisioningDoc.prototype = {
@@ -197,6 +191,12 @@
         return obj;
       }
 
+      function addProperties(src, dst) {
+        for (var key in src) {
+          dst[key] = src[key];
+        }
+      }
+
       var parser = new DOMParser();
       var domDocument = parser.parseFromString(this._provisioningDoc,
                                                CONTENT_TYPE);
@@ -277,7 +277,6 @@
             for (var m = 0; m < pxPhysicalNodes.length; m++) {
               proxy = parsePxPhysicalNode(pxPhysicalNodes[m],
                                           (TYPE_MAPPING[appId] === 'mms'));
-              this._proxies.push(proxy);
               for (var n = 0; n < proxy['TO-NAPID'].length; n++) {
                 napDefNode = this.getNapDefNode(proxy['TO-NAPID'][n]);
                 apn = parseNapDefNode(napDefNode);
@@ -287,6 +286,7 @@
                 if ((TYPE_MAPPING[appId] === 'mms') && addr) {
                   apn.mmsc = addr;
                 }
+                addProperties(proxy, apn);
                 this._apns.push(apn);
               }
             }
@@ -314,30 +314,6 @@
      * @return {Array} The list of APN objects.
      */
     getApns: function ppd_getApns() {
-      function addProperties(src, dst) {
-        for (var key in src) {
-          dst[key] = src[key];
-        }
-      }
-
-      if (this._apnsReady) {
-        return this._apns;
-      }
-      for (var i = 0; i < this._proxies.length; i++) {
-        var proxy = this._proxies[i];
-        for (var j = 0; j < proxy['TO-NAPID'].length; j++) {
-          var TO_NAPID = proxy['TO-NAPID'][j];
-          for (var k = 0; k < this._apns.length; k++) {
-            var apn = this._apns[k];
-            if (TO_NAPID === apn.NAPID) {
-              addProperties(proxy, apn);
-              break;
-            }
-          }
-        }
-      }
-
-      this._apnsReady = true;
       return this._apns;
     }
   };
