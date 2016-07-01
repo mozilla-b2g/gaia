@@ -422,6 +422,11 @@ function setView(view) {
       break;
     case LAYOUT_MODE.edit:
       NFC.unshare();
+
+      // The edit-panel is hidden up until
+      // the first view. The font-fit logic only
+      // works when it's visible (bug 1135925).
+      $('edit-header').runFontFit();
       break;
   }
 
