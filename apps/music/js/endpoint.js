@@ -90,6 +90,19 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   audio.addEventListener('ended', function() {
+    if (isFastSeeking) {
+      isFastSeeking = false;
+      nextSong(true);
+    }
+
+    // Prevent subsequent "ended" events from performing
+    // multiple skips to the next song. This shouldn't
+    // happen, but it seems to happen when we are fast-seeking
+    // and is detectable by checking for a negative time.
+    if (audio.currentTime < 0) {
+      return;
+    }
+
     nextSong(true);
   });
 
@@ -164,7 +177,7 @@ function seek(time) {
     return;
   }
 
-  audio.fastSeek(parseInt(time, 10));
+  audio.currentTime = parseInt(time, 10);
 }
 
 function startFastSeek(reverse) {
