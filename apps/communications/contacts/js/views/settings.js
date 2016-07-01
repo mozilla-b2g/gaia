@@ -460,6 +460,17 @@ contacts.Settings = (function() {
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = orderCheckBox.checked;
     updateOrderingUI();
+
+    // Execute operations if values got modified
+    if (newOrderByLastName != null &&
+        newOrderByLastName != orderByLastName && contacts.List) {
+      contacts.List.setOrderByLastName(newOrderByLastName);
+      utils.cookie.update({order: newOrderByLastName});
+      Cache.evict();
+      // Force the reset of the dom, we know that we changed the order
+      contacts.List.load(null, true);
+      orderByLastName = newOrderByLastName;
+    }
   };
 
   // Import contacts from SIM card and updates ui
@@ -712,18 +723,8 @@ contacts.Settings = (function() {
     }
   };
 
-  // Dismiss settings window and execute operations if values got modified
+  // Dismiss settings window
   var close = function close() {
-    if (newOrderByLastName != null &&
-        newOrderByLastName != orderByLastName && contacts.List) {
-      contacts.List.setOrderByLastName(newOrderByLastName);
-      utils.cookie.update({order: newOrderByLastName});
-      Cache.evict();
-      // Force the reset of the dom, we know that we changed the order
-      contacts.List.load(null, true);
-      orderByLastName = newOrderByLastName;
-    }
-
     Contacts.goBack();
   };
 
