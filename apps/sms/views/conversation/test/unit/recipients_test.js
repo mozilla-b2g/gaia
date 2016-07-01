@@ -137,10 +137,43 @@ suite('Recipients', function() {
 
     test('recipients.add() 1 ', function() {
       var recipient;
-
       recipients.add(fixture);
       recipient = recipients.list[0];
       assertDeepEqual(recipient, fixture);
+    });
+
+    test('recipients.add() with leading parenthesis', function() {
+      recipients.add({
+        number: '(555)555-5555',
+        source: 'manual'
+      });
+      recipients.add({
+        number: '(555)-555-5555',
+        source: 'manual'
+      });
+
+      assert.ok(isValid(recipients.list[0], '(555)555-5555'));
+      assert.ok(isValid(recipients.list[1], '(555)-555-5555'));
+
+      assert.ok(recipients.list[0].isQuestionable === false);
+      assert.ok(recipients.list[1].isQuestionable === false);
+    });
+
+    test('recipients.add() with leading plus', function() {
+      recipients.add({
+        number: '+555555-5555',
+        source: 'manual'
+      });
+      recipients.add({
+        number: '+(555)-555-5555',
+        source: 'manual'
+      });
+
+      assert.ok(isValid(recipients.list[0], '+555555-5555'));
+      assert.ok(isValid(recipients.list[1], '+(555)-555-5555'));
+
+      assert.ok(recipients.list[0].isQuestionable === false);
+      assert.ok(recipients.list[1].isQuestionable === false);
     });
 
     test('recipients.add() 2 ', function() {
