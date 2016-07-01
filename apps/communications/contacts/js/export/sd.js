@@ -1,5 +1,6 @@
-/* globals _, ContactToVcard, getStorageIfAvailable, getUnusedFilename
-*/
+/* global _ */
+/* global ContactToVcard */
+/* global getUnusedFilename */
 
 /* exported ContactsSDExport */
 
@@ -77,25 +78,51 @@ var ContactsSDExport = function ContactsSDExport() {
       '.vcf';
   };
 
-  var getStorage = function getStorage(fileName, blob, callback) {
-    getStorageIfAvailable('sdcard', blob.size,
-      function onSuccess(storage) {
-        // Get the final version of the proposed file name
-        getUnusedFilename(storage, fileName, function onFinalName(name) {
-          callback(null, storage, name);
+  var getStorage = function getStorage(fileName) {
+    return new Promise((resolve, reject) => {
+      var storage = navigator.getDeviceStorage('sdcard');
+      getUnusedFilename(storage, fileName, name => {
+        resolve({
+          storage: storage,
+          fileName: name
         });
-      },
-      function onError(type) {
-        callback(type);
-      }
-    );
+      });
+    });
   };
 
   var cancelExport = function cancelExport() {
     cancelled = true;
   };
 
+  var cleanup = (storage, fileName) => {
+    storage.delete(fileName).onerror = event => {
+      console.error('Clean up error', event.error.name);
+    };
+  };
+
   var doExport = function doExport(finishCallback) {
+    if (typeof finishCallback !== 'function') {
+      throw new Error('SD export requires a callback function');
+    }
+
+    getStorage(getFileName()).then(response => {
+      var storage = response.storage;
+      var fileName = response.fileName;
+      // Sadly we have to create an empty file first as appendNamed does not
+      // create it.
+      var file = new Blob([''], {type: 'text/vcard'});
+      var request = storage.addNamed(file, fileName);
+      request.onsuccess = () => {
+        _doExport(finishCallback, storage, request.result);
+      };
+      request.onerror = () => {
+        console.error('Export error', request.error.name);
+        finishCallback({ 'reason': request.error.name }, 0, true);
+      };
+    });
+  };
+
+  var _doExport = function _doExport(finishCallback, storage, fileName) {
     /* XXX: We use a batch-conversion size of 2MiB. This ensures that the
      * process won't go out of memory even on low-end devices. This should be
      * revisited once append-to-file functionality becomes available. */
@@ -105,50 +132,31 @@ var ContactsSDExport = function ContactsSDExport() {
     var done = false;
     var cancelButton = document.querySelector('#cancel-overlay');
 
-    if (typeof finishCallback !== 'function') {
-      throw new Error('SD export requires a callback function');
-    }
-
-    ContactToVcard(contacts, function onContacts(vcards, nCards) {
+    ContactToVcard(contacts, (vcards, nCards) => {
       if (cancelled) {
         finishCallback(null, 0);
         return;
       }
+
       var blob = new Blob([vcards], {'type': 'text/vcard'});
 
       pendingBatches++;
 
-      getStorage(getFileName(), blob,
-        function onStorage(error, storage, finalName) {
-          if (error !== null) {
-            var reason = error;
-            // numeric error means not enough space available
-            if (parseInt(error, 10) >= 0) {
-              reason = 'noSpace';
-            }
-            finishCallback({
-              'reason': reason
-            }, count, true);
-            return;
-          }
-          if (cancelled) {
-            finishCallback(null, 0);
-            return;
-          }
-          cancelButton.disabled = true;
-          var request = storage.addNamed(blob, finalName);
-          request.onsuccess = function onSuccess() {
-            count += nCards;
-            pendingBatches--;
+      cancelButton.disabled = true;
+      var request = storage.appendNamed(blob, fileName);
+      request.onsuccess = () => {
+        count += nCards;
+        pendingBatches--;
 
-            if (done && (pendingBatches === 0)) {
-              finishCallback(null, count, false);
-            }
-          };
-          request.onerror = function onError(e) {
-            finishCallback({ 'reason': e }, count, true);
-          };
-        });
+        if (done && (pendingBatches === 0)) {
+          finishCallback(null, count, false);
+        }
+      };
+      request.onerror = () => {
+        console.error('Export error', request.error.name);
+        cleanup(storage, fileName);
+        finishCallback({ 'reason': request.error.name }, count, true);
+      };
     }, function finish() {
       done = true;
     }, batchSize);
