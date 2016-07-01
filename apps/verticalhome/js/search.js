@@ -23,11 +23,26 @@
       this.onAppReady();
     }
 
-    var input = document.getElementById('search');
+    var input = document.getElementById('search-input');
     input.addEventListener('click', this.open.bind(this));
     // Prevent the context menu from appearing as we will not allow
     // long-tapping on the search bar later in 2.1.
     input.addEventListener('contextmenu', (e) => {
+      e.stopPropagation();
+    });
+
+    var voiceCommandButton = document.getElementById('search-voice-command');
+    voiceCommandButton.addEventListener('click', function() {
+      console.log('[voice-command] - button clicked.');
+      var activity = new MozActivity({
+        name: 'voice-command-request',
+        data: { origin: 'homescreen' }
+      });
+      activity.onerror = function(e) {
+        console.error('Voice Command Request Activity - ', e);
+      };
+    });
+    voiceCommandButton.addEventListener('contextmenu', (e) => {
       e.stopPropagation();
     });
   }

@@ -8,7 +8,6 @@
 }
 
 #search-form {
-  pointer-events: none;
   position: absolute;
   display: block;
   width: calc(100% - 1rem);
@@ -39,17 +38,22 @@
   color: #e7e7e7;
 }
 
-#search-form::after {
-  content: '';
+#search-voice-command {
   top: 0;
-  left: 0;
-  width: calc(100% - .8rem);
+  left: calc(100% - 3rem);
   height: 100%;
   position: absolute;
-  background-image: url('/style/images/search_icon.png');
+  border: none;
+  background-color: transparent;
+  background-image: url('/style/images/microphone_icon.svg');
   background-repeat: no-repeat;
-  background-size: 2rem;
+  background-size: 1.2rem;
   background-position: center right;
+  -moz-user-select: none;
+}
+
+#search-voice-command::-moz-focus-inner {
+  border: none;
 }
 
 /* RTL View */
