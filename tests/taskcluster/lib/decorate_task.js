@@ -121,10 +121,18 @@ function decorateTask(task, options) {
 
     output.task.routes = output.task.routes || [];
     prefixes.forEach(function(prefix) {
-      output.task.routes.push(
-        [prefix, process.env.TREEHERDER_PROJECT, 
-        process.env.TREEHERDER_REVISION].join('.')
-      );
+      var route = [
+        prefix,
+        "v2",
+        process.env.GITHUB_BASE_USER + "/" + process.env.TREEHERDER_PROJECT,
+        process.env.TREEHERDER_REVISION
+      ];
+
+      if (process.env.GITHUB_PULL_REQUEST) {
+        route.push(process.env.GITHUB_PULL_NUMBER);
+      }
+
+      output.task.routes.push(route.join("."));
     });
   }
 
