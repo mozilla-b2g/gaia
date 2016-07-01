@@ -26,9 +26,12 @@ body {
   font-size: 1.8rem;
 }
 
-#download-progress {
+#download-progress, #direct-download-progress {
   width: calc(100% - 3rem);
   margin: .5rem 1.5rem .5rem 1.5rem;
+}
+
+#download-progress {
   background-color: black;
   visibility: hidden;
 }
