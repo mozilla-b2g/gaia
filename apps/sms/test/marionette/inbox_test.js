@@ -137,5 +137,19 @@ marionette('Inbox View tests', function() {
         return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
       });
     });
+
+    test.only('delete thread message', function() {
+      // Step 0 Generate at least 2 threads
+      storage.setMessagesStorage([
+        ThreadGenerator.generate({
+          numberOfMessages:2
+        })],ThreadGenerator.uniqueMessageId);
+      // delete the first message in threads
+      messagesApp.launch();
+      messagesApp.openSettings;
+      messagesApp.goToThreads;
+      messagesApp.gotToFirstThread;
+      messagesApp.deleteSelectedThread;
+    });
   });
 });

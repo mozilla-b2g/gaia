@@ -8,7 +8,11 @@ var SELECTORS = Object.freeze({
   smsConversation: '.threadlist-item[data-last-message-type="sms"]',
   mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
   conversationTitle: '.threadlist-item-title',
-  navigateToComposerHeaderButton: '#threads-composer-link'
+  navigateToComposerHeaderButton: '#threads-composer-link',
+  threadSettings: '#hreads-options-button',
+  threadsList: 'data-l10n-id=["selectThreads-label"]',
+  firstThread: 'data-mode=["threads"]',
+  buttonDeleteThread: '#threads-delete-button'
 });
 
 function InboxAccessor(client) {
@@ -68,6 +72,18 @@ InboxAccessor.prototype = {
 
   doubleTapOnFirstConversation: function() {
     this.client.loader.getActions().doubleTap(this.firstConversation).perform();
+  },
+  openSettings: function(){
+    return this.client.findElement(SELECTORS.threadSettings).tap();
+  },
+  goToThreads: function(){
+    return this.client.findElement(SELECTORS.threadsList).tap();
+  },
+  gotToFirstThread: function(){
+    return this.client.findElement(SELECTORS.firstThread).tap();
+  },
+  deleteSelectedThread: function(){
+    return this.client.findElement(SELECTORS.buttonDeleteThread).tap();
   }
 };
 
