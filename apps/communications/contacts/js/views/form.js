@@ -1012,7 +1012,7 @@ contacts.Form = (function() {
     // When we're adding new contact, it shouldn't have id at the beginning.
     // If We have one, means we are editing the current contact.
     // We will use this information below.
-    var editingContact = contact.id !== 'undefined';
+    var editingContact = !contact.id || contact.id !== 'undefined';
 
     ContactsService.save(
       utils.misc.toMozContact(contact),
