@@ -169,7 +169,7 @@ var OptionMenu = function(options) {
 
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
-    var method;
+    var method, timeout;
 
     // Delegate operation to target method. This allows
     // for a custom "Cancel" to be provided by calling program.
@@ -180,9 +180,10 @@ var OptionMenu = function(options) {
       method = action.method || function() {};
 
       method.apply(null, action.params || []);
+      timeout = action.hideTimeout;
 
       // Hide action menu when click is received
-      this.hide();
+      timeout ? this.hideTimeout(timeout) : this.hide();
 
       if (typeof options.complete === 'function' && !action.incomplete) {
         options.complete();
@@ -211,4 +212,8 @@ OptionMenu.prototype.show = function() {
 
 OptionMenu.prototype.hide = function() {
   this.form.classList.remove('visible');
+};
+
+OptionMenu.prototype.hideTimeout = function(timeout) {
+  setTimeout(this.hide.bind(this), timeout);
 };

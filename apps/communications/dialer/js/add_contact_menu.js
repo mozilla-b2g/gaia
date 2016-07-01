@@ -37,11 +37,13 @@ var AddContactMenu = (function() {
         items: [{
           l10nId: 'createNewContact',
           method: _createNewContact,
-          params: [phoneNumber]
+          params: [phoneNumber],
+          hideTimeout: 300
         },{
           l10nId: 'addToExistingContact',
           method: _addToExistingContact,
-          params: [phoneNumber]
+          params: [phoneNumber],
+          hideTimeout: 300
         },{ // Last item is the Cancel button
           l10nId: 'cancel',
           incomplete: true
