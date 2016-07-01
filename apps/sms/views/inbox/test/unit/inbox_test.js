@@ -1659,6 +1659,7 @@ suite('thread_list_ui', function() {
           thread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(thread.picture.style.backgroundImage, '');
+        assert.equal(thread.picture.textContent, 'P');
         sinon.assert.notCalled(Contacts.addUnknown);
         assert.equal(thread.title.textContent, 'Pepito O\'Hare');
       }).then(done, done);

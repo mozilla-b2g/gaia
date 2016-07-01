@@ -81,6 +81,7 @@
   background-position: center center;
 }
 
+.threadlist-item-picture.default-picture > span[data-type=img],
 .threadlist-item-picture.group-picture > span[data-type=img] {
   display: flex;
 
