@@ -132,6 +132,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
   this.userPrefs['layout.css.sticky.enabled'] = true;
   this.userPrefs['intl.uidirection.ar-x-psbidi'] = 'rtl';
+  this.userPrefs['dom.webcomponents.enabled'] = true;
 
   // For https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   // what prefs is for ril debugging
@@ -237,7 +238,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
   this.userPrefs['dom.apps.developer_mode'] = true;
   this.userPrefs['network.disable.ipc.security'] = true;
-  this.userPrefs['dom.webcomponents.enabled'] = true;
   this.userPrefs['devtools.debugger.prompt-connection'] = false;
   this.userPrefs['devtools.debugger.forbid-certified-apps'] = false;
   // Bug 1001348: This optimization prevents debugger to fetch script sources
