@@ -46,6 +46,12 @@ marionette('Ringtone picker', function() {
 
     settingsApp.launch();
     soundPanel = settingsApp.soundPanel;
+
+    // Workaround until Bug 1255765 gets fixed
+    var active = client.findElement('section.current');
+    active.scriptWith(function() {
+      window.wrappedJSObject.navigator.mozTelephony = {};
+    });
   });
 
   // We want to run the same tests on both the alerttones and ringtones,
