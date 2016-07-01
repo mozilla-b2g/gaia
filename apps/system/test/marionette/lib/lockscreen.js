@@ -178,6 +178,8 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
           this.ensure().frame(this.lockScreenFrameOrigin);
           return true;
         } catch (e) {
+          console.log('>>>> want to detect lockScreenFrameOrigin, but error: ',
+            e.message, ' occurs.');
           return false;
         }
       }).bind(this))
