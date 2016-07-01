@@ -1,4 +1,4 @@
-/* global Promise */
+/* global Promise, LazyLoader */
 'use strict';
 
 /*
@@ -201,29 +201,18 @@ window.builtInRingtones = (function() {
       throw new Error('tone type not supported: ' + toneType);
     }
 
-    return new Promise(function(resolve, reject) {
-      if (toneType in toneDefsCache) {
-        resolve(toneDefsCache[toneType]);
-        return;
-      }
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', BASE_URLS[toneType] + 'list.json');
-      xhr.responseType = 'json';
-      xhr.send(null);
-
-      xhr.onload = function() {
-        toneDefsCache[toneType] = xhr.response;
-        resolve(xhr.response);
-      };
-
-      xhr.onerror = function() {
-        var err = new Error('Could not read sounds list for ' + toneType +
-                            ' (status: ' + xhr.status + ')');
-        console.error(err);
-        reject(err);
-      };
-    });
+    if (toneType in toneDefsCache) {
+      return Promise.resolve(toneDefsCache[toneType]);
+    }
+   
+    return LazyLoader.getJSON(BASE_URLS[toneType] + 'list.json')
+	              .then(function(json) {
+      toneDefsCache[toneType] = json;
+      return toneDefsCache[toneType];
+    }, function(error) {
+      console.error(error);
+      return error;
+    });  
   }
 
   function list(toneType) {
