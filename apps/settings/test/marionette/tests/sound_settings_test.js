@@ -1,5 +1,6 @@
 'use strict';
 var Settings = require('../app/app'),
+    Ringtones = require('../../../../ringtones/test/marionette/lib/ringtones'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
@@ -7,6 +8,7 @@ marionette('manipulate sound settings', function() {
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var settingsApp;
+  var ringtonesApp;
   var soundPanel;
 
   setup(function() {
@@ -71,6 +73,22 @@ marionette('manipulate sound settings', function() {
     // We can't do `===` because the string may be in RTL marks
     assert.ok(ringtone_name.includes('Firefox') ||
               ringtone_name.includes('Default'));
+  });
+
+  test('change ringtone', function() {
+    var oldRingtoneName = soundPanel.selectedRingtone;
+    var newRingtoneName;
+
+    ringtonesApp = new Ringtones(client);
+    soundPanel.clickRingToneSelect();
+    ringtonesApp.inRingTones(soundPanel, function(PickRingtoneContainer) {
+      var newRingtone = PickRingtoneContainer.soundLists[0].sounds[10];
+      newRingtoneName = newRingtone.name;
+      newRingtone.select();
+      PickRingtoneContainer.setButton.tap();
+    });
+    assert.notEqual(oldRingtoneName, soundPanel.selectedRingtone);
+    assert.equal(newRingtoneName, soundPanel.selectedRingtone);
   });
 
   test('check default alert tone name', function() {
