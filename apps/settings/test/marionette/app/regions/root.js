@@ -69,14 +69,16 @@ RootPanel.prototype = {
   },
 
   get airplaneModeCheckboxChecked() {
-    return !!this.findElement('airplaneModeCheckbox').scriptWith(function(el) {
-      return el.wrappedJSObject.checked;
+    return !!this.waitForElement('airplaneModeCheckbox')
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
     });
   },
 
   get airplaneModeCheckboxEnabled() {
-    return this.findElement('airplaneModeCheckbox').scriptWith(function(el) {
-      return !el.wrappedJSObject.hasAttribute('disabled');
+    return this.waitForElement('airplaneModeCheckbox')
+      .scriptWith(function(el) {
+        return !el.wrappedJSObject.hasAttribute('disabled');
     });
   },
 

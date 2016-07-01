@@ -49,9 +49,9 @@ marionette('check root panel settings', function() {
       client.waitFor(function() {
         return rootPanel.screenLockDesc === 'Disabled';
       });
-      // client.waitFor(function() {
-      //   return rootPanel.WiFiDesc === 'Not connected';
-      // });
+      client.waitFor(function() {
+        return rootPanel.WiFiDesc === 'Disabled';
+      });
       client.waitFor(function() {
         return hasNumbers(rootPanel.applicationStorageDesc);
       });
@@ -86,12 +86,6 @@ marionette('check root panel settings', function() {
         assert.ok(!rootPanel.airplaneModeCheckboxChecked,
           'airplane mode should be disabled by default');
       });
-
-      // test('enable airplane mode', function() {
-      //   rootPanel.airplaneMode(true);
-      //   assert.ok(rootPanel.airplaneModeCheckboxChecked,
-      //     'airplane mode should be enabled');
-      // });
     });
 
     suite('geolocation', function() {
