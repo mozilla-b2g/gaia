@@ -44,6 +44,8 @@
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
+    "apps/sms/test/marionette/new_activity_test.js": "Bug 1235842 - Intermittent TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/new_activity_test.js",
+    "apps/sms/test/marionette/share_activity_test.js": "Bug 1233552 - Intermittent TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/share_activity_test.js | Messages as share target Share via Messages Activity close button Should close activity if in NewMessage view",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/audio_channel_competing_test.js": "Bug 1239338 - Intermittent apps/system/test/marionette/audio_channel_competing_test.js | Audio channel competing Public notification audio channel competes with audio channels Public notification channel competes with system channel",
     "apps/system/test/marionette/browser_clear_browsing_history_test.js": "Bug 1236038 - TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_clear_browsing_history_test.js | Browser test Clear browsing history",
