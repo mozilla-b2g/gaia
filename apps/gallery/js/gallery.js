@@ -775,7 +775,7 @@ function resizeHandler() {
  * we should remove this function and the code that invokes it.
  */
 function doNotScanInBackgroundHack(photodb) {
-  const enoughMB = 512; // How much memory is enough to not do this hack?
+  const enoughMB = 257; // How much memory is enough to not do this hack?
   var memoryMB = 0;     // How much memory do we have?
 
   // Listen for visibilitychange events that happen when we go to the background
