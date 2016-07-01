@@ -315,6 +315,11 @@ ModifyEvent.prototype = {
       event.preventDefault();
     }
 
+    // Confirm before deletion
+    if (!confirm(navigator.mozL10n.get('event-delete-confirm'))) {
+      return;
+    }
+
     if (!this.isSaved()) {
       return;
     }
