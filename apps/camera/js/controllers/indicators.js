@@ -81,6 +81,7 @@ IndicatorsController.prototype.bindEvents = function() {
 IndicatorsController.prototype.configure = function() {
   debug('configuring');
   this.view.set('hdr', this.settings.hdr.selected('key'));
+  this.view.set('mode', this.settings.mode.selected('key'));
   this.view.set('countdown', this.settings.countdown.selected('key'));
   this.view.set('battery', this.app.get('batteryStatus'));
   debug('configured');
