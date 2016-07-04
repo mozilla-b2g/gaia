@@ -56,7 +56,8 @@
      */
     pin: function mh_pin(cardEntry) {
       this._home.cardManager.insertCard({
-        cardEntry: cardEntry
+        cardEntry: cardEntry,
+        position: 'end'
       });
     },
 
