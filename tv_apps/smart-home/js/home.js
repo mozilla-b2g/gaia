@@ -748,6 +748,8 @@
         return;
       }
 
+      target.classList.add('opened');
+
       this._folderCard = card;
       var folderList = this._folderCard.getCardList();
 
