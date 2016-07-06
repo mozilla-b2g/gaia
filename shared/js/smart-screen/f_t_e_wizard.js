@@ -183,29 +183,33 @@
     this._pages[pageIdx].classList.remove(this._pageHiddenClass);
   };
 
+  FTEWizard.prototype._perform = function fw_perform(behavior) {
+    switch (behavior) {
+
+      case 'next':
+        this.goNext();
+        break;
+
+      case 'prev':
+        this.goPrev();
+        break;
+
+      case 'finish':
+        this.finish();
+        break;
+
+      case 'skip':
+        this.skip();
+        break;
+    }
+  };
+
   FTEWizard.prototype.handleEvent = function fw_handleEvent(evt) {
     switch(evt.type) {
 
       case 'keyup':
         if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
-          switch (evt.target.dataset.behavior) {
-
-            case 'next':
-              this.goNext();
-              break;
-
-            case 'prev':
-              this.goPrev();
-              break;
-
-            case 'finish':
-              this.finish();
-              break;
-
-            case 'skip':
-              this.skip();
-              break;
-          }
+          this._perform(evt.target.dataset.behavior);
         }
         // By default we stop propagating keyevent such that the main logic of
         // app is not triggered while FTE is working.
@@ -221,6 +225,8 @@
         // Do forced focus again on mouse click to prevent focus lost problem
         // when running on devices like PC and phone.
         this.focus();
+
+        this._perform(evt.target.dataset.behavior);
     }
   };
 
