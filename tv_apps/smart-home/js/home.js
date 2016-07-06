@@ -34,6 +34,7 @@
     _focus: undefined,
     _focusScrollable: undefined,
     _folderCard: undefined,
+    _checkAddFolderButtonTimer: undefined,
 
     filterElementIds: ['filter-all-button', 'filter-tv-button',
         'filter-device-button', 'filter-app-button', 'filter-website-button'],
@@ -489,6 +490,7 @@
       cardList.forEach(function(card) {
         this.cardListElem.appendChild(this.createCardNode(card));
       }.bind(this));
+      this.checkAddFolderButton();
     },
 
     onMove: function(key) {
@@ -815,8 +817,16 @@
     },
 
     checkAddFolderButton: function() {
-      this.addFolderButton.classList.toggle('hidden',
-        !!this.mode || !this.cardManager.hasCardInCardList());
+      // The timer is used for avoiding some unnatural animations (e.g. fade out
+      // and immediately fade in) when doing continuous actions.
+      if (this._checkAddFolderButtonTimer) {
+        clearTimeout(this._checkAddFolderButtonTimer);
+      }
+      this._checkAddFolderButtonTimer = setTimeout(() => {
+        this.addFolderButton.classList.toggle('hidden',
+          !!this.mode || !this.cardManager.hasCardInCardList());
+        this._checkAddFolderButtonTimer = undefined;
+      }, 200);
     },
 
     onCardPickerShow: function () {

@@ -779,7 +779,7 @@
 
     hasCardInCardList: function cm_hasCardInCardList() {
       return this._cardList.filter(
-        card => !(card instanceof Folder)).length > 0;
+        card => !(card instanceof Folder || card instanceof Deck)).length > 0;
     },
 
     // TODO: need to be protected by semaphore

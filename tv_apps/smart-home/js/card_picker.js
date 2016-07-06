@@ -1,5 +1,5 @@
-/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, SharedUtils,
-          CardUtil, FOLDER_CAPACITY, Utils, Sanitizer */
+/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, Deck,
+          SharedUtils, CardUtil, FOLDER_CAPACITY, Utils, Sanitizer */
 
 (function(exports) {
   'use strict';
@@ -284,7 +284,7 @@
         that.appCardElems.push(appCardElem);
       }
       function createCardElemHelper(card, parentType) {
-        if(card instanceof Folder) {
+        if(card instanceof Folder || card instanceof Deck) {
           return;
         }
         var nodeElem = document.createElement('div');
