@@ -176,6 +176,7 @@
         case 'left':
         case 'right':
           if (!focus.isHovering && targetItem &&
+              focus.currentItem.getAttribute('app-type') !== 'deck' &&
               focus.currentItem.getAttribute('app-type') !== 'folder' &&
               targetItem.getAttribute('app-type') === 'folder') {
             // hover on folder
