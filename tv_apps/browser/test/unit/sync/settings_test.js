@@ -7,6 +7,7 @@
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
+/* global ERROR_SYNC_REQUEST */
 /* global expect */
 /* global FirefoxSyncSettings */
 /* global MocksHelper */
@@ -16,6 +17,7 @@
 /* global SettingsListener */
 /* global SyncErrors */
 /* global SyncManagerBridge */
+/* global BrowserDialog */
 
 'use strict';
 
@@ -25,11 +27,17 @@ require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/sync/errors.js');
+require('/shared/js/smart-screen/shared_utils.js');
 requireApp('browser/test/unit/sync/mocks/mock_manager_bridge.js');
 requireApp('browser/js/settings.js');
 requireApp('browser/js/browser_dialog.js');
+requireApp('browser/test/unit/mocks/mock_browser.js');
+requireApp('browser/test/unit/mocks/mock_fxos_tv_modal_dialog.js');
 
 var mocksForSettings = new MocksHelper([
+  'Browser',
+  'FxosTvModalDialog',
+  'FxosTvInputDialog',
   'LazyLoader',
   'NavigatorSettings',
   'SettingsListener',
@@ -360,23 +368,24 @@ suite('Sync settings >', function() {
   });
 
   suite('Errored', function() {
-    var alertStub;
+    var createDialogSpy;
     var formatValueStub;
 
     suiteSetup(function() {
-      alertStub = sinon.stub(window, 'alert');
+      BrowserDialog.init();
+      createDialogSpy = sinon.spy(BrowserDialog, 'createDialog');
       formatValueStub = sinon.stub(document.l10n, 'formatValue', key => {
         return Promise.resolve(key);
       });
     });
 
     suiteTeardown(function() {
-      alertStub.restore();
+      createDialogSpy.restore();
       formatValueStub.restore();
     });
 
     teardown(function() {
-      alertStub.reset();
+      createDialogSpy.reset();
     });
 
     test('should ignore ERROR_DIALOG_CLOSED_BY_USER error', function() {
@@ -384,7 +393,7 @@ suite('Sync settings >', function() {
         state: 'errored',
         error: ERROR_DIALOG_CLOSED_BY_USER
       });
-      expect(alertStub.calledOnce).to.equal(false);
+      expect(createDialogSpy.calledOnce).to.equal(false);
     });
 
     test('should show ERROR_INVALID_SYNC_ACCOUNT error', function(done) {
@@ -393,11 +402,11 @@ suite('Sync settings >', function() {
         error: ERROR_INVALID_SYNC_ACCOUNT
       });
       setTimeout(() => {
-        expect(alertStub.calledOnce).to.equal(true);
-        expect(alertStub.args[0][0]).to.equal(ERROR_INVALID_SYNC_ACCOUNT +
-                                              '\n' +
-                                              ERROR_INVALID_SYNC_ACCOUNT +
-                                              '-explanation');
+        sinon.assert.calledOnce(createDialogSpy);
+        sinon.assert.calledWithMatch(createDialogSpy, 'sync_error', {
+          titleL10nId: 'fxsync-error-invalid-account',
+          messageL10nId: 'fxsync-error-invalid-account-explanation',
+        });
         done();
       });
     });
@@ -408,11 +417,26 @@ suite('Sync settings >', function() {
         error: ERROR_OFFLINE
       });
       setTimeout(() => {
-        expect(alertStub.calledOnce).to.equal(true);
-        expect(alertStub.args[0][0]).to.equal(ERROR_OFFLINE +
-                                              '\n' +
-                                              ERROR_OFFLINE +
-                                              '-explanation');
+        sinon.assert.calledOnce(createDialogSpy);
+        sinon.assert.calledWithMatch(createDialogSpy, 'sync_error', {
+          titleL10nId: 'fxsync-error-offline',
+          messageL10nId: 'fxsync-error-offline-explanation',
+        });
+        done();
+      });
+    });
+
+    test('should show ERROR_UNKNOWN error', function(done) {
+       onsyncchange({
+        state: 'errored',
+        error: ERROR_SYNC_REQUEST
+      });
+      setTimeout(() => {
+        sinon.assert.calledOnce(createDialogSpy);
+        sinon.assert.calledWithMatch(createDialogSpy, 'sync_error', {
+          titleL10nId: 'fxsync-error-unknown',
+          messageL10nId: 'fxsync-error-unknown-explanation',
+        });
         done();
       });
     });

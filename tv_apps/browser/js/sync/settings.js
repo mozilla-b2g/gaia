@@ -243,13 +243,11 @@
               errorIds[1] = message.error + '-explanation';
             }
 
-            var l10n = document.l10n;
-            Promise.all(
-              errorIds.map(l10n.formatValue.bind(l10n))
-            ).then(result => {
-              window.alert(result[0] + '\n' + result[1], () => {
-                this.showScreen(DISABLED);
-              });
+            BrowserDialog.createDialog('sync_error', {
+              titleL10nId: errorIds[0],
+              messageL10nId: errorIds[1]
+            }).then(() => {
+              this.showScreen(DISABLED);
             });
           });
           break;
