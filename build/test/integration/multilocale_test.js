@@ -7,7 +7,7 @@ var helper = require('./helper');
 
 suite('Multilocale integration tests', function() {
   var localesDir = 'build/test/resources/locales';
-  // var localesFileObj = {'en-US': '', 'zh-CN': ''};
+  var localesFileObj = {'en-US': '', 'zh-CN': ''};
 
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
@@ -17,7 +17,7 @@ suite('Multilocale integration tests', function() {
       'settings');
     var cnPathInFolder = 'locales-obj/index.zh-CN.json';
     var cnSettingsProperties = 'locales/settings.zh-CN.properties';
-    // var langPathInFolder = 'shared/resources/languages.json';
+    var langPathInFolder = '../../../shared/resources/languages.json';
 
     var command = 'LOCALES_FILE=' + localesFilePath +
       ' LOCALE_BASEDIR=' + localesDir +
@@ -39,13 +39,12 @@ suite('Multilocale integration tests', function() {
           'properties file ' + cnSettingsProperties + ' should exist');
       }
 
-      // FIXME: Broken because of Bug 1268477
-      // assert.deepEqual(
-      //   JSON.parse(
-      //     fs.readFileSync(
-      //       path.join(settingsFolderPath, '..', langPathInFolder),
-      //       { encoding: 'utf-8' })),
-      //   localesFileObj);
+      assert.deepEqual(
+        JSON.parse(
+          fs.readFileSync(
+            path.join(settingsFolderPath, '..', langPathInFolder),
+            { encoding: 'utf-8' })),
+        localesFileObj);
       var manifest =
         JSON.parse(
           fs.readFileSync(path.join(settingsFolderPath, 'manifest.webapp'),

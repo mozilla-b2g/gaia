@@ -20,11 +20,6 @@ function buildApps(options) {
 
   var webapps = gaia.rebuildWebapps;
 
-  // Those are not defined while running some tests
-  if ('sharedFolder' in gaia && 'stageDir' in gaia) {
-    utils.copyDirTo(gaia.sharedFolder.path, gaia.stageDir.path, 'shared');
-  }
-
   webapps.forEach(function(app) {
     let appDir = app.appDirPath;
     let appDirFile = utils.getFile(appDir);

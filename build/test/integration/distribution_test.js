@@ -86,10 +86,9 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'icc.json'), true);
     helper.checkFileContentByPathInFolder(sysFolderPath,
       'resources/wapuaprof.json', path.join(cusDir, 'wapuaprof.json'), true);
-    // FIXME: Broken because of Bug 1268477
-    // helper.checkFileContentByPathInFolder(sysFolderPath,
-    //   'resources/power/carrier_power_on.png',
-    //   path.join(cusDir, 'power', 'carrier_power_on.png'), false);
+    helper.checkFileContentByPathInFolder(sysFolderPath,
+      'resources/power/carrier_power_on.png',
+      path.join(cusDir, 'power', 'carrier_power_on.png'), false);
   }
 
   function validateUuid() {
