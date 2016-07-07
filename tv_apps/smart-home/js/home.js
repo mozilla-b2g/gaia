@@ -1,8 +1,7 @@
 'use strict';
 /* global FilterManager, CardManager, Clock, Edit, Folder, CardUtil, CardPicker,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SpatialNavigator, URL, XScrollable, Animations,
-          Utils, FTEWizard */
+          SpatialNavigator, URL, XScrollable, Animations, Utils */
 /* jshint nonew: false */
 (function(exports) {
   const CARDLIST_LEFT_MARGIN = 8.4;
@@ -47,7 +46,6 @@
     addFolderButton: document.getElementById('add-folder-button'),
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
-    fteElem: document.getElementById('fte'),
     contextmenuElem: document.getElementById('card-menu'),
     moveMenuItem: document.getElementById('move-menuitem'),
     renameMenuItem: document.getElementById('rename-menuitem'),
@@ -177,14 +175,6 @@
                         that.onCardUpdated.bind(that, that.folderScrollable));
           }
         });
-        that._fteWizard = new FTEWizard('homeFTE');
-        that._fteWizard.init({
-          container: that.fteElem,
-          onfinish: () => {
-            that.spatialNavigator.focus(that.cardScrollable);
-            that.isNavigable = true;
-          }
-        });
 
         that._cardPicker = new CardPicker();
         that._cardPicker.init({
@@ -291,9 +281,7 @@
         })]).then(function() {
           // Catch focus back unless there is a pin activity since callback of
           // pinning would catch the focus for us.
-          if (that._fteWizard.running) {
-            that._fteWizard.focus();
-          } else if (that.messageHandler.hasPendingActivity()) {
+          if (that.messageHandler.hasPendingActivity()) {
             that.spatialNavigator.focus(that.cardScrollable);
             if (that.mode == 'filter') {
               that.filterManager.once('filter-animation-end', () => {
