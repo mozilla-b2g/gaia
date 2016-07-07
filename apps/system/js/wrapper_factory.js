@@ -88,6 +88,12 @@
       var url = detail.url;
       var app;
 
+      if (features.webManifestUrl) {
+        app = applications.getByManifestURL(features.webManifestUrl);
+        app && app.launch();
+        return;
+      }
+
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.
       var origin = null;
