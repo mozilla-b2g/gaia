@@ -74,7 +74,7 @@ WebappShared.prototype.copyBuildingBlock =
     var fullPath = dirName + '/' + subDirPath;
     var paths = fullPath.split('/');
     var blockName = paths.pop();
-    var dirPath = 'shared/' + paths.join('/');
+    var dirPath = '../shared/' + paths.join('/');
 
     // Compute the nsIFile for this shared style
     var styleFolder = utils.getFile(this.gaia.sharedFolder.path,
@@ -110,7 +110,7 @@ WebappShared.prototype.pushJS = function(path) {
     throw new Error('Using inexistent shared JS file: ' + path + ' from: ' +
                     this.webapp.domain);
   }
-  var pathInStage = 'shared/js/' + path;
+  var pathInStage = '../shared/js/' + path;
   this.moveToBuildDir(file, pathInStage);
 };
 
@@ -122,7 +122,7 @@ WebappShared.prototype.copyPage = function(path) {
                     ' from: ' + this.webapp.domain);
   }
 
-  var pathInStage = 'shared/pages/' + path;
+  var pathInStage = '../shared/pages/' + path;
   this.moveToBuildDir(file, pathInStage);
 
   let extension = utils.getExtension(file.leafName);
@@ -152,7 +152,7 @@ WebappShared.prototype.pushResource = function(path) {
   }
 
   if (path === 'languages.json') {
-    var pathInStage = 'shared/resources/languages.json';
+    var pathInStage = '../shared/resources/languages.json';
     this.moveToBuildDir(this.localesFile, pathInStage);
     return;
   }
@@ -165,7 +165,7 @@ WebappShared.prototype.pushResource = function(path) {
     function(listFile) {
       var matches = fileNameRegexp.exec(listFile.leafName);
       if (matches) {
-        var pathInStage = 'shared/resources/' +
+        var pathInStage = '../shared/resources/' +
           path.replace(matches[3], matches[1]);
         this.moveToBuildDir(listFile, pathInStage);
       }
@@ -194,7 +194,7 @@ WebappShared.prototype.pushLocale = function(name) {
                     this.webapp.domain);
   }
   // And the locale folder itself
-  this.moveToBuildDir(localeFolder, 'shared/locales/' + name );
+  this.moveToBuildDir(localeFolder, '../shared/locales/' + name );
   utils.ls(localeFolder, true).forEach(function(fileInSharedLocales) {
 
     var relativePath =
@@ -222,7 +222,7 @@ WebappShared.prototype.pushElements = function(path) {
     throw new Error('Using inexistent shared elements file: ' + path +
                     ' from: ' + this.webapp.domain);
   }
-  var pathInStage = 'shared/elements/' + path;
+  var pathInStage = '../shared/elements/' + path;
   this.moveToBuildDir(file, pathInStage);
 
   // Handle image assets for web components
@@ -244,7 +244,7 @@ WebappShared.prototype.pushElements = function(path) {
     var eachFile = utils.getFile(this.gaia.sharedFolder.path, 'elements',
       elementName, resource);
     if (eachFile.exists()) {
-      var stagePath = 'shared/' +
+      var stagePath = '../shared/' +
         utils.relativePath(this.gaia.sharedFolder.path, eachFile.path);
       this.moveToBuildDir(eachFile, stagePath);
     }

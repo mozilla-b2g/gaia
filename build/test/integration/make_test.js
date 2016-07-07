@@ -132,14 +132,14 @@ suite('Make and remake tests', function() {
       });
 
       // path in zip for unofficial branding
-      // FIXME: Broken because of Bug 1268477
-      // var pathInFolder = 'shared/resources/branding/initlogo.png';
+      var pathInFolder = 'shared/resources/branding/initlogo.png';
       // zip path for system app
-      // var folderPath = path.join(process.cwd(), 'profile', 'apps', 'system');
+      var folderPath = path.join(process.cwd(), 'profile', 'apps');
       // expected branding file, it should be a unofficial branding if we
       // execute |make| without rule and variable.
-      // var expectedBrandingPath = path.join(folderPath, '..', 'shared',
-      //    'resources', 'branding', 'unofficial', 'initlogo.png');
+      // should point to the original file we want to check against
+      var expectedBrandingPath = path.join(process.cwd(),
+          'shared', 'resources', 'branding', 'unofficial', 'initlogo.png');
 
       // Read user.js and use vm module to execute javascript in user.js
       var userjs = fs.readFileSync(
@@ -156,8 +156,7 @@ suite('Make and remake tests', function() {
       helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
       helper.checkPrefs(sandbox.prefs, expectedPrefs);
       helper.checkWebappsScheme(webapps);
-      // FIXME: Broken because of Bug 1268477
-      // helper.checkFileInFolder(folderPath,pathInFolder,expectedBrandingPath);
+      helper.checkFileInFolder(folderPath, pathInFolder, expectedBrandingPath);
 
       var profileSize = 0;
       dive(path.join(process.cwd(), 'profile'), function(err, file) {
