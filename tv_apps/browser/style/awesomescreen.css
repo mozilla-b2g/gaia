@@ -409,6 +409,11 @@ li {
   transform: translateY(-1rem);
 }
 
+.top-site-item.active:after {
+  transition : transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
+  transform: scale(0.90);
+}
+
 .top-site-item.active > .thumbnail-area{
   transition : transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
   transform: scale(0.90);
