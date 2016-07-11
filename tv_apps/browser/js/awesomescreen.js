@@ -533,27 +533,40 @@ var Awesomescreen = {
       this.clickTopListFlg = false;
       var fade_top_action = (function() {
 
-        switch(ev.button){
-          case 0 :  // left click
-            var uri = ev.target.childNodes[0].childNodes[1].textContent;
-            Toolbar.urlInput.blur();
-            Browser.navigate(uri);
-            Browser.selectInfo(Browser.currentInfo.id);
-            Browser.switchVisibility(Browser.currentInfo, true);
-            //To the tab you are currently viewing the final display tab
-            Awesomescreen.finalDispTabId = Browser.currentInfo.id;
-            if(Awesomescreen.isDisplayedTab()) {
-              Awesomescreen.tabviewHidden();
-            }
-            Awesomescreen.defaultContentViewHidden();
+        var displayTopsite = function(ev) {
+          var uri = ev.target.childNodes[0].childNodes[1].textContent;
+          Toolbar.urlInput.blur();
+          Browser.navigate(uri);
+          Browser.selectInfo(Browser.currentInfo.id);
+          Browser.switchVisibility(Browser.currentInfo, true);
+          //To the tab you are currently viewing the final display tab
+          Awesomescreen.finalDispTabId = Browser.currentInfo.id;
+          if(Awesomescreen.isDisplayedTab()) {
+            Awesomescreen.tabviewHidden();
+          }
+          Awesomescreen.defaultContentViewHidden();
+        };
 
-            break;
-          case 2:  //right click
-            ev.keyCode = KeyEvent.DOM_VK_SUBMENU;
-            Awesomescreen.handleKeyEvent(ev);
-            break;
-          default:
-            break;
+        if (ev.button) {
+          switch(ev.button){
+            case 0:  // left click
+              displayTopsite(ev);
+              break;
+            case 2:  // right click
+              ev.keyCode = KeyEvent.DOM_VK_SUBMENU;
+              Awesomescreen.handleKeyEvent(ev);
+              break;
+            default:
+              break;
+          }
+        } else if (ev.keyCode) {
+          switch(ev.keyCode) {
+            case KeyEvent.DOM_VK_RETURN:
+              displayTopsite(ev);
+              break;
+            default:
+              break;
+          }
         }
         //undo the outer frame of the thumbnail
         document.getElementById('default-' + ev.target.id).style.opacity = '1';
@@ -595,7 +608,6 @@ var Awesomescreen = {
 
   handleTopListKeyup: function awesomescreen_handleTopListKeyup(ev) {
     if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      ev.button = 0;
       this.clickTopList(ev);
     }
   },
