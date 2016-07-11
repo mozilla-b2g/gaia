@@ -218,9 +218,7 @@
         event.target.result.forEach(function eachApp(app) {
           var manifest = app.manifest;
           if (!app.launch || !manifest || !manifest.icons ||
-          // XXX: Hack for keeping browser app in app-deck
-              (self._isHiddenApp(manifest.role) &&
-                manifest.name !== 'Browser')) {
+              self._isHiddenApp(manifest.role)) {
             return;
           }
           self.installedApps[app.manifestURL] = app;
