@@ -812,7 +812,7 @@
       }
       this._checkAddFolderButtonTimer = setTimeout(() => {
         this.addFolderButton.classList.toggle('hidden',
-          !!this.mode || !this.cardManager.hasCardInCardList());
+          this.mode == 'filter' || !this.cardManager.hasCardInCardList());
         this._checkAddFolderButtonTimer = undefined;
       }, 200);
     },
