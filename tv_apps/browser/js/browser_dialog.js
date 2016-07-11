@@ -159,6 +159,28 @@ var BrowserDialog = {
     this.inputDialog.open(dialogOptions);
   },
 
+  openAlertDialog: function dialog_openAlertDialog(options){
+    var span = document.createElement('SPAN');
+    span.classList.add('browser-dialog-message');
+    span.setAttribute('data-l10n-id', options.messageL10nId);
+
+    var dialogOptions = {
+      message: {
+        textL10nId: options.titleL10nId
+      },
+      customElementSettings: { element: span },
+      buttonSettings: [{
+        textL10nId: options.buttonL10nId,
+        class:'primary',
+        onClick: () => {
+          options.onConfirm();
+        }
+      }]
+    };
+
+    this.modalDialog.open(dialogOptions);
+  },
+
   /**
    * create Dialog
    */
@@ -219,6 +241,16 @@ var BrowserDialog = {
           buttonClass: 'primary',
           onConfirm: deferred.resolve,
           onCancel: deferred.reject
+        });
+        break;
+
+      case 'sync_error':
+        this.openAlertDialog({
+          titleL10nId: options.titleL10nId,
+          messageL10nId: options.messageL10nId,
+          buttonL10nId: 'ok',
+          buttonClass: 'primary',
+          onConfirm: deferred.resolve
         });
         break;
 

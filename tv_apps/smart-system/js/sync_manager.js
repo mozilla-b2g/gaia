@@ -195,12 +195,12 @@
           if (state === 'disabled' || state === 'enabled' ||
               state === 'enabling') {
             this.updateStatePreference().then(() => {
-              this.notifyStateChange();
+              this.notifyStateChange(state);
               resolve();
             });
             return;
           }
-          this.notifyStateChange();
+          this.notifyStateChange(state);
         });
       });
     },
@@ -765,10 +765,10 @@
       port.postMessage(message);
     },
 
-    notifyStateChange() {
+    notifyStateChange(state) {
       this.managementPortMessage({
         name: 'onsyncchange',
-        state: this.state,
+        state: state,
         error: this.error,
         lastSync: this.lastSync,
         user: this.user
