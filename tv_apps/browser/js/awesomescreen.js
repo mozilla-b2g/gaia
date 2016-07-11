@@ -397,7 +397,7 @@ var Awesomescreen = {
           default:
             if(this.isDisplayedTab()){
               if( (ev.target.className) &&
-                (ev.target.className.contains('browser-tab')) ){
+                (ev.target.classList.contains('browser-tab')) ){
                 this.tabviewHidden();
                 state = false;
               }
@@ -2109,9 +2109,9 @@ var Awesomescreen = {
       });
       if(ev.target){
 
-        if(ev.target.className.contains('back-area')){
+        if(ev.target.classList.contains('back-area')){
           actionElem = ev.target.childNodes[0];
-        }else if(ev.target.className.contains('del-img')){
+        }else if(ev.target.classList.contains('del-img')){
           actionElem = ev.target;
         }
         // Add fade animantion event
@@ -2308,9 +2308,9 @@ var Awesomescreen = {
        });
 
       if(ev.target){
-        if(ev.target.className.contains('back-area')){
+        if(ev.target.classList.contains('back-area')){
           actionElem = ev.target.childNodes[0];
-        }else if(ev.target.className.contains('del-img')){
+        }else if(ev.target.classList.contains('del-img')){
           actionElem = ev.target;
         }
         // Add fade animantion event
@@ -2511,7 +2511,7 @@ var Awesomescreen = {
 
     //focus set
     if( (ev.type == 'keydown') || (ev.type == 'keyup') ){
-      if(!(focusElem.childNodes[0].childNodes[0].className.contains('hidden'))){
+      if(!(focusElem.childNodes[0].childNodes[0].classList.contains('hidden'))){
         focusElem.childNodes[0].childNodes[0].focus();
         this.focusImgFunc(
           focusElem.childNodes[0].childNodes[0],
@@ -2652,7 +2652,7 @@ var Awesomescreen = {
             if(hoverElem == this.topSites){
               state = true;
             } else if( (this.selectList) &&
-              (this.selectList.className.contains('top-site-item')) ) {
+              (this.selectList.classList.contains('top-site-item')) ) {
               this.optionDialogOpen();
               state = false;
             }
@@ -2887,7 +2887,7 @@ var Awesomescreen = {
     var currentPos = '';
 
     //Get the current focus element
-    if(document.activeElement.className.contains('back-area')){
+    if(document.activeElement.classList.contains('back-area')){
       activeElem = document.activeElement.parentNode;
       thumbnailFlg = true;
     }else{
@@ -3002,7 +3002,7 @@ var Awesomescreen = {
   mouseOutFunc: function awesomescreen_mouseOutFunc(ev) {
     this.focusSwitchFlg = false;
     ev.target.blur();
-    if(ev.target.className.contains('active')){
+    if(ev.target.classList.contains('active')){
       ev.target.classList.remove('active');
     }
     return false;
@@ -3014,7 +3014,7 @@ var Awesomescreen = {
   mouseOutTopsiteFunc: function awesomescreen_mouseOutTopsiteFunc(ev) {
     var defaultTopId = document.getElementById('default-' + ev.target.id);
     defaultTopId.style.opacity = '1';
-    if(ev.target.className.contains('active')){
+    if(ev.target.classList.contains('active')){
       ev.target.classList.remove('active');
     }
   },
