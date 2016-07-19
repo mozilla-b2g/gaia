@@ -183,6 +183,7 @@
         });
         that._cardPicker.on('hide', that.onCardPickerHide.bind(that));
         that._cardPicker.on('show', that.onCardPickerShow.bind(that));
+        that.spatialNavigator.focus(that.cardScrollable);
       });
     },
 
