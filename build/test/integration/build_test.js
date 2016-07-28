@@ -3,7 +3,6 @@
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
-var AdmZip = require('adm-zip');
 var helper = require('./helper');
 
 suite('Integration tests', function() {
@@ -11,60 +10,60 @@ suite('Integration tests', function() {
   teardown(helper.cleanupWorkspace);
 
   function verifyIncludedFilesFromHtml(appName) {
-    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-        appName + '.gaiamobile.org', 'application.zip');
-    var zip = new AdmZip(zipPath);
+    var folderPath = path.join(process.cwd(), 'profile', 'apps', appName);
 
-    var zipEntries = zip.getEntries();
-    if (zipEntries.length === 0) {
+    var folderEntries = helper.readdirSyncRecursive(folderPath);
+    if (folderEntries.length === 0) {
       return;
     }
 
-    for (var f = 0; f < zipEntries.length; f++) {
-      var fileName = zipEntries[f].entryName;
+    for (var f = 0; f < folderEntries.length; f++) {
+      var fileName = folderEntries[f];
       var extention =
         fileName.substr(fileName.lastIndexOf('.') + 1).toLowerCase();
       if (extention === 'html') {
-        extractSharedFile(zip, zipEntries[f], appName);
+        extractSharedFile(folderPath, folderEntries[f], appName);
       }
     }
 
-    function extractSharedFile(zip, file, appName) {
+    function extractSharedFile(folder, file, appName) {
       var SHARED_USAGE =
-        /<(?:script|link).+=['"]\.?\.?\/?(shared\/[^\/]+\/[^''\s]+)["']/g;
-      var content = zip.readAsText(file);
+        /<(?:script|link).+=['"](\.?\.?\/?shared\/[^\/]+\/[^''\s]+)["']/g;
+      var content = fs.readFileSync(path.join(folder, file),
+                                    { encoding: 'utf-8' });
       var matches;
       while((matches = SHARED_USAGE.exec(content))!== null) {
         var filePathInHtml = matches[1];
-        var fileInZip = zip.readFile(zip.getEntry(filePathInHtml));
-        var fileInApps;
         if (/\.(png|gif|jpg)$/.test(filePathInHtml)) {
           continue;
         }
-        if (filePathInHtml.indexOf('shared/') === 0) {
+        var fileInFolder = fs.readFileSync(path.join(folder, filePathInHtml));
+        var fileInApps;
+        if (filePathInHtml.indexOf('shared/') >= 0) {
+          if (filePathInHtml.indexOf('../') === 0) {
+            filePathInHtml = filePathInHtml.replace('../shared/', 'shared/');
+          }
           fileInApps = fs.readFileSync(
             path.join(process.cwd(), filePathInHtml));
         } else {
           fileInApps = fs.readFileSync(path.join(process.cwd(),
             'apps', appName, filePathInHtml));
         }
-        assert.deepEqual(fileInZip, fileInApps, filePathInHtml);
+        assert.deepEqual(fileInFolder, fileInApps, filePathInHtml);
       }
     }
   }
 
   function verifyIncludedImagesSize(appName, reso, official) {
-    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-        appName + '.gaiamobile.org', 'application.zip');
-    var zip = new AdmZip(zipPath);
-    var zipEntries = zip.getEntries();
-    if (zipEntries.length === 0) {
+    var folderPath = path.join(process.cwd(), 'profile', 'apps', appName);
+    var folderEntries = helper.readdirSyncRecursive(folderPath);
+    if (folderEntries.length === 0) {
       return;
     }
 
-    for (var f = 0; f < zipEntries.length; f++) {
-      var fileInZip = zipEntries[f];
-      var fileName = fileInZip.entryName;
+    for (var f = 0; f < folderEntries.length; f++) {
+      var fileInFolder = folderEntries[f];
+      var fileName = fileInFolder;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
         // Manually modify the pathname of the browser branding images as
         // these are packaged differently than normal images.
@@ -73,13 +72,13 @@ suite('Integration tests', function() {
           fileName = fileName.replace(
             /(.*)(\.(png|gif|jpg))$/, '$1@' + reso + 'x$2');
         }
-        compareWithApps(appName, fileName, fileInZip, reso, official);
+        compareWithApps(appName, fileName, fileInFolder, reso, official);
       }
     }
 
     function compareWithApps(appName, filePath, fileEntry, reso, official) {
       var fileInApps;
-      var fileOfZip = zip.readFile(fileEntry);
+      var fileOfFolder = fs.readFileSync(path.join(folderPath, fileEntry));
       if (filePath.indexOf('/branding/') !== -1) {
         filePath = filePath.replace('/branding/',
           official ? '/branding/official/' : '/branding/unofficial/');
@@ -96,7 +95,7 @@ suite('Integration tests', function() {
         filePath = filePath.replace('@' + reso + 'x', '');
         fileInApps = fs.readFileSync(filePath);
       }
-      assert.deepEqual(fileOfZip, fileInApps, filePath + ' no found');
+      assert.deepEqual(fileOfFolder, fileInApps, filePath + ' no found');
     }
   }
 
@@ -139,12 +138,12 @@ suite('Integration tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var webappsPath = path.join(process.cwd(), 'profile-debug',
-        'webapps', 'webapps.json');
+        'apps', 'webapps.json');
       var webapps = JSON.parse(fs.readFileSync(webappsPath));
 
       assert.isNotNull(webapps['test.mozilla.com']);
-      assert.equal(
-        webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+      assert.equal(webapps['test.mozilla.com'].origin,
+                   'chrome://gaia/content/test.mozilla.com');
 
       restoreFunc();
       done();

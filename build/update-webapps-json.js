@@ -10,7 +10,7 @@ var utils = require('./utils');
 function execute(options) {
   var profileDir = options.PROFILE_DIR;
   var stageDir = options.STAGE_DIR;
-  var webappsJSONFile = utils.getFile(options.PROFILE_DIR, 'webapps',
+  var webappsJSONFile = utils.getFile(options.PROFILE_DIR, 'apps',
     'webapps.json');
 
   if (!utils.fileExists(webappsJSONFile.path)) {
@@ -20,9 +20,9 @@ function execute(options) {
   var webappsJSON = utils.getJSON(webappsJSONFile);
 
   for (let app in webappsJSON) {
-    var manifestFile = utils.joinPath(profileDir, 'webapps', app,
+    var manifestFile = utils.joinPath(profileDir, 'apps', app,
       'manifest.webapp');
-    var updateFile = utils.joinPath(profileDir, 'webapps', app,
+    var updateFile = utils.joinPath(profileDir, 'apps', app,
       'update.webapp');
     var mainManifestFile;
     var appName = app.substring(0, app.indexOf('.'));

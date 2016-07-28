@@ -6,7 +6,7 @@ window.GaiaSelect = (function(win) {
   var proto = Object.create(HTMLElement.prototype);
 
   // Allow baseurl to be overridden (used for demo page)
-  var baseurl = window.GaiaSelectBaseurl || '/shared/elements/gaia_select/';
+  var baseurl = window.GaiaSelectBaseurl || '../shared/elements/gaia_select/';
 
   var selectCounter = 0;
 

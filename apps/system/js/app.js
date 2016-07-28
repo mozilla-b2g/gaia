@@ -1,4 +1,4 @@
-/* global BaseModule, LazyLoader, applications */
+/* global BaseModule, LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -37,15 +37,15 @@
       'js/launcher.js',
       'js/settings_core.js',
       'js/modal_dialog.js', // XXX: Wrap with ModalDialogService later
-      'shared/js/event_safety.js',
-      'shared/js/mobile_operator.js',
-      'shared/js/screen_layout.js',
-      'shared/js/settings_listener.js',
-      'shared/js/async_storage.js',
-      'shared/js/manifest_helper.js',
-      'shared/js/notification_helper.js',
-      'shared/js/sanitizer.js',
-      'shared/js/idletimer.js' // XXX: Move into ScreenManager
+      '../shared/js/event_safety.js',
+      '../shared/js/mobile_operator.js',
+      '../shared/js/screen_layout.js',
+      '../shared/js/settings_listener.js',
+      '../shared/js/async_storage.js',
+      '../shared/js/manifest_helper.js',
+      '../shared/js/notification_helper.js',
+      '../shared/js/sanitizer.js',
+      '../shared/js/idletimer.js' // XXX: Move into ScreenManager
     ],
     start: function() {
       window.performance.mark('loadEnd');
@@ -62,12 +62,6 @@
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');
       return Promise.all([
-        // XXX:
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1161489
-        // Consider to move applications.start() into Core or AppCore
-        // but it may miss the mozChromeEvent to tell us application
-        // is ready to query.
-        applications.waitForReady(),
         window.launcher.start()
       ]).then(() => {
         window.core = BaseModule.instantiate('Core');
@@ -76,7 +70,7 @@
         // To let integration test know we are ready to test.
         document.body.setAttribute('ready-state', 'fullyLoaded');
         window.performance.mark('fullyLoaded');
-      });
+      }).catch(err => { console.log('Error: ' + err); });
     }
   };
 

@@ -48,7 +48,7 @@
         };
 
         // Clear the icon dataStore.
-        LazyLoader.load('shared/js/icons_helper.js').then(() => {
+        LazyLoader.load('../shared/js/icons_helper.js').then(() => {
           IconsHelper.clear();
         });
       }

@@ -275,8 +275,8 @@
      * the slider specified in that bugzilla issue
      */
     this.bootstrapping =
-      LazyLoader.load(['shared/js/lockscreen_slide.js',
-                       'shared/js/passcode_helper.js']).then(() => {
+      LazyLoader.load(['../shared/js/lockscreen_slide.js',
+                       '../shared/js/passcode_helper.js']).then(() => {
       this._unlocker = new LockScreenSlide({useNewStyle: true});
       this.getAllElements();
       this.notificationsContainer =
@@ -429,7 +429,7 @@
 
   LockScreen.prototype.startConnectionInfoManager = function() {
     LazyLoader.load(
-      ['shared/js/lockscreen_connection_info_manager.js']).then(() => {
+      ['../shared/js/lockscreen_connection_info_manager.js']).then(() => {
         this._lockscreenConnInfoManager =
           new LockScreenConnInfoManager(this.connStates);
       }).catch(function(err) {console.error(err);});

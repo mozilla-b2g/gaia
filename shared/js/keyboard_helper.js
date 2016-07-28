@@ -27,7 +27,7 @@ var SETTINGS_KEYS = {
 
 // In order to provide default defaults, we need to know the default keyboard
 var defaultKeyboardManifestURL =
-  'app://keyboard.gaiamobile.org/manifest.webapp';
+  'chrome://gaia/content/keyboard/manifest.webapp';
 
 // Stores a local copy of whatever is in the settings database
 var currentSettings = {

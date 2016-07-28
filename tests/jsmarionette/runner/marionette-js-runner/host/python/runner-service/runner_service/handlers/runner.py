@@ -57,7 +57,7 @@ class DeviceUtils:
 
     def _purge_installed_apps(self):
         # Clean up apps on device.
-        apps = json.loads(self.dm.pullFile('/data/local/webapps/webapps.json'))
+        apps = json.loads(self.dm.pullFile('/data/local/apps/webapps.json'))
         system_install_time = apps['system.gaiamobile.org']['installTime']
         for app in apps.values():
             if app.get('installTime') > system_install_time:

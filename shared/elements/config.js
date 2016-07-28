@@ -1,1 +1,1 @@
-window.COMPONENTS_BASE_URL = '/shared/elements/';
+window.COMPONENTS_BASE_URL = '../../shared/elements/';

@@ -1,3 +1,4 @@
+/* global applications */
 'use strict';
 
 /**
@@ -181,11 +182,6 @@ InputAppList.prototype.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED =
   'keyboard.3rd-party-app.enabled';
 
 InputAppList.prototype.start = function() {
-  if (navigator.mozApps && navigator.mozApps.mgmt) {
-    navigator.mozApps.mgmt.addEventListener('install', this);
-    navigator.mozApps.mgmt.addEventListener('uninstall', this);
-  }
-
   this.settings = new InputAppListSettings();
   this.settings.onchange = this._refresh.bind(this);
   this.settings.start();
@@ -269,25 +265,15 @@ InputAppList.prototype.stop = function() {
   this.settings = null;
 
   this._getListPromise = null;
-
-  if (navigator.mozApps && navigator.mozApps.mgmt) {
-    navigator.mozApps.mgmt.removeEventListener('install', this);
-    navigator.mozApps.mgmt.removeEventListener('uninstall', this);
-  }
 };
 
 InputAppList.prototype._getAllApps = function() {
-  if (!navigator.mozApps || !navigator.mozApps.mgmt) {
-    console.error('InputAppList: mozApps.mgmt not available.');
+  // FIXME: Don't hardcode the default keyboard app.
+  var apps = Object.keys(applications.installedApps).map((index) => {
+    return applications.installedApps[index];
+  });
 
-    return [];
-  }
-
-  return Promise.resolve(navigator.mozApps.mgmt.getAll())
-    .catch(function(e) {
-      console.error('InputAppList: Fail to get app list.', e);
-      return [];
-    });
+  return Promise.resolve(apps);
 };
 
 InputAppList.prototype._setInputApps = function(values) {

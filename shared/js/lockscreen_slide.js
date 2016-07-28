@@ -201,8 +201,8 @@
     },
 
     resourcesNew: {
-      larrow: '/lockscreen/style/images/lockscreen_toggle_arrow_left.png',
-      rarrow: '/lockscreen/style/images/lockscreen_toggle_arrow_right.png'
+      larrow: 'lockscreen/style/images/lockscreen_toggle_arrow_left.png',
+      rarrow: 'lockscreen/style/images/lockscreen_toggle_arrow_right.png'
     }
   };
 

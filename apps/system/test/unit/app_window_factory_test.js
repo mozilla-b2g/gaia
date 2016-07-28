@@ -109,10 +109,10 @@ suite('system/AppWindowFactory', function() {
 
   var fakeLaunchConfig7 = {
     'isActivity': false,
-    'url': 'app://search.gaiamobile.org/index.html',
+    'url': 'chrome://gaia/content/search/index.html',
     'name': 'search',
-    'manifestURL': 'app://search.gaiamobile.org/manifest.webapp',
-    'origin': 'app://search.gaiamobile.org',
+    'manifestURL': 'chrome://gaia/content/search/manifest.webapp',
+    'origin': 'chrome://gaia/content/search',
     'manifest': {
       'name': 'Search',
       'role': 'search',
@@ -469,7 +469,7 @@ suite('system/AppWindowFactory', function() {
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.notCalled);
 
-      fakeLaunchConfig7.url = 'app://search.gaiamobile.org/newtab.html';
+      fakeLaunchConfig7.url = 'chrome://gaia/content/search/newtab.html';
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.calledOnce);
     });
@@ -483,7 +483,7 @@ suite('system/AppWindowFactory', function() {
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.notCalled);
 
-      fakeLaunchConfig7.url = 'app://search.gaiamobile.org/newtab.html';
+      fakeLaunchConfig7.url = 'chrome://gaia/content/search/newtab.html';
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.notCalled);
       assert.ok(app.requestOpen);

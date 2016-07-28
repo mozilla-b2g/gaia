@@ -8,7 +8,7 @@ window.GaiaDrawer = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaDrawerBaseurl ||
-    '/shared/elements/gaia_drawer/';
+    '../shared/elements/gaia_drawer/';
 
   /**
    * Runs when an instance of the

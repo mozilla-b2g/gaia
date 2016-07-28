@@ -8,8 +8,8 @@
   };
 
   NfcCore.IMPORTS = [
-    'shared/js/utilities.js',
-    'shared/js/nfc_utils.js'
+    '../shared/js/utilities.js',
+    '../shared/js/nfc_utils.js'
   ];
 
   NfcCore.SUB_MODULES = [

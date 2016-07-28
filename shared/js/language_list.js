@@ -8,7 +8,7 @@
 
 (function(exports) {
 
-var LOCALES_FILE = '/shared/resources/languages.json';
+var LOCALES_FILE = '../shared/resources/languages.json';
 
 function readFile(file, callback) {
   return new Promise(function(resolve, reject) {

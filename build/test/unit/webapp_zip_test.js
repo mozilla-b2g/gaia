@@ -8,7 +8,6 @@ var fsPath = require('path');
 suite('webapp-zip.js', function() {
   var app;
   var mockOptions;
-  var zipFilePath;
   var zipMode;
   var fileExists = false;
   var filePath;
@@ -29,6 +28,12 @@ suite('webapp-zip.js', function() {
       };
       this.clone = function() {
         return new GetFile(this.path);
+      };
+      this.copyTo = function(folder, filename) {
+        testResult = {
+	  folder: folder,
+          pathInFolder: filename
+        };
       };
       this.leafName = fsPath.basename(this.path);
       this.parent = this;
@@ -52,22 +57,6 @@ suite('webapp-zip.js', function() {
       return new GetFile(filePath);
     };
 
-    mockUtils.getZip = function() {
-      return {
-        load: function(zipPath) {
-          zipFilePath = zipPath;
-        },
-
-        file: function(pathInZip, file, options) {
-          testResult = {
-            pathInZip: pathInZip,
-            file: file,
-            compression: options.compression
-          };
-        }
-      };
-    };
-
     mockUtils.ensureFolderExists = function() {
     };
   });
@@ -75,7 +64,6 @@ suite('webapp-zip.js', function() {
   teardown(function() {
     app = null;
     mockOptions = null;
-    zipFilePath = null;
     zipMode = null;
     filePath = null;
     fileExists = false;
@@ -102,7 +90,7 @@ suite('webapp-zip.js', function() {
 
     test('setOptions', function() {
       webappZip.setOptions(mockOptions);
-      assert.equal(zipFilePath, 'testTargetDir/testDomain/application.zip');
+      assert.equal(filePath, 'testTargetDir/testDomain');
     });
 
     test('getCompression', function() {
@@ -193,7 +181,6 @@ suite('webapp-zip.js', function() {
       webappZip.getCompression = function() {
         return 'NONE';
       };
-      webappZip.zipFile = mockUtils.getZip();
     });
 
     teardown(function() {
@@ -217,9 +204,7 @@ suite('webapp-zip.js', function() {
       isFile = true;
       fileExists = true;
       webappZip.addToZip(testFile);
-      assert.equal(testResult.pathInZip, 'testFile.html');
-      assert.equal(testResult.file.path,
-        'testBuildDir/testFile.html.en-US-test');
+      assert.equal(testResult.pathInFolder, 'testFile.html');
     });
   });
 });

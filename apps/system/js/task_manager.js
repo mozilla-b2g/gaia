@@ -612,16 +612,16 @@ TaskManager.prototype = {
 
     if (isPrivate) {
       config = new BrowserConfigHelper({
-        manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
-        url: 'app://search.gaiamobile.org/newtab.html?private=1',
+        manifestURL: 'chrome://gaia/content/search/manifest.webapp',
+        url: 'chrome://gaia/content/search/newtab.html?private=1',
       });
       config.isPrivate = true;
       config.isMockPrivate = true;
       config.oop = true;
     } else {
       config = new BrowserConfigHelper({
-        manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
-        url: 'app://search.gaiamobile.org/newtab.html?private=0'
+        manifestURL: 'chrome://gaia/content/search/manifest.webapp',
+        url: 'chrome://gaia/content/search/newtab.html?private=0'
       });
     }
 

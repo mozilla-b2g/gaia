@@ -163,7 +163,7 @@ function setHomescreenURL(settings, config) {
     delete settings['homescreen.appName'];
   }
   settings['homescreen.manifestURL'] = utils.gaiaManifestURL(appName,
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+    config.GAIA_SCHEME, config.GAIA_PORT);
 }
 
 function writeSettings(settings, config) {
@@ -206,7 +206,7 @@ function execute(config) {
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
     settings['ftu.manifestURL'] = utils.gaiaManifestURL('ftu',
-      config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+      config.GAIA_SCHEME, config.GAIA_PORT);
   }
 
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
@@ -217,11 +217,11 @@ function execute(config) {
 
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
+    config.GAIA_SCHEME, config.GAIA_PORT) + '/index.html';
 
   // Set the new tab-page URL
   settings['rocketbar.newTabAppURL'] = utils.gaiaOriginURL('search',
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
+    config.GAIA_SCHEME, config.GAIA_PORT) + '/index.html';
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ?
     'adb-only' : 'disabled';

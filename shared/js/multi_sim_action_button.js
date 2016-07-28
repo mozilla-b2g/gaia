@@ -17,7 +17,7 @@ var MultiSimActionButton = function MultiSimActionButton(
   this._button.addEventListener('click', this._click.bind(this));
 
   var self = this;
-  LazyLoader.load(['/shared/js/settings_listener.js'], function() {
+  LazyLoader.load(['../shared/js/settings_listener.js'], function() {
     SettingsListener.observe(settingsKey, 0,
                              self._settingsObserver.bind(self));
   });

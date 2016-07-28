@@ -902,31 +902,23 @@
         return;
       }
 
-      if (this.manifest) {
-        var that = this;
-        that.element.addEventListener('_opened', function onOpened() {
-          that.element.removeEventListener('_opened', onOpened);
-          that.appChrome = new AppChrome(that);
+      this.appChrome = new AppChrome(this);
 
-          // Some signals that chrome needs to respond to can occur before
-          // chrome has loaded - in those cases, manually call the handlers.
-          if (that.inError) {
-            that.appChrome.handleEvent({type: 'mozbrowsererror'});
-          }
-          if (that.loading) {
-            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
-            that.appChrome.handleEvent({type: '_loading'});
-          }
-          if (that.metachangeDetails && that.metachangeDetails.length) {
-            that.metachangeDetails.forEach(function(detail) {
-              that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                          detail: detail});
-            });
-            that.metachangeDetails = [];
-          }
+      // Some signals that chrome needs to respond to can occur before
+      // chrome has loaded - in those cases, manually call the handlers.
+      if (this.inError) {
+        this.appChrome.handleEvent({type: 'mozbrowsererror'});
+      }
+      if (this.loading) {
+        this.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+        this.appChrome.handleEvent({type: '_loading'});
+      }
+      if (this.metachangeDetails && this.metachangeDetails.length) {
+        this.metachangeDetails.forEach(function(detail) {
+          this.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                      detail: detail});
         });
-      } else {
-        this.appChrome = new AppChrome(this);
+        this.metachangeDetails = [];
       }
     };
 
@@ -1291,7 +1283,7 @@
 
   AppWindow.prototype._updateManifest =
     function aw_updateManifest(manifestURL) {
-    return LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
+    return LazyLoader.load('../shared/js/web_manifest_helper.js').then(() => {
       return WebManifestHelper.getManifest(manifestURL);
     }).then((webManifest) => {
       this.webManifest = webManifest;
@@ -2613,7 +2605,7 @@
     placeObj = {}, siteObj = {}) {
 
     return new Promise((resolve, reject) => {
-      LazyLoader.load('/shared/js/icons_helper.js').then(() => {
+      LazyLoader.load('../shared/js/icons_helper.js').then(() => {
         IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
           .then(iconObject => {
             resolve({

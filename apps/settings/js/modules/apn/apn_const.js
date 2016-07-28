@@ -21,7 +21,7 @@ define(function(require) {
   var MNC_SETTINGS_KEY = 'operatorvariant.mnc';
 
   var EU_ROAMING_ENABLED_KEY = 'eu-roaming.enabled';
-  var EU_ROAMING_FILE_PATH = '/resources/eu-roaming.json';
+  var EU_ROAMING_FILE_PATH = 'resources/eu-roaming.json';
 
   var APN_PROPS = [
     'carrier', 'apn', 'user', 'passwd', 'httpproxyhost', 'httpproxyport',

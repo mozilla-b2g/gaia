@@ -14,7 +14,7 @@
     _scopes: {},
 
     _start: function() {
-      LazyLoader.load('shared/js/bookmarks_database.js')
+      LazyLoader.load('../shared/js/bookmarks_database.js')
         .then(function() {
           this._syncScopes();
           this._addListeners();

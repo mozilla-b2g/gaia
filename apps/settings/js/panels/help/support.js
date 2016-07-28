@@ -51,7 +51,7 @@ define(function(require) {
         callback(this._supportInfo);
         return;
       }
-      LazyLoader.getJSON('/resources/support.json')
+      LazyLoader.getJSON('resources/support.json')
       .then(function loadSupportInfo(data) {
         this._supportInfo = data;
         callback(this._supportInfo);

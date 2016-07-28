@@ -32,7 +32,7 @@
     document.getElementById('fullscreen-dialog-overlay');
 
   TrackingNotice.prototype.renderDialog = function() {
-    LazyLoader.load('shared/elements/gaia_switch/script.js', () => {
+    LazyLoader.load('../shared/elements/gaia_switch/script.js', () => {
       this.render();
     });
   };

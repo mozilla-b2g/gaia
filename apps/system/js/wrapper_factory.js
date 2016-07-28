@@ -76,11 +76,6 @@
         var manifestURL = callerIframe.getAttribute('mozapp');
 
         var callerApp = applications.getByManifestURL(manifestURL);
-        if (!this.hasPermission(callerApp, 'open-remote-window') &&
-            !this.hasPermission(callerApp, 'homescreen-webapps-manage')) {
-          return;
-        }
-
         callerOrigin = callerApp.origin;
       } else {
         callerOrigin = location.origin;
@@ -179,17 +174,6 @@
       this._launchingApp = new AppWindow(config);
       this._launchingApp.element.addEventListener('_opened', this);
       this._launchingApp.element.addEventListener('_terminated', this);
-    },
-
-    hasPermission: function wf_hasPermission(app, permission) {
-      var mozPerms = navigator.mozPermissionSettings;
-      if (!mozPerms) {
-        return false;
-      }
-
-      var value = mozPerms.get(permission, app.manifestURL, app.origin, false);
-
-      return (value === 'allow');
     },
 
     generateBrowserConfig: function wf_generateBrowserConfig(features) {

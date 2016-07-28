@@ -592,7 +592,7 @@
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
     return new Promise((resolve, reject) => {
       this.data = this.getData(this.packet);
-      LazyLoader.load(['/shared/js/gzip/gzip.js']).then(() => {
+      LazyLoader.load(['../shared/js/gzip/gzip.js']).then(() => {
         Gzip.compress(this.data).then((gzipData) => {
           debug('Length of compressed data:', gzipData.length);
           return this.post(xhrAttrs, gzipData);

@@ -7,7 +7,8 @@ function isAbsoluteURL(url) {
   return url.indexOf('data:') === 0 ||
          url.indexOf('app://') === 0 ||
          url.indexOf('http://') === 0 ||
-         url.indexOf('https://') === 0;
+         url.indexOf('https://') === 0 ||
+         url.indexOf('chrome://') === 0;
 }
 
 // c.f. the corresponding implementation in the Homescreen app.
@@ -37,6 +38,8 @@ function bestMatchingIcon(config, manifest, origin) {
   }
 
   var url = icons[preferredIconSize];
+  url = url.src ? url.src : url;
+
   if (!url) {
     return undefined;
   }

@@ -23,7 +23,7 @@ function cleanProfile(webappsDir) {
 function genWebappJSON(config) {
   var configItems = ['origin', 'installOrigin', 'receipt', 'installTime',
                      'updateTime', 'manifestURL', 'removable', 'localId',
-                     'etag', 'packageEtag', 'appStatus'];
+                     'etag', 'packageEtag', 'appStatus', 'originalManifest'];
   var resultJSON = {};
 
   configItems.forEach(function(key) {
@@ -37,17 +37,17 @@ function genWebappJSON(config) {
 function execute(options) {
   var webappsJSON = {};
   var gaia = utils.gaia.getInstance(options);
-  var webappsBaseDir = utils.getFile(options.COREWEBAPPS_DIR, 'webapps');
+  var appsBaseDir = utils.getFile(options.COREWEBAPPS_DIR, 'apps');
   var stageDir = gaia.stageDir;
 
   var webappsJSONFile = utils.getFile(stageDir.path, 'webapps_stage.json');
   var webappsStageJSON = utils.getJSON(webappsJSONFile);
 
-  if (webappsBaseDir.exists()) {
+  if (appsBaseDir.exists()) {
     // remove all external app with uuid folder name
-    cleanProfile(webappsBaseDir);
+    cleanProfile(appsBaseDir);
   } else {
-    utils.ensureFolderExists(webappsBaseDir);
+    utils.ensureFolderExists(appsBaseDir);
   }
 
   gaia.webapps.forEach(function(app) {
@@ -57,7 +57,7 @@ function execute(options) {
     webappsJSON[webappTargetDirName] = genWebappJSON(appConfig);
   });
 
-  var manifestFile = utils.getFile(webappsBaseDir.path, 'webapps.json');
+  var manifestFile = utils.getFile(appsBaseDir.path, 'webapps.json');
   utils.writeContent(manifestFile, JSON.stringify(webappsJSON, null, 2) + '\n');
 }
 

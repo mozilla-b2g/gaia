@@ -6,7 +6,7 @@ window.GaiaTextinput = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaTextinputBaseurl ||
-    '/shared/elements/gaia-textinput/';
+    '../shared/elements/gaia-textinput/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();

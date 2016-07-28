@@ -1,0 +1,13 @@
+/* ----------------------------------
+ * Status (modifications for group calls)
+ * ---------------------------------- */
+#statusMsg {
+  position: fixed;
+  bottom: 14rem;
+  opacity: 0;
+}
+
+#statusMsg.visible {
+  opacity: 1;
+  transition: opacity .5s ease;
+}

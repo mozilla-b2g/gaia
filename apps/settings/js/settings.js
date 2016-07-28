@@ -77,7 +77,7 @@ window.Settings = {
   },
 
   init: function settings_init(options) {
-    if (!this.hasMozSettings || !navigator.mozSetMessageHandler) {
+    if (!this.hasMozSettings) {
       return;
     }
 

@@ -1,5 +1,5 @@
-/* global MozActivity, AppsMetadata, Datastore, LazyLoader, FirstRun,
-          IconsHelper, Settings */
+/* global MozActivity, AppsMetadata, LazyLoader, FirstRun,
+          IconsHelper, Settings, PinnedPlaces */
 'use strict';
 
 (function(exports) {
@@ -66,7 +66,6 @@
 
     // Element references
     this.panel = document.getElementById('apps-panel');
-    this.meta = document.head.querySelector('meta[name="theme-color"]');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.remove = document.getElementById('remove');
@@ -74,31 +73,9 @@
     this.done = document.getElementById('done');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
-    this.dialogs = [this.cancelDownload, this.resumeDownload];
-
-    // XXX Working around gaia-components issue #8
-    var dialog;
-    for (dialog of this.dialogs) {
-      dialog.hide();
-    }
-
-    // Change the colour of the statusbar when showing dialogs
-    var dialogVisibilityCallback = () => {
-      for (var dialog of this.dialogs) {
-        if (dialog.opened) {
-          this.meta.content = 'white';
-          document.body.classList.add('dialog-active');
-          return;
-        }
-      }
-      this.meta.content = 'transparent';
-      document.body.classList.remove('dialog-active');
-    };
-    for (dialog of this.dialogs) {
-      var observer = new MutationObserver(dialogVisibilityCallback);
-      observer.observe(dialog,
-        { attributes: true, attributeFilter: ['style'] });
-    }
+    this.confirmUnpin = document.getElementById('confirm-unpin-site');
+    this.dialogs =
+      [this.cancelDownload, this.resumeDownload, this.confirmUnpin];
 
     // Paging
     this.resizeTimeout = null;
@@ -149,224 +126,198 @@
     this.attachInputHandlers(this.icons);
     this.touchSelectedIcon = this.touchSelectedIcon.bind(this);
     this.icons.addEventListener('touchstart', this);
-    navigator.mozApps.mgmt.addEventListener('install', this);
-    navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
     window.addEventListener('settings-changed', this);
+    window.addEventListener('settings-ready', this);
 
     // Settings
     this.settings = new Settings();
-    this.icons.classList.toggle('small', this.settings.small);
-    this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
-    this.storeAppOrderTimeout = null;
-
-    // Populate apps and bookmarks asynchronously
-    this.metadataLoaded = 0;
-    this.startupMetadata = [];
-    this.iconsToRetry = [];
-    this.pendingIcons = {};
-    this.metadata = new AppsMetadata();
-    this.bookmarks = new Datastore('bookmarks_store');
-
-    // Make sure icons isn't doing lots of unnecessary work while we're
-    // loading the first screen of apps.
-    this.visualLoadComplete = false;
-    this.icons.freeze();
-    this.icons.classList.add('loading');
-
-    Promise.all([
-      // Load app metadata. If metadata loading fails, continue populating apps
-      // anyway - it means they'll be in the default order and their order
-      // won't save, but it's better than showing a blank screen.
-      // If this is the first run, get the app order from the first-run script
-      // after initialising the metadata database.
-      this.metadata.init().then(this.settings.firstRun ? () => {
-        return LazyLoader.load('js/firstrun.js').then(
-          () => {
-            return FirstRun().then((results) => {
-              this.toggleSmall(results.small);
-              this.startupMetadata = results.order;
-              this.settings.small = results.small;
-              this.settings.save();
-              return Promise.resolve();
-            }, (e) => {
-              console.error('Error running first-run script', e);
-              return Promise.resolve();
-            });
-          },
-          (e) => {
-            console.error('Failed to load first-run script');
-            return Promise.resolve();
-          });
-        } :
-        () => {
-          return this.metadata.getAll(result => {
-            this.startupMetadata.push(result);
-            this.metadataLoaded++;
-
-            // Process results in batches as they come in
-            var processResult = data => {
-              if (this.pendingIcons[data.id]) {
-                var args = this.pendingIcons[data.id];
-                delete this.pendingIcons[data.id];
-                this.addAppIcon.apply(this, args);
-              }
-            };
-
-            if (!this.visualLoadComplete) {
-              processResult(result);
-              this.refreshGridSize();
-            } else if ((this.metadataLoaded % this.iconsPerPage) === 0) {
-              this.icons.freeze();
-              for (var entry of this.startupMetadata) {
-                processResult(entry);
-              }
-              this.refreshGridSize();
-              this.icons.thaw();
-            }
-          }).then(Promise.resolve(),
-            e => {
-              console.error('Failed to retrieve metadata entries', e);
-              return Promise.resolve();
-            });
-        },
-        (e) => {
-          console.error('Failed to initialise metadata db', e);
-          return Promise.resolve();
-        }),
-
-      // Populate apps
-      new Promise((resolve, reject) => {
-        var request = navigator.mozApps.mgmt.getAll();
-        request.onsuccess = (e) => {
-          for (var app of request.result) {
-            this.addApp(app);
-          }
-          resolve();
-        };
-        request.onerror = (e) => {
-          console.error('Error calling getAll: ' + request.error.name);
-          resolve();
-        };
-      }),
-
-      // Initialise and populate bookmarks
-      this.bookmarks.init().then(() => {
-        document.addEventListener('bookmarks_store-set', (e) => {
-          var id = e.detail.id;
-          this.bookmarks.get(id).then((bookmark) => {
-            this.iterateIcons(icon => {
-              if (icon.bookmark && icon.bookmark.id === id) {
-                icon.bookmark = bookmark.data;
-                icon.refresh();
-              }
-            });
-            this.addAppIcon(bookmark.data);
-            this.storeAppOrder();
-          });
-        });
-
-        document.addEventListener('bookmarks_store-removed', (e) => {
-          var id = e.detail.id;
-          this.iterateIcons((icon, container, parent) => {
-            if (icon.bookmark && icon.bookmark.id === id) {
-              parent.removeChild(container, () => {
-                this.storeAppOrder();
-                this.refreshGridSize();
-                this.snapScrollPosition();
-              });
-              this.metadata.remove(id);
-
-              if (this.selectedIcon === icon) {
-                this.updateSelectedIcon(null);
-              }
-            }
-          });
-        });
-
-        document.addEventListener('bookmarks_store-cleared', () => {
-          this.iterateIcons((icon, container, parent) => {
-            if (icon.bookmark) {
-              parent.removeChild(container);
-            }
-          });
-          this.storeAppOrder();
-          this.refreshGridSize();
-          this.snapScrollPosition();
-        });
-      }, (e) => {
-        console.error('Error initialising bookmarks', e);
-        return Promise.resolve();
-      }).then(() => {
-        return this.bookmarks.getAll().then((bookmarks) => {
-          for (var bookmark of bookmarks) {
-            this.addAppIcon(bookmark.data);
-          }
-        }, (e) => {
-          console.error('Error getting bookmarks', e);
-          return Promise.resolve();
-        });
-      })
-    ]).then(() => {
-      // Add any applications that were missed and are in the startup metadata
-      var id;
-      var pendingIcons = this.pendingIcons;
-      this.pendingIcons = {};
-      for (id in pendingIcons) {
-        this.addAppIcon.apply(this, pendingIcons[id]);
-      }
-
-      // Make sure icons has been thawed
-      if (!this.visualLoadComplete) {
-        this.onVisualLoad();
-      }
-
-      // Remove unknown entries from the startup metadata
-      if (!this.settings.firstRun) {
-        for (var data of this.startupMetadata) {
-          console.log('Removing unknown app metadata entry', data.id);
-          this.metadata.remove(data.id).then(
-            () => {},
-            (e) => {
-              console.error('Error removing unknown app metadata entry', e);
-            });
-        }
-      }
-      this.startupMetadata = null;
-
-      // Update icons that we've added from the startup metadata in case their
-      // icons have updated or the icon size has changed.
-      this.iterateIcons(icon => {
-        this.refreshIcon(icon);
-      });
-
-      // Add any applications that aren't in the startup metadata
-      var newIcons = false;
-      pendingIcons = this.pendingIcons;
-      for (id in pendingIcons) {
-        this.addAppIcon.apply(this, pendingIcons[id]);
-        newIcons = true;
-      }
-      this.pendingIcons = null;
-
-      // Store app order of new icons
-      if (newIcons) {
-        this.storeAppOrder();
-      } else {
-        // Grid size is only refreshed in the non-startup path, so unless we
-        // added new icons post-startup, refresh here to make sure it's the
-        // correct size.
-        this.refreshGridSize();
-      }
-
-      // All asynchronous loading has finished
-      window.performance.mark('fullyLoaded');
-    });
   }
 
   Apps.prototype = {
+    init: function() {
+      this.icons.classList.toggle('small', this.settings.small);
+      this.scrollable.classList.toggle('snapping',
+        this.settings.scrollSnapping);
+      this.storeAppOrderTimeout = null;
+
+      // Populate apps and bookmarks asynchronously
+      this.metadataLoaded = 0;
+      this.startupMetadata = [];
+      this.iconsToRetry = [];
+      this.pendingIcons = {};
+      this.metadata = new AppsMetadata();
+      this.places = new PinnedPlaces();
+
+      // Make sure icons isn't doing lots of unnecessary work while we're
+      // loading the first screen of apps.
+      this.visualLoadComplete = false;
+      this.icons.freeze();
+      this.icons.classList.add('loading');
+
+      Promise.all([
+        // Load app metadata. If metadata loading fails, continue populating
+        // apps anyway - it means they'll be in the default order and their
+        // order won't save, but it's better than showing a blank screen.
+        // If this is the first run, get the app order from the first-run
+        // script after initialising the metadata database.
+        this.metadata.init().then(this.settings.firstRun ? () => {
+          return LazyLoader.load('js/firstrun.js').then(
+            () => {
+              return FirstRun().then((results) => {
+                this.toggleSmall(results.small);
+                this.startupMetadata = results.order;
+                this.settings.small = results.small;
+                this.settings.save();
+                return Promise.resolve();
+              }, (e) => {
+                console.error('Error running first-run script', e);
+                return Promise.resolve();
+              });
+            },
+            (e) => {
+              console.error('Failed to load first-run script');
+              return Promise.resolve();
+            });
+          } :
+          () => {
+            return this.metadata.getAll(result => {
+              this.startupMetadata.push(result);
+              this.metadataLoaded++;
+
+              // Process results in batches as they come in
+              var processResult = data => {
+                if (this.pendingIcons[data.id]) {
+                  var args = this.pendingIcons[data.id];
+                  delete this.pendingIcons[data.id];
+                  this.addAppIcon.apply(this, args);
+                }
+              };
+
+              if (!this.visualLoadComplete) {
+                processResult(result);
+                this.refreshGridSize();
+              } else if ((this.metadataLoaded % this.iconsPerPage) === 0) {
+                this.icons.freeze();
+                for (var entry of this.startupMetadata) {
+                  processResult(entry);
+                }
+                this.refreshGridSize();
+                this.icons.thaw();
+              }
+            }).then(Promise.resolve(),
+              e => {
+                console.error('Failed to retrieve metadata entries', e);
+                return Promise.resolve();
+              });
+          },
+          (e) => {
+            console.error('Failed to initialise metadata db', e);
+            return Promise.resolve();
+          }),
+
+        // Initialise and populate pinned sites
+        this.places.init('sites').then(() => {
+          document.addEventListener('sites-pinned', (e) => {
+            var url = e.detail.url;
+            this.places.get(url).then((bookmark) => {
+              this.iterateIcons(icon => {
+                if (icon.bookmark && icon.bookmark.id === url) {
+                  icon.bookmark = bookmark;
+                  icon.refresh();
+                }
+              });
+              this.addAppIcon(bookmark);
+              this.storeAppOrder();
+            });
+          });
+
+          document.addEventListener('sites-unpinned', (e) => {
+            var url = e.detail.url;
+            this.iterateIcons((icon, container, parent) => {
+              if (icon.bookmark && icon.bookmark.id === url) {
+                parent.removeChild(container, () => {
+                  this.storeAppOrder();
+                  this.refreshGridSize();
+                  this.snapScrollPosition();
+                });
+                this.metadata.remove(url);
+
+                if (this.selectedIcon === icon) {
+                  this.updateSelectedIcon(null);
+                }
+              }
+            });
+          });
+
+          return this.places.getAll().then(sites => {
+            for (var site of sites) {
+              this.addAppIcon(site);
+            }
+          }, e => {
+            console.error('Error initialising sites DB', e);
+            return Promise.resolve();
+          });
+        })
+      ]).then(() => {
+        // Add any applications that were missed and are in the startup metadata
+        var id;
+        var pendingIcons = this.pendingIcons;
+        this.pendingIcons = {};
+        for (id in pendingIcons) {
+          this.addAppIcon.apply(this, pendingIcons[id]);
+        }
+
+        // Make sure icons has been thawed
+        if (!this.visualLoadComplete) {
+          this.onVisualLoad();
+        }
+
+        // Remove unknown entries from the startup metadata
+        if (!this.settings.firstRun) {
+          for (var data of this.startupMetadata) {
+            console.log('Removing unknown app metadata entry', data.id);
+            this.metadata.remove(data.id).then(
+              () => {},
+              (e) => {
+                console.error('Error removing unknown app metadata entry', e);
+              });
+          }
+        }
+        this.startupMetadata = null;
+
+        // Update icons that we've added from the startup metadata in case
+        // their icons have updated or the icon size has changed.
+        this.iterateIcons(icon => {
+          this.refreshIcon(icon);
+        });
+
+        // Add any applications that aren't in the startup metadata
+        var newIcons = false;
+        pendingIcons = this.pendingIcons;
+        for (id in pendingIcons) {
+          this.addAppIcon.apply(this, pendingIcons[id]);
+          newIcons = true;
+        }
+        this.pendingIcons = null;
+
+        // Store app order of new icons
+        if (newIcons) {
+          this.storeAppOrder();
+        } else {
+          // Grid size is only refreshed in the non-startup path, so unless we
+          // added new icons post-startup, refresh here to make sure it's the
+          // correct size.
+          this.refreshGridSize();
+        }
+
+        // All asynchronous loading has finished
+        window.performance.mark('fullyLoaded');
+      });
+    },
+
     attachInputHandlers: function(container) {
       if (this.container) {
         if (this.container === container) {
@@ -603,28 +554,18 @@
       }
 
       var container = this.addIconContainer(icon, entry, parent);
+      // Hide/show the icon if the role changes to/from a hidden role
+      var handleRoleChange = function(app, container) {
+        var manifest = app.manifest || app.updateManifest;
+        var hidden = (manifest && manifest.role &&
+          HIDDEN_ROLES.includes(manifest.role));
+        container.style.display = hidden ? 'none' : '';
+      };
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
         this.refreshIcon(icon);
-      } else {
-        icon.app = appOrBookmark;
-
-        // Hide/show the icon if the role changes to/from a hidden role
-        var handleRoleChange = function(app, container) {
-          var manifest = app.manifest || app.updateManifest;
-          var hidden = (manifest && manifest.role &&
-            HIDDEN_ROLES.includes(manifest.role));
-          container.style.display = hidden ? 'none' : '';
-        };
-
-        icon.app.addEventListener('downloadapplied',
-          function(app, container, parent) {
-            handleRoleChange(app, container);
-            parent.synchronise();
-          }.bind(this, icon.app, container, parent));
-
-        handleRoleChange(icon.app, container);
+        handleRoleChange(appOrBookmark, container);
       }
 
       // Save the new icon if it gets refreshed.
@@ -871,26 +812,14 @@
         return;
       }
 
-      if (this.selectedIcon.app) {
-        if (!this.selectedIcon.app.removable) {
-          return;
-        }
-        navigator.mozApps.mgmt.uninstall(this.selectedIcon.app);
-      } else if (this.selectedIcon.bookmark) {
-        var remove = new MozActivity({
-          name: 'remove-bookmark',
-          data: { type: 'url', url: this.selectedIcon.bookmark.id }
-        });
-
-        // Re-enter edit mode because the activity will hide the document,
-        // which exits edit mode
-        var icon = this.selectedIcon;
-        remove.onsuccess = () => {
-          this.enterEditMode(null);
-        };
-        remove.onerror = () => {
-          this.enterEditMode(icon);
-        };
+      if (this.selectedIcon.bookmark) {
+        this.showActionDialog(this.confirmUnpin,
+          JSON.stringify({ name: this.selectedIcon.name }),
+          [() => {
+             this.places.unpin(this.selectedIcon.bookmark.id).then(() => {
+               this.enterEditMode(null);
+             });
+           }]);
       }
     },
 
@@ -1040,9 +969,11 @@
           break;
         }
 
+        // TODO: I think we can remove this entire switch block, as this is
+        //       all specific to mozApps. Leaving in case we recover some of
+        //       this functionality with pinned sites.
         switch (icon.state) {
           case 'unrecoverable':
-            navigator.mozApps.mgmt.uninstall(icon.app);
             break;
 
           case 'installing':
@@ -1378,6 +1309,11 @@
       case 'settings-changed':
         this.toggleSmall(this.settings.small);
         this.toggleScrollSnapping(this.settings.scrollSnapping);
+        break;
+
+      case 'settings-ready':
+        window.removeEventListener('settings-ready', this);
+        this.init();
         break;
       }
     }

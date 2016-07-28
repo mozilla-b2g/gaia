@@ -7,7 +7,7 @@ window.GaiaButtons = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaButtonsBaseurl ||
-    '/shared/elements/gaia_buttons/';
+    '../shared/elements/gaia_buttons/';
 
   proto.createdCallback = function() {
     ComponentUtils.style.call(this, baseurl);

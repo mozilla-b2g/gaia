@@ -12,13 +12,13 @@
     this.instanceID = 'pin-page-dialog';
     this.controller = controller || {};
     this.options = {};
-    LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
+    LazyLoader.load('../shared/elements/gaia-component/gaia-component.js')
       .then(() => {
         var webComponents = [
-          'shared/elements/gaia-site-icon/script.js',
-          'shared/elements/gaia-button/gaia-button.js',
-          'shared/elements/gaia-dialog/gaia-dialog.js',
-          'shared/elements/gaia-toast/gaia-toast.js'
+          '../shared/elements/gaia-site-icon/script.js',
+          '../shared/elements/gaia-button/gaia-button.js',
+          '../shared/elements/gaia-dialog/gaia-dialog.js',
+          '../shared/elements/gaia-toast/gaia-toast.js'
         ];
         LazyLoader.load(webComponents)
           .then(() => {

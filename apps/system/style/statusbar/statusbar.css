@@ -1,3 +1,9 @@
+/* Setting --statusbar-height var */
+/*csslint empty-rules: false*/
+:root {
+  --statusbar-height: 3rem;
+}
+
 /* In both fullscreen modes, accept pointer events to trigger the status bar
    unless the utility tray is showing. */
 #screen.fullscreen-app:not(.utility-tray) #top-panel,

@@ -6,82 +6,79 @@
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
-    <script src="shared/js/intl/l20n.js"></script>
-    <script src="shared/js/moz_intl.js"></script>
-    <script src="shared/js/dump.js"></script>
+    <script src="../shared/js/intl/l20n.js"></script>
+    <script src="../shared/js/moz_intl.js"></script>
+    <script src="../shared/js/dump.js"></script>
+    <script src="../shared/js/places_helper.js"></script>
 
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
-    <!-- applications.js must not be deferred
-         in order to catch webapps-registry-ready mozChromeEvent -->
-    <script src="js/applications.js"></script>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/browser_126.png"/>
     <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
 
     <link rel="stylesheet" type="text/css" href="style/battery_overlay/battery_overlay.css">
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
-    <link rel="stylesheet" href="shared/elements/gaia_overflow_menu/style/external.css">
+    <link rel="stylesheet" href="../shared/elements/gaia_overflow_menu/style/external.css">
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
     <link rel="stylesheet" type="text/css" href="style/system/global-overlays.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
-    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="../shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/value_selector.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/date_selector.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/time_selector.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/object_menu.css">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia_progress/style/external.css">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
     <link rel="stylesheet" type="text/css" href="style/view_source.css"/>
     <link rel="stylesheet" type="text/css" href="style/tracking_notice/tracking_notice.css"/>
 
-    <script defer src="shared/elements/config.js"></script>
-    <script defer src="shared/js/component_utils.js"></script>
-    <!-- <script defer src="/shared/js/addons/match_pattern.js"></script> -->
-    <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
-    <!-- <script defer src="/shared/js/gzip/gzip.js"></script> -->
-    <!-- <script defer src="/shared/js/gzip/gzip_worker.js"></script> -->
-    <!-- <script defer src="/shared/js/gzip/gzip.min.js"></script> -->
-    <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
-    <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
-    <!-- <script defer src="/shared/elements/gaia_switch/script.js"></script> -->
-    <!-- <script defer src="shared/elements/gaia-dialog/gaia-dialog.js"></script> -->
-    <!-- <script defer src="shared/elements/gaia-button/gaia-button.js"></script> -->
-    <!-- <script defer src="shared/elements/gaia-text-input/gaia-text-input.js"></script> -->
-    <script defer src="shared/elements/gaia_buttons/script.js"></script>
-    <script defer src="shared/elements/gaia_checkbox/script.js"></script>
-    <script defer src="shared/elements/gaia_progress/script.js"></script>
-    <script defer src="shared/elements/gaia_subheader/script.js"></script>
-    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
-    <script defer src="shared/js/homescreens/icon.js"></script>
-    <script defer src="shared/elements/gaia_pin_card/script.js"></script>
-    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="../shared/elements/config.js"></script>
+    <script defer src="../shared/js/component_utils.js"></script>
+    <!-- <script defer src="../shared/js/addons/match_pattern.js"></script> -->
+    <!-- <script defer src="../shared/js/homescreens/confirm_dialog_helper.js"></script> -->
+    <!-- <script defer src="../shared/js/gzip/gzip.js"></script> -->
+    <!-- <script defer src="../shared/js/gzip/gzip_worker.js"></script> -->
+    <!-- <script defer src="../shared/js/gzip/gzip.min.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia_confirm/script.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia_menu/script.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia_switch/script.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia-dialog/gaia-dialog.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia-button/gaia-button.js"></script> -->
+    <!-- <script defer src="../shared/elements/gaia-text-input/gaia-text-input.js"></script> -->
+    <script defer src="../shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="../shared/elements/gaia_checkbox/script.js"></script>
+    <script defer src="../shared/elements/gaia_progress/script.js"></script>
+    <script defer src="../shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="../shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+    <script defer src="../shared/js/homescreens/icon.js"></script>
+    <script defer src="../shared/elements/gaia_pin_card/script.js"></script>
+    <script defer src="../shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Include shared resources
-    <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
-    <link rel="resource" type="audio/ogg" href="shared/resources/media/ringtones/ringer_firefox.opus"/>
-    <link rel="resource" type="audio/ogg" href="shared/resources/media/notifications/notifier_firefox.opus"/>
+    <link rel="resource" type="application/json" href="../shared/resources/apn.json"/>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/initlogo.png"/>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/initlogo_large.png"/>
+    <link rel="resource" type="audio/ogg" href="../shared/resources/media/ringtones/ringer_firefox.opus"/>
+    <link rel="resource" type="audio/ogg" href="../shared/resources/media/notifications/notifier_firefox.opus"/>
     -->
 
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="../shared/resources/branding/browser_126.png"/>
 
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
 
     <link rel="stylesheet" type="text/css" href="style/date_selector/date_selector_extended.css">
     <link rel="stylesheet" type="text/css" href="style/time_selector/time_selector_extended.css">
-    <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
 
     <link rel="stylesheet" type="text/css" href="style/icc.css">
@@ -112,25 +109,25 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
-    <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
+    <link rel="localization" href="../shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
-    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="/shared/locales/intl/unitformat.{locale}.properties">
-    <link rel="localization" href="/shared/locales/intl/relativetimeformat.{locale}.properties">
-    <link rel="localization" href="/shared/locales/permissions/permissions.{locale}.properties">
-    <link rel="localization" href="/shared/locales/download/download.{locale}.properties">
-    <link rel="localization" href="/shared/locales/voicemail/voicemail.{locale}.properties">
-    <link rel="localization" href="/shared/locales/lockscreen/lockscreen.{locale}.properties">
-    <link rel="localization" href="/shared/locales/activities/activities.{locale}.properties">
-    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
-    <link rel="localization" href="/shared/elements/gaia_progress/locales/gaia_progress.{locale}.properties">
-    <link rel="localization" href="/shared/locales/shrinking_ui/shrinking_ui.{locale}.properties">
+    <link rel="localization" href="../shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="../shared/locales/intl/unitformat.{locale}.properties">
+    <link rel="localization" href="../shared/locales/intl/relativetimeformat.{locale}.properties">
+    <link rel="localization" href="../shared/locales/permissions/permissions.{locale}.properties">
+    <link rel="localization" href="../shared/locales/download/download.{locale}.properties">
+    <link rel="localization" href="../shared/locales/voicemail/voicemail.{locale}.properties">
+    <link rel="localization" href="../shared/locales/lockscreen/lockscreen.{locale}.properties">
+    <link rel="localization" href="../shared/locales/activities/activities.{locale}.properties">
+    <link rel="localization" href="../shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="../shared/elements/gaia_progress/locales/gaia_progress.{locale}.properties">
+    <link rel="localization" href="../shared/locales/shrinking_ui/shrinking_ui.{locale}.properties">
 
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
     <link rel="stylesheet" type="text/css" href="style/browser_frame/browser_frame.css">
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/shrinking_ui.css">
+    <link rel="stylesheet" type="text/css" href="../shared/style/shrinking_ui.css">
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
@@ -151,63 +148,63 @@
     <script defer src="js/clock.js"></script>
     <!--Shared
     <!-- Lazy loaded shared --
-     <script defer src="shared/js/settings_listener.js"></script>
-     <script defer src="shared/js/async_storage.js"></script>
-     <script defer src="shared/js/manifest_helper.js"></script>
-     <script defer src="shared/js/web_manifest_helper.js"></script>
-     <script defer src="shared/js/findmydevice_iac_api.js"></script>
-     <script defer src="shared/js/settings_helper.js"></script>
-     <script defer src="shared/js/default_activity_helper.js"></script>
-     <script defer src="shared/js/async_semaphore.js"></script>
-     <script defer src="shared/js/custom_dialog.js"></script>
-     <script defer src="shared/js/screen_layout.js"></script>
-     <script defer src="shared/js/mobile_operator.js"></script>
-     <script defer src="shared/js/utilities.js"></script>
-     <script defer src="shared/js/sanitizer.js"></script>
-     <script defer src="shared/js/settings_url.js"></script>
-     <script defer src="shared/js/version_helper.js"></script>
-     <script defer src="shared/js/telemetry.js"></script>
-     <script defer src="shared/js/idletimer.js"></script>
-     <script defer src="shared/js/event_safety.js"></script>
-     <script defer src="shared/js/notification_helper.js"></script>
-     <script defer src="shared/js/nfc_utils.js"></script>
-     <script defer src="shared/js/shrinking_ui.js"></script>
-     <script defer src="shared/js/operator_variant_helper.js"></script>
-     <script defer src="/shared/js/icc_helper.js">
-     <script defer src="/shared/js/simslot.js">
-     <script defer src="/shared/js/simslot_manager.js">
-     <script defer src="/shared/js/stk_helper.js">
-     <script defer src="/shared/js/mime_mapper.js">
-     <script defer src="/shared/js/advanced_timer.js">
-     <script defer src="/shared/js/iac_handler.js">
-     <script defer src="/shared/js/apn_helper.js">
-     <script defer src="/shared/js/input_mgmt/input_app_list.js">
-     <script defer src="/shared/js/keyboard_helper.js">
-     <script defer src="/shared/js/bookmarks_database.js">
-     <script defer src="/shared/elements/gaia_overflow_menu/script.js">
-     <script defer src="/shared/elements/gaia-component/gaia-component.js"></script>
-     <script defer src="/shared/elements/gaia-toast/gaia-toast.js"></script>
-     <script defer src="/shared/elements/gaia-site-icon/script.js"></script>
-     <script defer src="/shared/js/homescreens/confirm_dialog_helper.js">
-     <script defer src="/shared/js/image_utils.js">
-     <script defer src="/shared/js/uuid.js">
-     <script defer src="/shared/js/basket_client.js">
-     <script defer src="/shared/js/download/download_helper.js">
-     <script defer src="/shared/js/download/download_ui.js">
-     <script defer src="/shared/js/download/download_formatter.js">
-     <script defer src="/shared/js/download/download_store.js">
-     <script defer src="shared/js/web_manifest_helper.js"></script>
-     <script defer src="/shared/js/icons_helper.js">
-     <script defer src="shared/js/url_helper.js"></script>
-     <script defer src="shared/js/date_time_helper.js"></script>
-     <script defer src="shared/js/input_parser.js"></script>
-     <script defer src="shared/js/lockscreen_slide.js"></script>
-     <script defer src="shared/js/lockscreen_connection_info_manager.js"></script>
-     <script defer src="shared/js/achievements-service.js"></script>
-     <script defer src="/shared/js/passcode_helper.js"></script>
-     <script defer src="/shared/js/sync/errors.js"></script>
-     <script defer src="/shared/js/sync/telemetry.js"></script>
-     <script defer src="/shared/js/advanced_telemetry_helper.js"></script>
+     <script defer src="../shared/js/settings_listener.js"></script>
+     <script defer src="../shared/js/async_storage.js"></script>
+     <script defer src="../shared/js/manifest_helper.js"></script>
+     <script defer src="../shared/js/web_manifest_helper.js"></script>
+     <script defer src="../shared/js/findmydevice_iac_api.js"></script>
+     <script defer src="../shared/js/settings_helper.js"></script>
+     <script defer src="../shared/js/default_activity_helper.js"></script>
+     <script defer src="../shared/js/async_semaphore.js"></script>
+     <script defer src="../shared/js/custom_dialog.js"></script>
+     <script defer src="../shared/js/screen_layout.js"></script>
+     <script defer src="../shared/js/mobile_operator.js"></script>
+     <script defer src="../shared/js/utilities.js"></script>
+     <script defer src="../shared/js/sanitizer.js"></script>
+     <script defer src="../shared/js/settings_url.js"></script>
+     <script defer src="../shared/js/version_helper.js"></script>
+     <script defer src="../shared/js/telemetry.js"></script>
+     <script defer src="../shared/js/idletimer.js"></script>
+     <script defer src="../shared/js/event_safety.js"></script>
+     <script defer src="../shared/js/notification_helper.js"></script>
+     <script defer src="../shared/js/nfc_utils.js"></script>
+     <script defer src="../shared/js/shrinking_ui.js"></script>
+     <script defer src="../shared/js/operator_variant_helper.js"></script>
+     <script defer src="../shared/js/icc_helper.js">
+     <script defer src="../shared/js/simslot.js">
+     <script defer src="../shared/js/simslot_manager.js">
+     <script defer src="../shared/js/stk_helper.js">
+     <script defer src="../shared/js/mime_mapper.js">
+     <script defer src="../shared/js/advanced_timer.js">
+     <script defer src="../shared/js/iac_handler.js">
+     <script defer src="../shared/js/apn_helper.js">
+     <script defer src="../shared/js/input_mgmt/input_app_list.js">
+     <script defer src="../shared/js/keyboard_helper.js">
+     <script defer src="../shared/js/bookmarks_database.js">
+     <script defer src="../shared/elements/gaia_overflow_menu/script.js">
+     <script defer src="../shared/elements/gaia-component/gaia-component.js"></script>
+     <script defer src="../shared/elements/gaia-toast/gaia-toast.js"></script>
+     <script defer src="../shared/elements/gaia-site-icon/script.js"></script>
+     <script defer src="../shared/js/homescreens/confirm_dialog_helper.js">
+     <script defer src="../shared/js/image_utils.js">
+     <script defer src="../shared/js/uuid.js">
+     <script defer src="../shared/js/basket_client.js">
+     <script defer src="../shared/js/download/download_helper.js">
+     <script defer src="../shared/js/download/download_ui.js">
+     <script defer src="../shared/js/download/download_formatter.js">
+     <script defer src="../shared/js/download/download_store.js">
+     <script defer src="../shared/js/web_manifest_helper.js"></script>
+     <script defer src="../shared/js/icons_helper.js">
+     <script defer src="../shared/js/url_helper.js"></script>
+     <script defer src="../shared/js/date_time_helper.js"></script>
+     <script defer src="../shared/js/input_parser.js"></script>
+     <script defer src="../shared/js/lockscreen_slide.js"></script>
+     <script defer src="../shared/js/lockscreen_connection_info_manager.js"></script>
+     <script defer src="../shared/js/achievements-service.js"></script>
+     <script defer src="../shared/js/passcode_helper.js"></script>
+     <script defer src="../shared/js/sync/errors.js"></script>
+     <script defer src="../shared/js/sync/telemetry.js"></script>
+     <script defer src="../shared/js/advanced_telemetry_helper.js"></script>
     -->
   </head>
 
@@ -215,15 +212,6 @@
     <div id="screen" aria-hidden="true">
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
-      </div>
-
-      <!-- Statusbar -->
-      <div id="statusbar" data-z-index-level="statusbar">
-        <div id="statusbar-wrapper">
-          <!-- Statusbar icons -->
-          <div id="statusbar-icons" class="statusbar" role="group" data-l10n-id="statusbar" aria-describedby="ambient-indicator">
-        </div>
-        </div>
       </div>
 
       <div id="windows" data-z-index-level="app">
@@ -829,9 +817,10 @@
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
 
     </div> <!-- end of #screen -->
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="js/logo_loader.js"></script>
+    <script defer src="../shared/js/lazy_loader.js"></script>
     <script defer src="js/service.js"></script>
+    <script defer src="js/applications.js"></script>
+    <script defer src="js/logo_loader.js"></script>
     <script defer src="js/base_module.js"></script>
     <script defer src="js/cover_screen.js"></script>
     <script defer src="js/app.js"></script>

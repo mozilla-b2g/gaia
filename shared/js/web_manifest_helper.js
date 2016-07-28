@@ -160,8 +160,7 @@
           return true;
         }
         size = size.toLowerCase();
-        if (!size.contains('x') || size.indexOf('x') !==
-          size.lastIndexOf('x')) {
+        if (!size.match(/^\d+x\d+$/)) {
           return false;
         }
 
