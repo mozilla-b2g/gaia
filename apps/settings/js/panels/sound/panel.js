@@ -47,7 +47,7 @@ define(function(require) {
        */
       _customize: function(elements) {
         // Show/hide 'Vibrate' checkbox according to device-features.json
-        LazyLoader.getJSON('/resources/device-features.json')
+        LazyLoader.getJSON('resources/device-features.json')
         .then(function(data) {
           elements.vibrationSetting.hidden = !data.vibration;
         });

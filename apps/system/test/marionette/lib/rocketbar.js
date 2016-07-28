@@ -1,5 +1,5 @@
 'use strict';
-/* global module */
+/* global module, require */
 
 /**
  * A Marionette test harness for Rocketbar.

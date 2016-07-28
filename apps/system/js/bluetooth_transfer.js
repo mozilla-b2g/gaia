@@ -632,7 +632,7 @@ var BluetoothTransfer = {
     var storageType = 'sdcard';
     var storage = navigator.getDeviceStorage(storageType);
     var getreq = storage.get(filePath);
-    var loader = LazyLoader.load(['shared/js/mime_mapper.js']);
+    var loader = LazyLoader.load(['../shared/js/mime_mapper.js']);
     Promise.all([getreq, loader]).then(() => {
       var file = getreq.result;
       // When we got the file by storage type of "sdcard"

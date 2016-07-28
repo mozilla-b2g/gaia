@@ -25,7 +25,7 @@
    * A homescreen black-list of homescreens to not display the rocketbar on.
    */
   const ROCKETBAR_BLACKLIST = [
-    'app://verticalhome.gaiamobile.org/manifest.webapp'
+    'chrome://gaia/content/verticalhome/manifest.webapp'
   ];
 
   /**

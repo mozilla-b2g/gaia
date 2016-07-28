@@ -36,10 +36,10 @@ var DownloadManager = (function() {
     if (started) {
       createDownloadNotificationAndIcon(ev.download);
     } else {
-      LazyLoader.load(['shared/js/download/download_formatter.js',
-                       'shared/js/download/download_ui.js',
-                       'shared/js/download/download_store.js',
-                       'shared/js/download/download_helper.js',
+      LazyLoader.load(['../shared/js/download/download_formatter.js',
+                       '../shared/js/download/download_ui.js',
+                       '../shared/js/download/download_store.js',
+                       '../shared/js/download/download_helper.js',
                        'js/download/download_notification.js']).then(
         function() {
           started = true;

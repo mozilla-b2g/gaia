@@ -51,10 +51,10 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
   var profileDirectoryFile = utils.getFile(webapp.profileDirectoryFilePath);
   var webappTargetDirName = profileDirectoryFile.leafName;
 
-  var origin = isPackaged ? 'app://' + webappTargetDirName :
+  var origin = isPackaged ? this.config.SCHEME + webappTargetDirName :
                webapp.metaData.origin;
   if (!origin) {
-    origin = 'app://' + webappTargetDirName;
+    origin = this.config.SCHEME + webappTargetDirName;
   }
 
   if (!this.checkOrigin(origin)) {

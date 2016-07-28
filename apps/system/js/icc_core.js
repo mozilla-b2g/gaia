@@ -8,11 +8,11 @@
     this.icc = icc;
   };
   IccCore.IMPORTS = [
-    'shared/js/stk_helper.js',
+    '../shared/js/stk_helper.js',
     'js/icc_events.js',
     'js/icc_worker.js',
-    'shared/js/advanced_timer.js',
-    'shared/js/icc_helper.js'
+    '../shared/js/advanced_timer.js',
+    '../shared/js/icc_helper.js'
   ];
   IccCore.SUB_MODULES = [
     'Icc'

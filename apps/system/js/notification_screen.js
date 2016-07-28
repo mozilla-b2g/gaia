@@ -108,7 +108,7 @@ var NotificationScreen = {
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
-      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
+      LazyLoader.load(['../shared/js/settings_url.js']).then(function() {
         if (!self.ringtoneURL) {
           self.ringtoneURL = new SettingsURL();
         }

@@ -1,0 +1,33 @@
+.suggestion-bar {
+  display: flex;
+  margin-top: -4.5rem;
+  height: 4.5rem;
+  font-size: 1.7rem;
+  position: absolute;
+  width: 100%;
+  color: #033B37;
+}
+
+.suggestion-count {
+  width: 5.5rem;
+  box-sizing: border-box;
+  border-inline-start: 1px solid rgba(255,255,255,0.2);
+  padding-inline-end: 2rem;
+  padding-inline-start: 1rem;
+  line-height: 4.5rem;
+  text-align: center;
+}
+
+.suggestion-count.more {
+  background-image: url(style/images/suggestion/actionicon_dialer_more.png);
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+html[dir="ltr"] .suggestion-count.more { background-position: right 0 bottom 0.8rem; }
+html[dir="rtl"] .suggestion-count.more { background-position: left 0 bottom 0.8rem; }
+
+.suggestion-bar .contact-item:active,
+.suggestion-bar .suggestion-count:active {
+  background-color: #94eee9;
+  transition: background-color 0.2s ease;
+}

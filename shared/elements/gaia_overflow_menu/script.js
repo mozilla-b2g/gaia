@@ -7,7 +7,7 @@ window.GaiaOverflowMenu = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaOverflowMenuBaseurl ||
-    '/shared/elements/gaia_overflow_menu/';
+    '../shared/elements/gaia_overflow_menu/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();

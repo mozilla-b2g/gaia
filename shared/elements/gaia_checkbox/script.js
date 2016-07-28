@@ -7,7 +7,7 @@ window.GaiaCheckbox = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaCheckboxBaseurl ||
-    '/shared/elements/gaia_checkbox/';
+    '../shared/elements/gaia_checkbox/';
 
   proto.createdCallback = function() {
 

@@ -19,8 +19,8 @@ window.SpatialNavigationHelper = {
     }).then(enabledSpatialNavigation => {
       if (enabledSpatialNavigation) {
         LazyLoader.load([
-          '/shared/js/spatial_navigation.js',
-          '/shared/js/smart-screen/shared_utils.js'
+          '../shared/js/spatial_navigation.js',
+          '../shared/js/smart-screen/shared_utils.js'
         ], () => {
           document.getElementsByTagName('body')[0]
             .classList.add('spatial-navigation');

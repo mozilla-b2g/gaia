@@ -1,5 +1,6 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule */
+/* globals Promise, asyncStorage, Service, BaseModule, indexedDB,
+   BroadcastChannel, PlacesHelper */
 /* exported Places */
 
 (function() {
@@ -9,36 +10,31 @@
   const SCREENSHOT_TIMEOUT = 5000;
 
   /**
-   * Places is the browser history, bookmark and icon management system for
-   * B2G. Places monitors app events and syncs information with the Places
-   * datastore for consumption by apps like Search.
+   * The Places database stores pinned sites, pinned pages,
+   * browsing history and icons.
+   *
    * @requires BaseModule
    * @class Places
    */
   function Places() {}
+
   Places.SUB_MODULES = [
     'BrowserSettings'
   ];
+
   Places.SERVICES = [
-    'clearHistory'
+    'clearHistory', 'pinSite', 'getPinnedSites'
   ];
 
   BaseModule.create(Places, {
     name: 'Places',
 
     /**
-     * The places store name.
-     * @memberof Places.prototype
-     * @type {String}
-     */
-    STORE_NAME: 'places',
-
-    /**
      * A reference to the places datastore.
      * @memberof Places.prototype
      * @type {Object}
      */
-    dataStore: null,
+    db: null,
 
     /**
      * Set when we are editing a place record in the datastore.
@@ -79,10 +75,19 @@
     _timeouts: {},
 
     /**
-     * Starts places.
-     * Adds necessary event listeners and gets the datastore.
-     * @param {Function} callback
+     * {BroadcastChannel} to emit messages for changes in the places database.
      * @memberof Places.prototype
+     * @type {BroadcastChannel}
+     */
+    _broadcastChannel: null,
+
+    /**
+     * Start places.
+     *
+     * Adds event listeners and opens the database.
+     *
+     * @memberof Places.prototype
+     * @returns {Promise} Promise which resolves when everything started up.
      */
     _start: function() {
       return new Promise(resolve => {
@@ -92,12 +97,41 @@
         window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
-        asyncStorage.getItem('top-sites', results => {
-          this.topSites = this._removeDupes(results || []);
-          resolve();
+        this._broadcastChannel = new BroadcastChannel('places');
+
+        this.openDb().then((function() {
+          // Get top sites cache from async storage
+          asyncStorage.getItem('top-sites', results => {
+            this.topSites = this._removeDupes(results || []);
+            resolve();
+          });
+        }).bind(this), function(e) {
+          console.error('Error starting Places database ' + e);
         });
       });
     },
+
+    /**
+     * Open the database.
+     *
+     * @returns Promise which resolves upon successful database opening.
+     */
+    openDb: function() {
+      return new Promise((function(resolve, reject) {
+        var request =
+          indexedDB.open(PlacesHelper.DB_NAME, PlacesHelper.DB_VERSION);
+        request.onsuccess = (function(event) {
+          this.db = event.target.result;
+          resolve();
+        }).bind(this);
+
+        request.onerror = function() {
+          reject(request.errorCode);
+        };
+
+        request.onupgradeneeded = PlacesHelper.upgradeDb;
+      }).bind(this));
+     },
 
     /**
      * Remove duplicated entries.
@@ -120,14 +154,19 @@
       return copy;
     },
 
-    getStore: function() {
+    /**
+     * Get the database object.
+     *
+     * Opens the database if not already open.
+     * @returns {Promise} Promise which resolves with dabase object.
+     */
+    getDb: function() {
       return new Promise(resolve => {
-        if (this.dataStore) {
-          return resolve(this.dataStore);
+        if (this.db) {
+          return resolve(this.db);
         }
-        navigator.getDataStores(this.STORE_NAME).then(stores => {
-          this.dataStore = stores[0];
-          return resolve(this.dataStore);
+        this.openDb().then(() => {
+          return resolve(this.db);
         });
       });
     },
@@ -166,7 +205,7 @@
           break;
         case 'apploaded':
           if (app.config.url in this.screenshotQueue) {
-            this.takeScreenshot(app.config.url);
+           this.takeScreenshot(app.config.url);
           }
           this.debouncePlaceChanges(app.config.url);
           break;
@@ -234,23 +273,42 @@
      * @param {Function} fun Handles place updates.
      * @memberof Places.prototype
      */
-    editPlace: function(url, fun) {
+    editPlace: function(url, fun, warned) {
       return new Promise(resolve => {
-        this.getStore().then(store => {
-          var rev = store.revisionId;
-          store.get(url).then(place => {
+        this.getDb().then(db => {
+          var transaction =
+            db.transaction(PlacesHelper.PAGES_STORE, 'readwrite');
+          var objectStore = transaction.objectStore(PlacesHelper.PAGES_STORE);
+          var request = objectStore.get(url);
+          request.onsuccess = () => {
+            var place = request.result;
             place = place || this.defaultPlace(url);
-            fun(place, newPlace => {
-              if (this.writeInProgress || store.revisionId !== rev) {
-                return this.editPlace(url, fun);
+
+            if (this.writeInProgress) {
+              if (!warned) {
+                console.info('Can\'t edit ' + url + ', waiting for write');
               }
-              this.writeInProgress = true;
-              store.put(newPlace, url).then(() => {
+              return this.editPlace(url, fun, true);
+            }
+
+            if (warned) {
+              console.info('Write finished, editing ' + url);
+            }
+
+            this.writeInProgress = true;
+            fun(place, newPlace => {
+              var requestUpdate = objectStore.put(newPlace);
+              requestUpdate.onsuccess = () => {
                 this.writeInProgress = false;
                 resolve();
-              });
+              };
+              requestUpdate.onerror = e => {
+                console.error('Error editing place', e, newPlace);
+                this.writeInProgress = false;
+                resolve();
+              };
             });
-          });
+          };
         });
       });
     },
@@ -283,30 +341,93 @@
         if (value) {
           place.pinTime = Date.now();
         }
+
+        this._broadcastChannel.postMessage({
+          type: 'pagePinned',
+          url: url,
+          page: place,
+        });
+
         callback(place);
       });
     },
 
     /**
-     * Is a page currently pinned?
+     * Is a page or site currently pinned?
      *
      * @param {String} url The URL of the page to check.
+     * @param {Boolean} site Indicates if we are trying to find a page or a site
      * @returns {Promise} Promise of a response.
      */
-    isPinned: function(url) {
+    isPinned: function(url, site) {
+      var store = !!(site) ? 'SITES_STORE' : 'PAGES_STORE';
       return new Promise((resolve, reject) => {
-        return this.getStore()
-          .then(store => {
-            return store.get(url);
-          })
-          .then(place => {
-            return resolve(!!place.pinned);
-          })
-          .catch(e => {
+        return this.getDb().then(db => {
+          var transaction =
+            db.transaction(PlacesHelper[store], 'readonly');
+          var objectStore = transaction.objectStore(PlacesHelper[store]);
+          var request = objectStore.get(url);
+          request.onsuccess = function() {
+            var place = request.result;
+            return resolve(place && !!place.pinned);
+          };
+          request.onerror = function(e) {
             console.error(`Error getting the page details: ${e}`);
             return reject(e);
-          });
+          };
+        });
       });
+    },
+
+    /**
+     * Pin a site.
+     *
+     * @param {String} url Site url.
+     * @param {Object} siteObject Site object.
+     */
+    pinSite: function(url, siteObject) {
+      return this.getDb().then((db) => {
+        var transaction = db.transaction(PlacesHelper.SITES_STORE, 'readwrite');
+        var objectStore = transaction.objectStore(PlacesHelper.SITES_STORE);
+        var writeRequest = objectStore.put(siteObject);
+
+        return new Promise((resolve, reject) => {
+          writeRequest.onsuccess = resolve;
+          writeRequest.onerror = reject;
+        });
+      }).then(() => {
+        this._broadcastChannel.postMessage({
+          type: 'sitePinned',
+          url: url,
+          siteObject: siteObject,
+        });
+      }).catch(() => {
+        console.error('Error updating site with url ', siteObject.url);
+      });
+    },
+
+    /**
+     * Get all pinned sites.
+     *.
+     * @returns {Promise} A promise which resolves with the full set of results.
+     */
+    getPinnedSites: function() {
+      var results = [];
+      var transaction = this.db.transaction(PlacesHelper.SITES_STORE);
+      var objectStore = transaction.objectStore(PlacesHelper.SITES_STORE);
+      return new Promise((function(resolve, reject) {
+        objectStore.openCursor().onsuccess = function(event) {
+          var cursor = event.target.result;
+          if (cursor) {
+            if (cursor.value.pinned) {
+              results.push(cursor.value);
+            }
+            cursor.continue();
+          } else {
+            resolve(results);
+          }
+        };
+      }).bind(this));
     },
 
     /*
@@ -317,6 +438,16 @@
     TRUNCATE_VISITS: 10,
 
     addToVisited: function(place) {
+      var transaction =
+        this.db.transaction(PlacesHelper.VISITS_STORE, 'readwrite');
+      var visitsStore = transaction.objectStore(PlacesHelper.VISITS_STORE);
+      visitsStore.put({
+        date: place.visited,
+        url: place.url,
+        title: place.title,
+        icons: place.icons
+      });
+
       place.visits = place.visits || [];
 
       if (!place.visits.length) {
@@ -396,10 +527,12 @@
      *
      * @return Promise
      */
+    // TODO: Make this work again.
     clearHistory: function() {
-      return new Promise((resolve, reject) => {
-        return this.getStore().then(store => {
-          store.getLength().then((storeLength) => {
+      return Promise.resolve(true);
+      /*return new Promise((resolve, reject) => {
+        return this.getDb().then(db => {
+          db.getLength().then((storeLength) => {
             if (!storeLength) {
               return resolve();
             }
@@ -460,7 +593,7 @@
               });
           });
         });
-      });
+      });*/
     },
 
     /**
@@ -547,6 +680,7 @@
       this.editPlace(url, (place, cb) => {
         var edits = this._placeChanges[url];
         if (!edits) {
+          cb(place);
           return;
         }
 

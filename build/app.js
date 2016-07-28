@@ -20,6 +20,11 @@ function buildApps(options) {
 
   var webapps = gaia.rebuildWebapps;
 
+  // Those are not defined while running some tests
+  if ('sharedFolder' in gaia && 'stageDir' in gaia) {
+    utils.copyDirTo(gaia.sharedFolder.path, gaia.stageDir.path, 'shared');
+  }
+
   webapps.forEach(function(app) {
     let appDir = app.appDirPath;
     let appDirFile = utils.getFile(appDir);
@@ -113,6 +118,11 @@ exports.execute = function(options) {
   });
 
   buildApps(options);
+
+  var gaia = utils.gaia.getInstance(options);
+  var appsDir = utils.joinPath(options.PROFILE_DIR, 'apps');
+  var stageShared = utils.joinPath(gaia.stageDir.path, 'shared');
+  utils.copyDirTo(stageShared, appsDir, 'shared');
 };
 
 exports.buildApps = buildApps;

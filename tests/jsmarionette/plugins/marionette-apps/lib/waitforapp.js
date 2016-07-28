@@ -22,7 +22,7 @@ function waitForApp(apps, source, callback) {
 
   assertDriverIsSync(client);
   waitForAppSync(
-    client, '#windows iframe[src*="' + source + '"]', callback
+    client, '#windows iframe[mozapp*="' + source + '"]', callback
   );
 }
 
@@ -82,4 +82,5 @@ function waitForAppSync(client, sourceSelector, callback) {
 }
 
 module.exports.waitForApp = waitForApp;
+module.exports.waitForAppSync = waitForAppSync;
 module.exports.waitForActivity = waitForActivity;

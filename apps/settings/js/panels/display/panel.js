@@ -24,7 +24,7 @@ define(function(require) {
             panel.querySelector('.brightness-auto gaia-checkbox')
         };
 
-        LazyLoader.getJSON('/resources/device-features.json')
+        LazyLoader.getJSON('resources/device-features.json')
         .then(function(data) {
           display.init(displayElements, data);
         });

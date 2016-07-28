@@ -480,7 +480,7 @@
     IconsHelper.getIcon(siteObject.url, null,
       {icons: this.app.favicons}, siteObject).then(icon => {
         siteObject.icon = icon;
-        BookmarksDatabase.put(siteObject, siteObject.id)
+        Service && Service.request('Places:pinSite', siteObject.id, siteObject)
           .then(() => {
             this.app.debug('pinSite: ' + siteObject.id);
             this.systemBanner.show('site-pinned-to-home-screen');
@@ -692,12 +692,12 @@
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
-      LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
+      LazyLoader.load('../shared/js/bookmarks_database.js').then(() => {
         this.updateAddToHomeButton();
       }).catch((err) => {
         console.error(err);
       });
-      LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
+      LazyLoader.load('../shared/elements/gaia_overflow_menu/script.js');
 
       window.addEventListener('pins-scopechange', this);
       window.addEventListener('rocketbar-activating', this);
@@ -1052,7 +1052,7 @@
         this.containerElement.classList.remove('scrollable');
         this.scrollable.scrollTop = 0;
 
-        Service.request('PinsManager:isPinned', this._currentURL)
+        Service.request('Places:isPinned', this._currentURL, true)
           .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();
           });
@@ -1136,7 +1136,7 @@
     }
     var url = this._currentURL;
 
-    LazyLoader.load('shared/js/icons_helper.js').then(() => {
+    LazyLoader.load('../shared/js/icons_helper.js').then(() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         var activity = new MozActivity({
           name: 'save-bookmark',

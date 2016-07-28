@@ -14,9 +14,35 @@
     this.indicator = document.getElementById('page-indicator');
     this.panels = document.getElementById('panels');
     this.shadow = document.getElementById('shadow');
+    this.meta = document.head.querySelector('meta[name="theme-color"]');
 
     this.apps = new Apps();
     this.pages = new Pages();
+    this.dialogs = this.apps.dialogs.concat(this.pages.dialogs);
+
+    // XXX Working around gaia-components issue #8
+    var dialog;
+    for (dialog of this.dialogs) {
+      dialog.hide();
+    }
+
+    // Change the colour of the statusbar when showing dialogs
+    var dialogVisibilityCallback = () => {
+      for (var dialog of this.dialogs) {
+        if (dialog.opened) {
+          this.meta.content = 'white';
+          document.body.classList.add('dialog-active');
+          return;
+        }
+      }
+      this.meta.content = 'transparent';
+      document.body.classList.remove('dialog-active');
+    };
+    for (dialog of this.dialogs) {
+      var observer = new MutationObserver(dialogVisibilityCallback);
+      observer.observe(dialog,
+        { attributes: true, attributeFilter: ['style'] });
+    }
 
     // Panel visibility state
     this.appsVisible = undefined;
@@ -123,7 +149,7 @@
         }, HASH_CHANGE_DEBOUNCE);
 
         // If a dialog is showing, cancel the dialog
-        for (var dialog of this.apps.dialogs.concat(this.pages.dialogs)) {
+        for (var dialog of this.dialogs) {
           if (!dialog.opened) {
             continue;
           }

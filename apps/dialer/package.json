@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=dialer"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/dialer/"
+  }
+}

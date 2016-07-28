@@ -1,9 +1,6 @@
 apps/*
-outoftree_apps/*
-hosted_apps/*
-dev_apps/marketplace-dev.allizom.org
+webapps/*
 dev_apps/in_app_pay_test
-dev_apps/marketplace.allizom.org
 dev_apps/mochitest
 dev_apps/ds-test
 dev_apps/geoloc
@@ -38,3 +35,4 @@ apps/settings/test/fixtures/addon2
 apps/settings/test/fixtures/addon3
 
 distros/raptor/apps/test-startup-limit
+

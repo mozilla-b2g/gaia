@@ -17,8 +17,6 @@ function execute(options) {
     require('./settings').execute(options);
   }
 
-  require('./webapp-shared').execute(options);
-
   require('./copy-common-files').execute(options);
 
 }

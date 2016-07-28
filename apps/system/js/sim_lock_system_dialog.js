@@ -14,11 +14,11 @@
     /**
      * render the dialog
      */
-    LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
+    LazyLoader.load('../shared/elements/gaia-component/gaia-component.js')
       .then(() => {
         LazyLoader.load([
-          'shared/elements/gaia-dialog/gaia-dialog.js',
-          'shared/elements/gaia-text-input/gaia-text-input.js'
+          '../shared/elements/gaia-dialog/gaia-dialog.js',
+          '../shared/elements/gaia-text-input/gaia-text-input.js'
           ])
           .then(() => {
             this.render();

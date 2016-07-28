@@ -267,17 +267,6 @@ suite('preferences.js', function() {
       preferences = new app.PreferencesBuilder();
     });
 
-    test('editLocalDomainPref', function () {
-      preferences.domains = ['test1', 'test2'];
-      preferences.prefs = {};
-      preferences.userPrefs = {};
-      preferences.setLocalDomainPref();
-
-      assert.deepEqual(preferences.userPrefs, {
-        'network.dns.localDomains': preferences.domains.join(',')
-      });
-    });
-
     test('editDesktopPref', function () {
       preferences.system = 'testSystem';
       preferences.prefs = {};
@@ -330,7 +319,6 @@ suite('preferences.js', function() {
         'dom.max_script_run_time': 0,
         'toolkit.identity.debug': true,
         'extensions.gaia.dir': preferences.config.GAIA_DIR,
-        'extensions.gaia.domain': preferences.config.GAIA_DOMAIN,
         'extensions.gaia.port': 8080,
         'extensions.gaia.appdirs': preferences.config.GAIA_APPDIRS,
         'extensions.gaia.allappdirs': preferences.config.GAIA_ALLAPPDIRS,
@@ -380,9 +368,6 @@ suite('preferences.js', function() {
 
     test('preparePref', function () {
       var cusPref;
-      preferences.setLocalDomainPref = function() {
-        cusPref = 'local';
-      };
       preferences.setDesktopPref = function() {
         cusPref = 'desktop';
       };
@@ -421,10 +406,6 @@ suite('preferences.js', function() {
         'dom.mms.version': 0x11,
         'b2g.wifi.allow_unsafe_wpa_eap': true
       });
-      preferences.config.LOCAL_DOMAINS = '1';
-      preferences.preparePref();
-      assert.equal(cusPref, 'local');
-      delete preferences.config.LOCAL_DOMAINS;
       preferences.config.DESKTOP = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'desktop');

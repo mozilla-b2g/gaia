@@ -43,8 +43,8 @@ suite('createprofile', function() {
     });
 
     [
-      'webapps/a.js',
-      'webapps/webapps.json',
+      'apps/a.js',
+      'apps/webapps.json',
       'settings.json'
     ].forEach(function(file) {
       test('copies ' + file, function() {
@@ -63,8 +63,8 @@ suite('createprofile', function() {
 
 
     [
-      'webapps/app1',
-      'webapps/app2'
+      'apps/app1',
+      'apps/app2'
     ].forEach(function(file) {
       test('symlinks ' + file, function() {
         var sourceFile = fsPath.join(target, file);

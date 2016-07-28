@@ -1,4 +1,4 @@
-/* global PagesStore, IconsHelper */
+/* global IconsHelper, PinnedPlaces */
 'use strict';
 
 (function(exports) {
@@ -7,6 +7,12 @@
    * The size in pixels of the icons in the pinned pages.
    */
   const PAGES_ICON_SIZE = 30;
+
+  /**
+   * Timeout before showing a dialog. Without this, the click that comes through
+   * after an activate event from gaia-container will close the dialog.
+   */
+  const DIALOG_SHOW_TIMEOUT = 50;
 
   function Pages() {
     // Element references
@@ -17,6 +23,7 @@
     this.bottombar = document.getElementById('bottombar');
     this.remove = document.getElementById('remove');
     this.done = document.getElementById('done');
+    this.confirmUnpin = document.getElementById('confirm-unpin-page');
 
     // Tracking if the list is empty
     this.empty = true;
@@ -25,7 +32,7 @@
     this.editMode = false;
 
     // Dialogs
-    this.dialogs = [];
+    this.dialogs = [this.confirmUnpin];
 
     // Signal handlers
     this.pages.addEventListener('click', this);
@@ -44,69 +51,45 @@
     });
 
     // Initialise and populate pinned pages
-    this.pagesStore = new PagesStore('places');
-    this.pagesStore.init().then(() => {
-      // Triggered when pages are added and updated.
-      document.addEventListener('places-set', (e) => {
-        var id = e.detail.id;
-        this.pagesStore.get(id).then((page) => {
+    this.places = new PinnedPlaces();
+    this.places.init('pages').then(() => {
+      document.addEventListener('pages-pinned', (e) => {
+        var url = e.detail.url;
+        this.places.get(url).then(bookmark => {
           for (var child of this.pages.children) {
-            if (child.dataset.id === id) {
-              if (!page.data.pinned) {
-                this.removeCard(child);
-              } else {
-                this.updatePinnedPage(child, page.data);
-              }
+            if (child.dataset.id === url) {
+              this.updatePinnedPage(child, bookmark);
               return;
             }
           }
 
-          if (!page.data.pinned) {
-            return;
-          }
-
           // A new page was pinned.
-          this.addPinnedPage(page.data);
+          this.addPinnedPage(bookmark);
         });
       });
 
-      document.addEventListener('places-removed', (e) => {
-        var id = e.detail.id;
+      document.addEventListener('pages-unpinned', (e) => {
+        var url = e.detail.url;
         for (var child of this.pages.children) {
-          if (child.dataset.id === id) {
+          if (child.dataset.id === url) {
             this.removeCard(child);
             return;
           }
         }
       });
 
-      document.addEventListener('places-cleared', () => {
-        this.exitEditMode();
-
-        for (var child of this.pages.children) {
-          this.pages.removeChild(child);
-        }
-
-        if (!this.empty) {
-          this.empty = true;
-          this.panel.classList.add('empty');
-        }
-      });
-    },
-    (e) => {
-      console.error('Error initialising pinned pages', e);
-    }).then(() => {
-      return this.pagesStore.getAll().then((pages) => {
+      this.places.getAll().then(pages => {
         for (var page of pages) {
-          this.addPinnedPage(page.data);
+          this.addPinnedPage(page);
         }
 
         // If there are no pinned pages, display helpful information.
         if (this.empty) {
           this.panel.classList.add('empty');
         }
-      }, (e) => {
-        console.error('Error getting pinned pages', e);
+      }, e => {
+        console.error('Error initialising pages DB', e);
+        return Promise.resolve();
       });
     });
   }
@@ -206,25 +189,47 @@
       });
     },
 
-    unpinSelectedCard: function() {
-      if (!this.selectedCard) {
+    showActionDialog: function(dialog, args, callbacks) {
+      // XXX Working around gaia-components issue #8.
+      if (dialog.style.display !== 'none') {
         return;
       }
 
-      var id = this.selectedCard.dataset.id;
+      function executeCallback(dialog, callback) {
+        callback();
+        dialog.close();
+      }
 
-      // Remove child immediately, datastore operations can be quite slow
-      this.removeCard(this.selectedCard);
+      var actions = dialog.getElementsByClassName('action');
+      for (var i = 0, iLen = Math.min(actions.length, callbacks.length);
+           i < iLen; i++) {
+        actions[i].onclick = executeCallback.bind(this, dialog, callbacks[i]);
+      }
+      if (args) {
+        dialog.querySelector('.body').setAttribute('data-l10n-args', args);
+      }
+      setTimeout(() => { dialog.open(); }, DIALOG_SHOW_TIMEOUT);
+    },
 
-      this.pagesStore.get(id).then(entry => {
-        entry.data.pinned = false;
-        this.pagesStore.datastore.put(entry.data, id).then(() => {},
-          e => {
-            console.error('Error unpinning page:', e);
-          });
-      }, e => {
-        console.error('Error retrieving page to unpin:', e);
-      });
+
+    unpinSelectedCard: function() {
+       if (!this.selectedCard) {
+         return;
+       }
+
+      this.showActionDialog(this.confirmUnpin,
+        JSON.stringify({ name: this.selectedCard.title }),
+        [() => {
+           var id = this.selectedCard.dataset.id;
+
+           // Remove child immediately rather than wait for IDB removal
+           this.removeCard(this.selectedCard);
+
+           this.places.unpin(id).then(() => {},
+             e => {
+               console.error('Error unpinning page', e);
+             });
+       }]);
     },
 
     handleEvent: function(e) {

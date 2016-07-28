@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8" />
+    <title>Bluetooth</title>
+    <!-- Localization -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/bluetooth.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_menu/style.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css">
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/settings.js"></script>
+  </head>
+
+  <body role="application" class="skin-organic uninit theme-settings">
+    <section role="region">
+
+      <gaia-header action="back">
+        <h1 data-l10n-id="bluetooth-header"></h1>
+      </gaia-header>
+
+      <div>
+        <ul>
+          <li id="bluetooth-status" class="hint">
+            <gaia-switch data-ignore>
+              <label data-l10n-id="bluetooth"></label>
+            </gaia-switch>
+            <p data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation"></p>
+          </li>
+          <li hidden class="device-visible hint">
+            <gaia-switch data-ignore>
+              <label data-l10n-id="bluetooth-visible-to-all"></label>
+            </gaia-switch>
+            <p class="explanation bluetooth-device-name"></p>
+          </li>
+          <li hidden id="bluetooth-rename">
+            <button id="rename-device" data-l10n-id="rename-device" disabled></button>
+          </li>
+        </ul>
+
+        <!-- Devices List View :: Paired Devices List -->
+        <header id="bluetooth-paired-title">
+          <h2 data-l10n-id="bluetooth-paired-devices"></h2>
+        </header>
+        <ul id="bluetooth-paired-devices" class="devices">
+        </ul>
+
+        <!-- Devices List View :: Found Devices List -->
+        <header id="bluetooth-found-title">
+          <h2 data-l10n-id="bluetooth-devices-in-area"></h2>
+        </header>
+        <ul id="bluetooth-devices" class="devices">
+        </ul>
+
+        <!-- Devices List View :: Search Button -->
+        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation"></div>
+        <ul id="bluetooth-search">
+          <li>
+            <button id="search-device" data-l10n-id="search-device" disabled></button>
+          </li>
+        </ul>
+      </div>
+
+    </section>
+
+    <form role="dialog" data-type="confirm" id="update-device-name" hidden>
+      <section>
+        <h1 data-l10n-id="change-btdevice-name"></h1>
+        <p>
+          <input type="text" id="update-device-name-input" value=""/>
+          <span data-l10n-id="change-btdevice-name-desc"></span>
+        </p>
+      </section>
+      <menu>
+        <button id="update-device-name-cancel" data-l10n-id="cancel"></button>
+        <button data-l10n-id="ok" id="update-device-name-confirm" class="recommend"></button>
+      </menu>
+    </form>
+
+    <gaia-menu paired-device-option hidden>
+      <button data-l10n-id="device-option-connect" id="connect-option"></button>
+      <button data-l10n-id="device-option-disconnect" id="disconnect-option"></button>
+      <button data-l10n-id="device-option-unpair" id="unpair-option"></button>
+    </form>
+
+    <form role="dialog" data-type="confirm" id="unpair-device" hidden>
+      <section>
+        <h1 data-l10n-id="device-option-unpair-confirmation"></h1>
+        <p data-l10n-id="device-option-unpair-device"></p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" id="unpair-device-cancel"></button>
+        <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger"></button>
+      </menu>
+    </form>
+
+  </body>
+</html>

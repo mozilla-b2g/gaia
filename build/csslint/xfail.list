@@ -108,6 +108,7 @@ apps/system/style/modal_dialog/modal_dialog.css
 apps/system/style/notifications/notifications.css
 apps/system/style/software_button_manager/software_button_manager.css
 apps/system/style/sound_manager/sound_manager.css
+apps/system/style/statusbar/statusbar.css
 apps/system/style/themes/default/core.css
 apps/system/style/utility_tray/utility_tray.css
 apps/system/style/view_source.css

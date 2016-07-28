@@ -3,7 +3,6 @@
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
-var AdmZip = require('adm-zip');
 var helper = require('./helper');
 
 suite('L10n logic tests', function() {
@@ -38,12 +37,10 @@ suite('L10n logic tests', function() {
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
         var expected = {entity1: 'My Entity', entity2: 'Entity 2'};
-        var testZip = new AdmZip(path.join(
-          process.cwd(), 'profile', 'webapps',
-          'test-l10n-optimize-entries.gaiamobile.org', 'application.zip'));
-        var entries = JSON.parse(
-          testZip.readAsText(
-            testZip.getEntry('locales-obj/index.en-US.json')));
+        var testFolder = path.join(
+          process.cwd(), 'profile', 'apps', 'test-l10n-optimize-entries');
+        var entries = JSON.parse(fs.readFileSync(
+          path.join(testFolder, 'locales-obj/index.en-US.json')));
         assert.deepEqual(entries, expected);
         done();
       }
@@ -55,12 +52,10 @@ suite('L10n logic tests', function() {
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
         var expected = [{'$i':'entity1','$v':'My Entity'}];
-        var testZip = new AdmZip(path.join(
-          process.cwd(), 'profile', 'webapps',
-          'test-l10n-optimize-legacy.gaiamobile.org', 'application.zip'));
-        var entries = JSON.parse(
-          testZip.readAsText(
-            testZip.getEntry('locales-obj/index.en-US.json')));
+        var testFolder = path.join(
+          process.cwd(), 'profile', 'apps', 'test-l10n-optimize-legacy');
+        var entries = JSON.parse(fs.readFileSync(
+          path.join(testFolder, 'locales-obj/index.en-US.json')));
         assert.deepEqual(entries, expected);
         done();
       }
@@ -75,11 +70,9 @@ suite('L10n logic tests', function() {
         var expectedScript = '<script type="application/l10n" lang="en-US">\n'+
                              '  [{"$i":"entity1","$v":"My Entity"}]\n' +
                              '</script>';
-        var testZip = new AdmZip(path.join(
-          process.cwd(), 'profile', 'webapps',
-          'test-l10n-optimize-no-fetch.gaiamobile.org', 'application.zip'));
-        var indexHtml =
-          testZip.readAsText(testZip.getEntry('index.html'));
+        var testFolder = path.join(
+          process.cwd(), 'profile', 'apps', 'test-l10n-optimize-no-fetch');
+        var indexHtml = fs.readFileSync(path.join(testFolder, 'index.html'));
         assert.ok(indexHtml.indexOf(expectedScript) !== -1);
         done();
       }
@@ -92,7 +85,7 @@ suite('L10n logic tests', function() {
         assert.include(
           stdout,
           '[Error] L10nError: "entity0" not found in en-US ' +
-            '(app://test-l10n-missing.gaiamobile.org)');
+            '(chrome://gaia/content/test-l10n-missing)');
         done();
       }
     );
@@ -104,7 +97,7 @@ suite('L10n logic tests', function() {
         assert.include(
           stdout,
           '[Error] L10nError: Duplicate string "entity1" found in en-US ' +
-            '(app://test-l10n-duplicates.gaiamobile.org)');
+            '(chrome://gaia/content/test-l10n-duplicates)');
         done();
       }
     );

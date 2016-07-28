@@ -153,12 +153,12 @@ suite('system/AppWindow', function() {
   };
 
   var fakeSearchAppConfig = {
-    url: 'app://search.gaiamobile.org/newtab.html',
+    url: 'chrome://gaia/content/search/newtab.html',
     manifest: {
       role: 'search'
     },
-    manifestURL: 'app://search.gaiamobile.org/ManifestURL',
-    origin: 'app://search.gaiamobile.org'
+    manifestURL: 'chrome://gaia/content/search/ManifestURL',
+    origin: 'chrome://gaia/content/search'
   };
 
   var fakeWrapperConfig = {

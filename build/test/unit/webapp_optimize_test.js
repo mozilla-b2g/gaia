@@ -360,7 +360,7 @@ suite('webapp-optimize.js', function() {
       assert.equal(createdDOMs[2].query, 'document/script',
         'should modify document/script');
       assert.equal(createdDOMs[2].innerHTML,
-        'window.SYSTEM_MANIFEST="app://system.undefined/manifest.webapp";',
+        'window.SYSTEM_MANIFEST="undefined/manifest.webapp";',
         'should modify its innerHTML');
     });
 

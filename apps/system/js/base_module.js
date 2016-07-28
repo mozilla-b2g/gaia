@@ -172,6 +172,8 @@
       var submodules = this._arraylizeModules(this.constructor.SUB_MODULES);
       this.constructor.SUB_MODULES = submodules;
 
+      this.debug(`startSubModules [${submodules}]`);
+
       if (submodules.length === 0) {
         return Promise.resolve();
       }
@@ -180,6 +182,7 @@
       submodules.forEach(function(submodule) {
         if (BaseModule.defined(submodule) || window[submodule]) {
           var name = BaseModule.lowerCapital(submodule);
+          this.debug(`About to start ${name}`);
           if (!this[name]) {
             this._initializeSubModule(name, submodule);
           }
@@ -554,7 +557,7 @@
       }
       i++;
     }
-    return '/js/' + module.path + ch + '.js';
+    return 'js/' + module.path + ch + '.js';
   };
 
   BaseModule.prototype = {

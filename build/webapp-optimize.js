@@ -200,8 +200,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
   // add the system manifest url to our global object for net_error
   // see: https://bugzilla.mozilla.org/show_bug.cgi?id=959800#c8
   var globals = {
-    SYSTEM_MANIFEST: 'app://system.' + this.config.GAIA_DOMAIN +
-                     '/manifest.webapp'
+    SYSTEM_MANIFEST: this.config.SYSTEM + '/manifest.webapp'
   };
   var content = '';
   for (var key in globals) {
@@ -252,7 +251,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     var jsonName = getL10nJSONFileName(
       this.htmlFile, this.webapp.buildDirectoryFilePath);
     var jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/' + jsonName;
+    jsonLink.href = 'locales-obj/' + jsonName;
     jsonLink.rel = 'localization';
     parentNode.insertBefore(jsonLink, links[0]);
 
@@ -520,12 +519,10 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
 };
 
 HTMLOptimizer.prototype.writeAST = function() {
-  var localeObjDir =
-    utils.getFile(this.webapp.buildDirectoryFilePath, 'locales-obj');
-  utils.ensureFolderExists(localeObjDir);
-
   // create all JSON entries in /locales-obj
   for (var lang in this.entries) {
+    var localeObjDir = utils.getFile(this.htmlFile.parent.path, 'locales-obj');
+    utils.ensureFolderExists(localeObjDir);
     var fileName = getL10nJSONFileName(
       this.htmlFile, this.webapp.buildDirectoryFilePath);
     var file =
@@ -578,7 +575,7 @@ WebappOptimize.prototype.execute = function(config) {
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
   var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
-  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var excluded = new RegExp(buildDirectoryPath + '.*\/(tests?)');
   var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
     return !(excluded.test(file.path.replace(/\\/g, '/')));
   });

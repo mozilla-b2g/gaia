@@ -1,4 +1,5 @@
 'use strict';
+/*global module, marionetteScriptFinished*/
 
 function System(client) {
   this.client = client.scope({

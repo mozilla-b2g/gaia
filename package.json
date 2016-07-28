@@ -9,7 +9,6 @@
     "node": "^4 || ^5"
   },
   "devDependencies": {
-    "SMS": "file:./apps/sms",
     "adm-zip": "^0.4.7",
     "app-root-path": "^1.0.0",
     "archiver": "^0.16.0",
@@ -54,7 +53,7 @@
     "mocha-parallel": "^0.1.0",
     "mocha-tbpl-reporter": "file:./tests/jsmarionette/mocha/mocha-tbpl-reporter",
     "moment": "^2.10.6",
-    "mozilla-download": "^1.1.1",
+    "moz-download": "^1.2.4",
     "node-static": "^0.7.7",
     "npmr": "^0.0.3",
     "proxyquire": "^1.7.3",

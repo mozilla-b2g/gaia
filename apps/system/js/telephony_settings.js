@@ -22,7 +22,7 @@
     _start: function() {
       // XXX: Deprecate SettingsHelper usage in system app
       // and use this.readSetting instead.
-      return LazyLoader.load('shared/js/settings_helper.js').then(() => {
+      return LazyLoader.load('../shared/js/settings_helper.js').then(() => {
         this.initVoicePrivacy();
         this.initRoaming();
         this.initCallerIdPreference();
