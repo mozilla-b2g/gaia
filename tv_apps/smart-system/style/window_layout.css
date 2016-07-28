@@ -122,7 +122,7 @@
 }
 
 .appWindow.collapsible:not(.scrollable) > div > iframe {
-  height: calc(100% - 4.6rem);
+  height: 100%;
 }
 
 .appWindow > .fade-overlay,
@@ -183,7 +183,7 @@
 }
 
 .appWindow.collapsible > div.browser-container > iframe {
-  top: 4.6rem;
+  top: 0;
 }
 
 /*
