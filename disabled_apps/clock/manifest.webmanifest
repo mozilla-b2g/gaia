@@ -1,0 +1,28 @@
+{
+  "name": "Clock",
+  "description": "Gaia Clock",
+  "lang": "en",
+  "short_name": "Clock",
+  "scope": "./",
+  "start_url": "./index.html",
+  "icons": [{
+    "sizes": "84x84",
+    "src": "./style/icons/clock_84.png"
+  }, {
+    "sizes": "126x126",
+    "src": "./style/icons/clock_126.png"
+  }, {
+    "sizes": "142x142",
+    "src": "./style/icons/clock_142.png"
+  }, {
+    "sizes": "189x189",
+    "src": "./style/icons/clock_189.png"
+  }, {
+    "sizes": "284x284",
+    "src": "./style/icons/clock_284.png"
+  }],
+  "display": "standalone",
+  "orientation": "natural",
+  "theme_color": "#000000",
+  "background_color": "#000000"
+}
