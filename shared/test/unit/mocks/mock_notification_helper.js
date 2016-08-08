@@ -12,7 +12,8 @@ var MockNotificationHelper = {
         var notification = {
           addEventListener: function(type, cb) {
             self.mEvents[type] = cb;
-          }
+          },
+          close: function() {}
         };
         resolve(notification);
       }
