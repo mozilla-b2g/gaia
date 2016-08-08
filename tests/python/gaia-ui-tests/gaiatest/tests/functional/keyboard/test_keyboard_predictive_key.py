@@ -3,6 +3,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
+from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ui_tests.app import UiTests
 
@@ -36,7 +39,7 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
 
         # check if the word in the input field is the same as the expected word
         typed_word = keyboard_page.text_input
-        self.assertEqual(typed_word, expected_word)
+        Wait(self.marionette).until(lambda m: typed_word == expected_word)
 
         ## TEST 2, tap second suggestion, then press space
         keyboard.send(' ')
@@ -45,7 +48,7 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         # type some misspelled word
         keyboard.send('Tes')
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tes')
+        Wait(self.marionette).until(lambda m: keyboard_page.text_input == 'keyboard Tes')
 
         # tap second predictive word (tea)
         keyboard.tap_suggestion('Tea')
@@ -56,18 +59,19 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         keyboard_page.switch_to_frame()
 
         # Output should be 'Tea '
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea ')
+        Wait(self.marionette).until(lambda m: keyboard_page.text_input == 'keyboard Tea ')
 
         ## TEST 3 - type something with autocorrect and press space
         keyboard.send('ye ')
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he ')
+        Wait(self.marionette).until(lambda m: keyboard_page.text_input == 'keyboard Tea he ')
 
         # TEST 4 - autocorrect, dot and backspace
         keyboard.send('wot.')
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he wit.')
+        Wait(self.marionette).until(lambda m: keyboard_page.text_input == 'keyboard Tea he wit.')
 
         keyboard.tap_backspace()
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he wot')
+        Wait(self.marionette).until(lambda m: keyboard_page.text_input == 'keyboard Tea he wot')
+
