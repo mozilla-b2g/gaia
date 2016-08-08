@@ -20,6 +20,11 @@
   var singleVariantApps = {};
   var simPresentOnFirstBoot = true;
 
+  const DEFAULT_COLUMNS = 2;
+
+  var DEFAULT_PINNED_APP_CONF_FILE = 'js/pinned_apps_default.json';
+  var pinnedAppsList = null;
+
   function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
     if (!settings) {
@@ -136,15 +141,14 @@
    * Sets up the default columns.
    */
   function setupColumns() {
-    var defaultCols = conf && conf.preferences &&
-                          conf.preferences['grid.cols'] || undefined;
-
-    if (defaultCols) {
-      verticalPreferences.get('grid.cols').then(function(cols) {
-        // Set the number of cols by default in preference's datastore
-        !cols && verticalPreferences.put('grid.cols', defaultCols);
-      });
-    }
+    /**
+     * It is required for correct work of shared component 'gaia_grid_rs'.
+     * This function can be removed after refactoring of 'gaia_grid_rs'
+     */
+    verticalPreferences.get('grid.cols').then(function(cols) {
+      // Set the number of cols by default in preference's datastore
+      !cols && verticalPreferences.put('grid.cols', DEFAULT_COLUMNS);
+    });
   }
 
   function onErrorInitJSON(e) {
@@ -163,6 +167,15 @@
         }
         break;
     }
+  }
+
+  function onLoadPinnedAppsJSON(loadedData) {
+    pinnedAppsList = loadedData.pinned_apps_default;
+    window.dispatchEvent(new CustomEvent('config-pa-ready'));
+  }
+
+  function onErrorPinnedApps(e) {
+    console.error('Failed Load Pinned Apps:' + e);
   }
 
   function load() {
@@ -188,8 +201,15 @@
     });
   }
 
+  function loadPinnedApps() {
+    LazyLoader.getJSON(DEFAULT_PINNED_APP_CONF_FILE).then(
+      onLoadPinnedAppsJSON, onErrorPinnedApps
+    );
+  }
+
   function Configurator() {
     load();
+    loadPinnedApps();
   }
 
   Configurator.prototype = {
@@ -213,6 +233,10 @@
       });
 
       return items;
+    },
+
+    getPinnedApps: function() {
+      return pinnedAppsList;
     },
 
     getSingleVariantApp: function(manifestURL) {

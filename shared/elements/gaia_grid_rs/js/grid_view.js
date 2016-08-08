@@ -53,7 +53,7 @@
     items: [],
 
     /**
-     * Returns a reference to the gaia-grid element.
+     * Returns a reference to the gaia-grid-rs element.
      */
     get element() {
       return this.config.element;
@@ -353,7 +353,7 @@
       // If the last item is not a divider, add a new divider at the end.
       var lastItem = this.items[this.items.length - 1];
       if (!lastItem || !(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
+//        this.items.push(new GaiaGrid.Divider());
       }
     },
 
@@ -596,7 +596,7 @@
      */
     loadDragDrop: function() {
       if (!this.dragdrop && this.config.features.dragdrop) {
-        LazyLoader.load('shared/elements/gaia_grid/js/grid_dragdrop.js', () => {
+        LazyLoader.load('shared/elements/gaia_grid_rs/js/grid_dragdrop.js', () => {
           if (this.dragdrop) {
             return;
           }

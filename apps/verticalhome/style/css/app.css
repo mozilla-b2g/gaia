@@ -13,13 +13,31 @@ body {
   overflow-x: hidden;
 }
 
-gaia-grid {
-  display: block;
-  /* Minus the bottom margin and the search-box height */
-  min-height: calc(100% - 5rem - 5rem);
-  width: 100%;
-  padding-bottom: 5rem;
-  transition: height 0s 0.5s;
+#main-screen.hidden,
+#more-apps-screen.hidden {
+  transition: all 0.5s ease 0s;
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+}
+
+#main-screen,
+#more-apps-screen {
+  transition: all 0.5s ease 0s;
+  opacity: 1;
+  visibility: visible;
+}
+
+#more-apps-screen {
+  height: 100%;
+}
+
+#more-apps-screen .more-apps-header {
+  height: 50px;
+  line-height: 50px;
+  color: white;
+  text-align: center;
+  font-size: 16pt;
 }
 
 #curtain {
@@ -43,26 +61,6 @@ gaia-grid {
   transition: opacity 0.5s ease-in;
 }
 
-#edit-header {
-  position: fixed;
-  top: 0;
-  z-index: 4;
-  width: 100%;
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
-}
-
-.edit-mode #edit-header {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.5s ease-in;
-}
-
-.edit-mode #search {
-  visibility: hidden;
-}
-
 #confirmation-message {
   z-index: 10;
 }
@@ -71,16 +69,38 @@ gaia-grid {
   display: none;
 }
 
-.divider:not(.group):last-of-type {
-  visibility: hidden;
-}
-
-.edit-mode .divider:last-of-type {
-  visibility: visible;
-}
-
 /* Disable scroll while edit group UI is being displayed because of keyboard
    translates the vertical home */
 body.edit-group {
   overflow: hidden;
 }
+
+.not-visible{
+  opacity: 0;
+}
+
+
+#clock {
+  width: 20rem;
+  margin: 0 auto;
+  text-align: center;
+  color: #ffffff;
+  transition: opacity 0.5s;
+}
+
+#clock #clock-time{
+  font-size: 5.5rem;
+  font-family: "Fira Sans";
+  font-weight: 200;
+}
+
+#clock #clock-time span{
+  font-size: 2.5rem;
+}
+
+#clock #date{
+  font-size: 1.4rem;
+  font-family: "Fira Sans";
+  font-weight: 300;
+}
+

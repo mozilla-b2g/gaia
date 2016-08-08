@@ -1,0 +1,23 @@
+{"pinned_apps_default":
+[
+  {"entry_point": "dialer",
+    "manifestURL": "app://communications.gaiamobile.org/manifest.webapp",
+    "index": 0
+  },
+  {
+    "manifestURL": "app://sms.gaiamobile.org/manifest.webapp",
+    "index": 1
+  },
+  {
+    "manifestURL": "app://camera.gaiamobile.org/manifest.webapp",
+    "index": 2
+  },
+  {
+    "manifestURL": "app://settings.gaiamobile.org/manifest.webapp",
+    "index": 3
+  },
+  {
+    "manifestURL": "app://clock.gaiamobile.org/manifest.webapp",
+    "index": 4
+  }
+]}

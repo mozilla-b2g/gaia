@@ -24,16 +24,12 @@ VerticalHome.Selectors = {
   editGroupTitle: '#edit-group-title',
   editGroupSave: '#edit-group-save',
   editGroupTitleClear: '#edit-group-title-clear',
-  search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
   groupBackground: '#icons .group .background',
   groupToggle: '#icons .group .toggle',
-  dividers: '#icons section.divider',
-  collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
-  removeCollectionConfirm: 'gaia-confirm',
   themeColor: 'head meta[name="theme-color"]',
   placeholders: '#icons .placeholder'
 };
@@ -50,25 +46,8 @@ VerticalHome.prototype = {
     return this.client.findElements(VerticalHome.Selectors.firstIcon).length;
   },
 
-  get numDividers() {
-    return this.dividers.length;
-  },
-
-  get dividers() {
-    return this.client.findElements(VerticalHome.Selectors.dividers);
-  },
-
   get contextMenu() {
     return this.client.findElement(VerticalHome.Selectors.contextmenu);
-  },
-
-  get collections() {
-    return this.client.findElements(VerticalHome.Selectors.collections);
-  },
-
-  get removeCollectionConfirm() {
-    return this.client.findElement(
-      VerticalHome.Selectors.removeCollectionConfirm);
   },
 
   /**
@@ -150,10 +129,19 @@ VerticalHome.prototype = {
     });
   },
 
+  /**
+   * Function focusRocketBar() doesn't work because of removal 'search' in
+   * verticalhome app.
+   * All linked tests in other applications should be revised
+   * Note: apps/search/test/marionette
+   *       apps/system/test/marionette/lib/rocketbar.js
+  */
+/*
   focusRocketBar: function() {
     this.client.helper.waitForElement(VerticalHome.Selectors.search).tap();
     this.client.switchToFrame();
   },
+*/
 
   /**
   Tap an app icon and switch to it's application iframe.

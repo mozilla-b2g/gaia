@@ -14,11 +14,20 @@
   // 320 / 3.8 = 84px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
   const iconScaleFactorMinIconsPerRow = 3.8;
 
+  const rsIconsPerRow = 2;
+
+  // 320 / 2.5 = 128px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
+  const iconScaleFactorRsIconsPerRow = 2.5;
+
+  const distanceBetweenIconsWithRsIconsPerRow = 36;
+
   const distanceBetweenIconsWithMinIconsPerRow = 36;
 
   const distanceBetweenIconsWithMaxIconsPerRow = 38;
 
   const eachTextRowHeight = 20;
+
+  const marginEdges = 20;
 
   var constraintSize;
 
@@ -38,11 +47,13 @@
 
   GridLayout.prototype = {
 
+    rsIconsPerRow: rsIconsPerRow,
+
     minIconsPerRow: minIconsPerRow,
 
     maxIconsPerRow: maxIconsPerRow,
 
-    _cols: minIconsPerRow,
+    _cols: rsIconsPerRow,
 
     _offsetY: 0,
 
@@ -74,8 +85,7 @@
       // Reset the y-offset because we will re-render everything anyway.
       this._offsetY = 0;
 
-      this._percent = value == minIconsPerRow ? 1 :
-        minIconsPerRow / maxIconsPerRow;
+      this._percent = rsIconsPerRow / value;
       this._cols = value;
     },
 
@@ -105,7 +115,9 @@
       if (definedRows > defaultTextRows) {
         height += (definedRows - defaultTextRows) * eachTextRowHeight;
       }
-
+      if (this._cols === rsIconsPerRow) {
+        height = 90;
+      }
       return height;
     },
 
@@ -122,7 +134,7 @@
      * the grid is displayed with the minimum number of columns per row.
      */
     get gridMaxIconSize() {
-      var baseSize = (this.constraintSize / iconScaleFactorMinIconsPerRow);
+      var baseSize = (this.constraintSize / iconScaleFactorRsIconsPerRow);
       return baseSize * devicePixelRatio;
     },
 
@@ -134,7 +146,9 @@
       var numCols = this._cols;
 
       var size = this.constraintSize / numCols;
-      if (numCols === minIconsPerRow) {
+      if (numCols === rsIconsPerRow) {
+        size = this.constraintSize / iconScaleFactorRsIconsPerRow;
+      } else if (numCols === minIconsPerRow) {
         size = this.constraintSize / iconScaleFactorMinIconsPerRow;
       } else if (numCols === maxIconsPerRow) {
         size = this.constraintSize / iconScaleFactorMaxIconsPerRow;
@@ -180,7 +194,8 @@
     },
 
     calculateSize: function() {
-      constraintSize = Math.min(window.screen.width, window.screen.height);
+      constraintSize = Math.min(window.screen.width, window.screen.height) -
+                                        2 * marginEdges;
     },
 
     onReady: function() {

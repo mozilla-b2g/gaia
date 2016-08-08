@@ -119,7 +119,7 @@
      */
     get defaultIcon() {
       // XXX: ideally this would be relative to the component
-      return '/shared/elements/gaia_grid/images/default_icon.png';
+      return '/shared/elements/gaia_grid_rs/images/default_icon.png';
     },
 
     /**
@@ -127,7 +127,7 @@
      * We can currently only have one grid per page.
      */
     get grid() {
-      return document.getElementsByTagName('gaia-grid')[0]._grid;
+      return document.getElementsByTagName('gaia-grid-rs')[0]._grid;
     },
 
     /**
@@ -534,7 +534,7 @@
         tile.dataset.identifier = this.identifier;
         tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
-        tile.style.width = (this.grid.layout.constraintSize / 3) + 'px';
+        tile.style.width = (this.grid.layout.constraintSize / 2) + 'px';
 
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.

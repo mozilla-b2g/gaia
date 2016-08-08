@@ -1,7 +1,5 @@
 'use strict';
 /* global ApplicationSource */
-/* global BookmarkSource */
-/* global CollectionSource */
 /* global configurator */
 /* global dispatchEvent */
 /* global GaiaGrid */
@@ -14,6 +12,7 @@
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
+  const DB_PINNED_APP_STORE = 'pinnedApps';
 
   var db;
 
@@ -38,12 +37,6 @@
         } else {
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
-      } else if (compareWith instanceof GaiaGrid.Collection ||
-                 compareWith instanceof GaiaGrid.Bookmark) {
-        if (!lookFor.id || !compareWith.detail.id) {
-          return false;
-        }
-        return lookFor.id === compareWith.detail.id;
       }
     }
 
@@ -56,10 +49,6 @@
           newEntries.push(entries.splice(ind,1)[0]);
         }
       }
-      // If we have more sections add a divider
-      if (i < iLen - 1) {
-        newEntries.push(new GaiaGrid.Divider());
-      }
     }
     // If entries is not empty yet, they could be unordered apps (added at end)
     // or SingleVariant apps, installed before vertical started, which we need
@@ -70,7 +59,6 @@
       if (configurator.isSimPresentOnFirstBoot) {
         sortUnclassifiedApps(newEntries, entries);
       } else {
-        newEntries.push(new GaiaGrid.Divider());
         newEntries = newEntries.concat(entries);
       }
     }
@@ -111,7 +99,6 @@
     // After the sorting process, if the first element is not a SV app then
     // we only need to add them at the end of dstEntries
     if (!configurator.getSingleVariantApp(orgEntries[0].detail.manifestURL)) {
-      dstEntries.push(new GaiaGrid.Divider());
       dstEntries = dstEntries.concat(orgEntries);
     } else {
       var sepAdded = false;
@@ -120,7 +107,6 @@
         var svApp = configurator.getSingleVariantApp(app.detail.manifestURL);
         if (!svApp) {
           if (!sepAdded) {
-            dstEntries.push(new GaiaGrid.Divider());
             sepAdded = true;
           }
           dstEntries.push(app);
@@ -169,11 +155,8 @@
   function ItemStore(onsuccess) {
     var self = this;
     this.applicationSource = new ApplicationSource(this);
-    this.bookmarkSource = new BookmarkSource(this);
-    this.collectionSource = new CollectionSource(this);
 
-    this.sources = [this.applicationSource, this.bookmarkSource,
-                    this.collectionSource];
+    this.sources = [this.applicationSource];
 
     this.ready = false;
 
@@ -194,9 +177,14 @@
 
           objectStore.createIndex('index', 'index', { unique: true });
           isEmpty = true;
+
           var objectSV = db.createObjectStore(DB_SV_APP_STORE_NAME,
             { keyPath: 'manifestURL' });
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
+
+          var pinnedAppStore = db.createObjectStore(DB_PINNED_APP_STORE,
+                                                   { keyPath: 'index'});
+          pinnedAppStore.createIndex('index', 'index', { unique: true });
       }
     };
 
@@ -204,6 +192,7 @@
       onsuccess && onsuccess(isEmpty);
       db = request.result;
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
+      var cbPinnedApp = self.finishLoadPinnedApps.bind(self);
 
       if (isEmpty) {
         window.addEventListener('configuration-ready', function onReady() {
@@ -211,8 +200,13 @@
           self.gridOrder = configurator.getGrid();
           self.populate(cb);
         });
+        window.addEventListener('config-pa-ready', function onPinnedAppsReady(){
+          window.removeEventListener('config-pa-ready', onPinnedAppsReady);
+          self.initPinnedAppsDB(cbPinnedApp);
+        });
       } else {
         self.initSources(cb);
+        self.loadPinnedAppsDB(cbPinnedApp);
       }
     };
 
@@ -235,7 +229,7 @@
     _deferredSaveArgs: [],
 
     /**
-     * A list of all items. These are item objects (App, Bookmark, Divider)
+     * A list of all items. These are item objects (App)
      */
     _allItems: [],
 
@@ -243,6 +237,14 @@
      * Maintains the current index of the last grid item.
      */
     nextPosition: 0,
+
+
+    /**
+     * A list that contains applications displayed on the main screen
+     * @type {Array}
+     */
+    _pinnedAppsList: [],
+
 
     /**
      * Fetches a list of all items in the store.
@@ -254,6 +256,24 @@
       }
 
       success(this._allItems);
+    },
+
+
+    /**
+     * This function helps to get pinnedAppsList
+     * @return {Array} List of pinnedApps
+     */
+    getPinnedAppsList: function () {
+      return this._pinnedAppsList;
+    },
+
+    /**
+     * This function helps to get pinned app by manifest url
+     * @param  {string} url Manifest url
+     * @return {[obj]}      Application object
+     */
+    getAppByURL: function (url) {
+      return this.applicationSource.getAppByURL(url);
     },
 
     saveTable: function(table, objArr, column, checkPersist, aNext) {
@@ -268,6 +288,84 @@
           aNext();
         }
       });
+    },
+
+
+    /**
+     * This function saves all items to DB
+     * @param  {[Array of objects]} objects [Ojects of applications]
+     * @return {[nothins]}
+     */
+    savePinnedApps: function (objects) {
+      for (var i = 0; i < objects.length; i++) {
+        this.savePinnedAppItem(objects[i]);
+      }
+    },
+
+    /**
+     * This function save application (item) to DB
+     * @param  {object (application)}   object   Application's object
+     * @param  {Function} callback [callback that executes after saving 
+     * object to DB]
+     * @return {nothing}
+     */
+    savePinnedAppItem: function (object, callback) {
+      // intentional use of == meaning null or undefined.
+      if (object.index == null) {
+        console.error('Attempting to save object without `index`');
+        return;
+      }
+
+      //TODO: Changing elements' position must be carried out in one
+      //transaction through localstorage.
+      //Now this function is executed on every changed position.
+      //Also it is more useful to use flag in DB where all apps are stored
+      //to show what app is displayed on main screen
+      newTxn(
+
+              DB_PINNED_APP_STORE,
+              'readwrite',
+              function (txn, store) {
+                var request = store.get(object.index);
+                request.onsuccess = function (req) {
+                  if (req.result) {
+                    object.index = req.result.index;
+                  }
+                  store.put(object);
+                };
+              },
+              callback);
+
+    },
+
+
+    initPinnedAppsDB: function (callback) {
+      var pList = configurator.getPinnedApps();
+      for (var i = 0; i < pList.length; i++) {
+        this.savePinnedAppItem(pList[i]);
+      }
+      this._pinnedAppsList = pList;
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    },
+
+    /**
+     * Loads data to array. It happens when the application is started.
+     * @param  {Function} callback [Executes after the function was exectued]
+     * @return {[nothing]}
+     */
+    loadPinnedAppsDB: function (callback) {
+      var _pList = [];
+      function iterator(value) {
+        _pList[value.index] = value;
+      }
+      loadTable(DB_PINNED_APP_STORE, 'index', iterator, callback);
+      this._pinnedAppsList = _pList;
+    },
+
+    finishLoadPinnedApps: function () {
+      window.dispatchEvent(new CustomEvent('pinned-apps-loaded'));
     },
 
     /**
@@ -360,15 +458,6 @@
           if (thisItem.type === 'app') {
             var itemObj = this.applicationSource.mapToApp(thisItem);
             addIfUnique.call(this, itemObj);
-          } else if (thisItem.type === 'divider') {
-            var divider = new GaiaGrid.Divider(thisItem);
-            this._allItems.push(divider);
-          } else if (thisItem.type === 'bookmark') {
-            var bookmark = new GaiaGrid.Bookmark(thisItem);
-            addIfUnique.call(this, bookmark);
-          } else if (thisItem.type === 'collection') {
-            var collection = new GaiaGrid.Collection(thisItem);
-            addIfUnique.call(this, collection);
           }
         }
 
@@ -382,7 +471,7 @@
 
     /**
      * We have fetched data from our local database and displayed it,
-     * but data inside of our application or bookmark store may be outdated.
+     * but data inside of our application store may be outdated.
      * We need to synchronize each source and delete/add records.
      */
     synchronize: function() {

@@ -1,0 +1,94 @@
+#pinned-apps-list {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  /*height: 100%;*/
+  overflow-y: hidden;
+  text-align: center;
+  top: 8rem;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list  .selected.pinned-app-item {
+  height: 11rem;
+  width: 15rem;
+  margin: 2rem auto 4.5rem auto;
+}
+
+#pinned-apps-list .selected .pinned-app-icon,
+#pinned-apps-list .selected input[type="button"] {
+  width: 11rem;
+  height: 11rem;
+}
+
+#pinned-apps-list .selected input[type="button"] {
+  border-radius: 6rem;
+}
+
+#pinned-apps-list .selected .title {
+  display: inline-block;
+  margin-top: 1rem;
+  /* We need this rule in order not to hide the drop shadow */
+  padding: 0 0.2rem 1rem;
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
+               0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
+  font-size: 2rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: calc(100% - 0.4rem);
+  box-sizing: border-box;
+  vertical-align: bottom;
+  opacity: 1;
+}
+
+#pinned-apps-list .pinned-app-item {
+  height: 5rem;
+  width: 5rem;
+  margin: 1rem auto 0 auto;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list .pinned-app-icon,
+#pinned-apps-list input[type="button"] {
+  width: 5rem;
+  height: 5rem;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list input[type="button"] {
+  border-radius: 5rem;
+}
+
+#pinned-apps-list .title {
+  /*display: none;*/
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list .selected.middle {
+  width: 7.5rem;
+  height: 7.5rem;
+  margin: 2rem auto 1rem auto;
+}
+
+#pinned-apps-list .selected.middle .pinned-app-icon {
+  width: 7.5rem;
+  height: 7.5rem;
+}
+
+#pinned-apps-list .selected.middle .title {
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list div.removed {
+  margin: 0 auto;
+  height: 0;
+}
+
+#pinned-apps-list  div.out-focus {
+  margin: 0 auto;
+  height: 0;
+}

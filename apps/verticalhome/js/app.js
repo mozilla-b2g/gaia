@@ -1,5 +1,7 @@
 'use strict';
-/* global ItemStore, LazyLoader, Configurator, groupEditor */
+/* global ItemStore, LazyLoader, Configurator,
+          groupEditor, PinnedAppsNavigation, Clock,
+          PinnedAppsManager, MoreAppsNavigation */
 /* global requestAnimationFrame */
 
 (function(exports) {
@@ -29,14 +31,13 @@
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
 
-    var editModeDone = document.getElementById('exit-edit-mode');
-    editModeDone.addEventListener('click', this.exitEditMode);
-
     window.addEventListener('gaiagrid-dragdrop-begin', this);
     window.addEventListener('gaiagrid-dragdrop-finish', this);
 
     window.addEventListener('context-menu-open', this);
     window.addEventListener('context-menu-close', this);
+
+    window.addEventListener('keydown', this);
 
     this.layoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', this);
@@ -47,12 +48,17 @@
 
     window.performance.mark('navigationInteractive');
     window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
   }
 
   App.prototype = {
 
     HIDDEN_ROLES: HIDDEN_ROLES,
     EDIT_MODE_TRANSITION_STYLE: EDIT_MODE_TRANSITION_STYLE,
+
+    inMoreApps: false,
+    pinnedAppsManager: null,
+    clock: new Clock(),
 
     /**
      * Showing the correct icon is ideal but sometimes not possible if the
@@ -98,6 +104,9 @@
         });
       });
 
+      //TODO: Make a dynamic load of gaia_grid_rs component.
+      //Load it when gaia grid launch at the first time
+      //not when all application starts
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
           this.grid.add(result);
@@ -125,11 +134,31 @@
             window.performance.mark('fullyLoaded');
             window.dispatchEvent(new CustomEvent('moz-app-loaded'));
           });
+        MoreAppsNavigation.init();
       }.bind(this));
+
+      this.pinnedAppsManager = new PinnedAppsManager();
+
+      /**
+       * After data about applications was loaded to screen it should be
+       * initialized main screen's timer for clock, manager for main screen
+       * and navigation for main screen.
+       */
+      window.addEventListener('pinned-apps-loaded', function(e) {
+        this.pinnedAppsManager.init();
+        this.clock.start();
+        var pinnedApps = document.getElementById('pinned-apps-list');
+        var sel = '#pinned-apps-list .pinned-app-item';
+        try{
+          this.pinnedAppsNavigation = new PinnedAppsNavigation(pinnedApps, sel);
+        } catch(exception) {
+          console.error(exception);
+        }
+      }.bind(this));
+
     },
 
     renderGrid: function() {
-      this.grid.setEditHeaderElement(document.getElementById('edit-header'));
       this.grid.render();
     },
 
@@ -139,6 +168,37 @@
 
     stop: function() {
       this.grid.stop();
+    },
+
+    getAppByURL: function(url) {
+      return this.itemStore.getAppByURL(url);
+    },
+
+    getPinnedAppsList: function() {
+      return this.itemStore.getPinnedAppsList();
+    },
+
+    savePinnedAppItem: function(obj) {
+      this.itemStore.savePinnedAppItem(obj);
+    },
+
+    savePinnedApps: function(objs) {
+      this.itemStore.savePinnedApps(objs);
+    },
+
+    showMoreApps: function() {
+      this.inMoreApps = true;
+      console.log('inMoreApps is : ' + this.inMoreApps);
+      document.getElementById('main-screen').classList.add('hidden');
+      document.getElementById('more-apps-screen').classList.remove('hidden');
+      MoreAppsNavigation.reset();
+    },
+
+    hideMoreApps: function() {
+      this.inMoreApps = false;
+      console.log('inMoreApps is : ' + this.inMoreApps);
+      document.getElementById('main-screen').classList.remove('hidden');
+      document.getElementById('more-apps-screen').classList.add('hidden');
     },
 
     /**
@@ -155,15 +215,7 @@
         item.updateTitle();
       });
       this.renderGrid();
-    },
-
-    /**
-     * Called when we press 'Done' to exit edit mode.
-     * Fires a custom event to use the same path as pressing the home button.
-     */
-    exitEditMode: function(e) {
-      e.preventDefault();
-      window.dispatchEvent(new CustomEvent('hashchange'));
+      app.pinnedAppsManager.items.forEach(item => item.render());
     },
 
     /**
@@ -190,10 +242,6 @@
 
         case 'edititem':
           var icon = e.detail;
-          if (icon.detail.type != 'divider') {
-            // We only edit groups
-            return;
-          }
 
           LazyLoader.load('js/edit_group.js', () => {
             groupEditor.edit(icon);
@@ -312,8 +360,8 @@
           // Only inline-style can get higher specificity than a scoped style,
           // so the property is written as inline way.
           //
-          // 'transform 0.25s' is from the original property in gaia-grid.
-          // ( shared/elements/gaia_grid/style.css )
+          // 'transform 0.25s' is from the original property in gaia-grid-rs.
+          // ( shared/elements/gaia_grid_rs/style.css )
           //
           // 'height 0s 0.5s' is to apply collapsing animation in edit mode.
           this.grid.style.transition = this.EDIT_MODE_TRANSITION_STYLE;
@@ -324,10 +372,23 @@
           this.grid.style.transition = '';
           break;
 
+        case 'keydown':
+          if (this.inMoreApps){
+            MoreAppsNavigation.handleEvent(e);
+          }else{
+            this.pinnedAppsNavigation.handleEvent(e);
+          }
+          break;
+
         // A hashchange event means that the home button was pressed.
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
+          this.hideMoreApps();
+          this.pinnedAppsNavigation.reset();
+          this.clock.show();
+          this.clock.start();
+
           // The group editor UI will be hidden by itself so returning...
           var editor = exports.groupEditor;
           if (editor && !editor.hidden) {
@@ -356,6 +417,9 @@
 
   // Dummy configurator
   exports.configurator = {
+    getPinnedApps: function() {
+      return [];
+    },
     getSingleVariantApp: function() {
       return {};
     },

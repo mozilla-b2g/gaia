@@ -5,24 +5,18 @@
 require('/shared/js/l10n.js');
 require('/shared/test/unit/mocks/mock_indexedDB.js');
 require('/test/unit/mock_application_source.js');
-require('/test/unit/mock_bookmark_source.js');
-require('/test/unit/mock_collection_source.js');
 require('/test/unit/mock_configurator.js');
 
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
-require('/shared/elements/gaia_grid/js/items/divider.js');
-require('/shared/elements/gaia_grid/js/items/collection.js');
 require('/shared/elements/gaia_grid/js/items/mozapp.js');
 
 // Unit tests for item library
 requireApp('verticalhome/js/stores/item.js');
 
 var mocksHelperForItemStore = new MocksHelper([
-  'ApplicationSource',
-  'BookmarkSource',
-  'CollectionSource'
+  'ApplicationSource'
 ]).init();
 
 suite('item.js >', function() {
@@ -111,25 +105,17 @@ suite('item.js >', function() {
     var savedElem = mockIndexedDB.dbs[0].receivedData;
     var grid = configurator.getGrid();
 
-    var gridInd = 0;
     var keys = Object.keys(savedElem);
-    for (var i = 0, iLen = savedElem.length, gLen = grid.length;
-         i < iLen && gridInd < gLen; i++) {
+    for (var i = 0, iLen = savedElem.length; i < iLen; i++) {
       if (savedElem[i].type === 'app') {
-          assert.equal(savedElem[i].manifestURL, grid[gridInd][0].manifestURL);
+          assert.equal(savedElem[i].manifestURL, grid[0].manifestURL);
         if (savedElem[i].entryPoint) {
-          assert.equal(savedElem[i].entryPoint, grid[gridInd][0].entry_point);
+          assert.equal(savedElem[i].entryPoint, grid[0].entry_point);
         }
-        grid[gridInd].shift();
-      } else if (savedElem[i].type === 'divider') {
-        gridInd += 1;
+        grid.shift();
       }
     }
-    var moreDivider = false;
-    for (;i < iLen && !moreDivider; i++) {
-      moreDivider = savedElem[keys[i]].type === 'divider';
-    }
-    assert.isFalse(moreDivider);
+
     for (i = 0, iLen = grid.length; i < iLen; i++) {
       assert.equal(grid[i].length, 0);
     }
