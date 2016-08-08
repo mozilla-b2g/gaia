@@ -7,7 +7,7 @@ define(function(require) {
   var browsingPrivacy = BrowsingPrivacy();
 
   var clearDialog, clearDialogOk, clearDialogCancel, clearDialogMessage;
-  var clearHistoryButton, clearPrivateDataButton;
+  var clearHistoryButton, clearPrivateDataButton, clearDialogHeading;
 
   function onInit(panel) {
     clearDialog = panel.querySelector('.clear-dialog');
@@ -17,7 +17,7 @@ define(function(require) {
 
     clearHistoryButton = panel.querySelector('.clear-history-button');
     clearPrivateDataButton = panel.querySelector('.clear-private-data-button');
-
+    clearDialogHeading = panel.querySelector('.clear-dialog-heading');
     clearHistoryButton.addEventListener('click',
       handleClearHistoryClick);
     clearPrivateDataButton.addEventListener('click',
@@ -28,7 +28,8 @@ define(function(require) {
    * Handle clear history button click.
    */
   function handleClearHistoryClick() {
-    showClearDialog('confirm-clear-browsing-history',
+    clearDialogHeading.setAttribute('data-l10n-id', 'confirm-clear-browsing-history');
+    showClearDialog('confirm-clear-browsing-history-message',
                     browsingPrivacy.clearHistory);
   }
 
@@ -36,7 +37,8 @@ define(function(require) {
    * Handle clear private data button click.
    */
   function handleClearPrivateDataClick() {
-    showClearDialog('confirm-clear-cookies-and-stored-data',
+    clearDialogHeading.setAttribute('data-l10n-id', 'clear-cookies-and-stored-data');
+    showClearDialog('confirm-clear-cookies-and-stored-data-message',
                     browsingPrivacy.clearPrivateData);
   }
 

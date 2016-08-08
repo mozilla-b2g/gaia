@@ -14,6 +14,7 @@ form[role="dialog"][data-type="confirm"] {
   bottom: 0;
   padding-bottom: 7rem;
   font-size: 0;
+  opacity: 0.8;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
@@ -29,6 +30,11 @@ form[role="dialog"][data-type="confirm"]:before {
   margin-left: -0.1rem;
 }
 
+#change-device-name-info {
+  font-size: 2rem;
+  margin-left: -1rem;
+}
+
 form[role="dialog"][data-type="confirm"] > section {
   font-weight: 300;
   font-size: 2.2rem;
@@ -38,19 +44,20 @@ form[role="dialog"][data-type="confirm"] > section {
   width: 100%;
   display: inline-block;
   overflow-y: scroll;
-  max-height: 100%;
-  vertical-align: middle;
+  max-height: inherit;
+  vertical-align: top;
   white-space: normal;
 }
 
 form[role="dialog"][data-type="confirm"] h1 {
   font-weight: normal;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   line-height: 1.5em;
   color: #fff;
   margin: 0;
   padding: 1rem 1.5rem 0;
   word-wrap: break-word;
+  font-style: italic;/*Add as per UX:6.4.5.4*/
 }
 
 /* Menu & buttons setup */
@@ -156,7 +163,13 @@ form[role="dialog"][data-type="confirm"] p {
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
+  font-style: italic;
+  font-size: 1.6rem;
   -moz-user-select: none; /* 1 */
+}
+
+form[role="dialog"][data-type="confirm"] p.format-sdcard{
+  border-top: none;
 }
 
 form[role="dialog"][data-type="confirm"] p > span {
@@ -164,6 +177,7 @@ form[role="dialog"][data-type="confirm"] p > span {
   display: block;
   line-height: 1.7rem;
   color: rgba(255,255,255,0.6);
+  font-style: normal;
 }
 
 form[role="dialog"][data-type="confirm"] p img {
@@ -289,3 +303,46 @@ html[dir="rtl"] form[role="dialog"][data-type="confirm"] figure img {
   padding-right: inherit;
 }
 
+#device-name-update, #is-warning-head-dialog {
+  min-height: 17rem;
+  margin-top: 3rem;
+}
+
+#device-name-update p {
+  width: 100%;
+  padding: 0px;
+  border-top: 0.1rem solid #fff;
+}
+
+#device-option-unpair p {
+  font-size: 1.7rem;
+}
+
+section#is-warning-head-dialog p {
+  font-size: 2rem;
+  position: relative;
+  border-top: 0.1rem solid #ffffff;
+  padding: 1rem 0 0 0;
+  margin-top: 1rem;
+}
+
+section#is-warning-head-dialog h1 {
+  margin-left: -1rem;
+  font-size: 2.3rem;
+}
+
+#is-warning-message-desc {
+  font-style: italic;
+  font-size: 2rem;
+  position: absolute;
+  margin-top: 2rem;
+}
+
+form[role="dialog"][data-type="confirm"] > section#device-option-unpair {
+  margin-top: 4rem;
+}
+
+form[role="dialog"][data-type="confirm"] > section#device-option-unpair h1 {
+  margin-left: -1.5rem;
+  font-size: 2rem;
+}

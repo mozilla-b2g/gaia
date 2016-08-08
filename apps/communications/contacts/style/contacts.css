@@ -8,7 +8,6 @@
 /* Fav star in header */
 .favorite-indicator {
   display: none;
-
   background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 3rem;
   padding: 0 1rem;
 }
@@ -130,8 +129,8 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
   white-space: pre-wrap;
 }
 
-#contactsManagement li:first-child {
-  margin-top: 1rem;
+#contactsManagement{
+  padding: 0;
 }
 
 #contact-detail h1 {
@@ -426,7 +425,7 @@ gaia-header [data-icon] {
 #import-settings .view-body-inner,
 #view-contact-form .view-body-inner,
 #ice-settings .view-body-inner {
-  background: #f4f4f4;
+  background: #ffffff;
 }
 #view-contact-form #thumbnail-photo {
   background-color: transparent;
@@ -442,12 +441,14 @@ gaia-header [data-icon] {
 #view-settings [data-type="list"] li#settingsOrder {
   display: flex;
   justify-content: space-between;
+  font-style: italic;
 }
 #view-settings [data-type="list"] li#settingsOrder aside {
   top: 0.5rem;
-  margin: 0;
   pointer-events: none;
   align-self: center;
+  font-style: normal;
+  margin-right: 2%;
 }
 
 /* Cutom FB item */
@@ -572,6 +573,8 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   padding-bottom: 1.2rem;
   -moz-padding-end: 1.3rem;
   -moz-padding-start: 4rem;
+  margin: 0;
+  background: transparent none repeat scroll 0% 0%;
 }
 
 #view-settings [data-type="list"] li button.icon:before {
@@ -588,6 +591,18 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   padding-bottom: 1rem;
   -moz-padding-end: 1.3rem;
   -moz-padding-start: 4rem;
+}
+#import-settings [data-type="list"] li button:after,
+#ice-settings .ice-contacts-switch:after,
+#view-settings [data-type="list"] li button.icon:after,
+#view-settings li button:after{
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  height: 100%;
+  width: 90%;
+  border-bottom: 0.1rem solid #868686;
 }
 
 #import-settings [data-type="list"] li button.icon:before {
@@ -632,14 +647,26 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 #ice-settings .ice-contacts-switch {
   display: flex;
   justify-content: space-between;
+  font-style: italic;
+  border: none;
 }
+
 #ice-settings .ice-contacts-switch aside {
   align-self: flex-end;
+  font-style: normal;
+  margin: 0;
+}
+ #ice-main-list{
+  padding: 0;
 }
 
 #ice-settings li button,
 #view-settings li button {
   line-height: 1.9rem;
+  border: none;
+  background: none;
+  margin: 0;
+  height: 5.2rem;
 }
 
 #view-settings button p {
@@ -653,6 +680,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 #ice-settings p.description {
   font-size: 1.6rem;
   padding: 1.5rem;
+  color: #999999;
 }
 
 #view-settings button p span {
@@ -747,7 +775,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 }
 
 #sources {
-  margin-top: 1rem;
+  padding: 0;
 }
 
 #sources > li,
@@ -843,9 +871,19 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   text-align: center;
 }
 
+#fav-bookmark{
+  width: 2rem;
+  height: 2rem;
+  float: right;
+  margin-top: 1.8rem;
+  margin-right: 1rem;
+  background: transparent url("gphx/bitmap/default/lists/favorites.png") repeat scroll 0% 0% / 100% auto;
+  display: block;
+}
+
 [data-type="list"] .contact-item > aside > span {
   position: relative;
-  display: none;
+  display: block;
 }
 
 /* Photo by default redefines the background property */
@@ -1117,4 +1155,151 @@ html[dir="rtl"] #custom-tag-reset {
 
 html[dir="rtl"] .force-align[dir="auto"] {
   text-align: right;
+}
+
+#order-by-lastname{
+  padding: 0;
+  border: none;
+}
+
+[data-type="list"] .contact-item[data-visited="false"] > aside > span {
+    display: block;
+}
+
+li.ice-hide-contact{
+  display: none;
+}
+
+[data-type="list"] header {
+  display: none;
+}
+
+#ice-description {
+  font-size: 1.6rem;
+  margin: -0.5rem;
+  text-align: left;
+  padding: 1rem 0.8rem;
+}
+
+#ice-settings li button:before {
+  display: none;
+}
+
+form[role="dialog"][data-type="confirm"]#loading-overlay {
+  background: #868686;
+}
+
+.ice-image {
+  height: 5rem;
+  display: block;
+  width: 5rem;
+  border: 0.1rem solid #ffffff;
+  border-radius: 2.5rem;
+  float: left;
+  overflow: hidden;
+  background-position: left center;
+  image-rendering: auto;
+  position: relative;
+  background: transparent none repeat scroll center center / cover;
+}
+
+.ice-default-image{
+  background: transparent url("images/Imagery.png") no-repeat scroll 50% 50%/7rem;
+}
+
+.ice-default-image:before {
+  content: attr(data-group);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-style: italic;
+  line-height: 5rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#select-ice-contact-1 {
+  padding: 0 0 0 1.5rem;
+}
+
+#select-ice-contact-2 {
+  padding: 0 0 0 1.5rem;
+}
+
+#confirmation-message {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#confirmation-message section h1 {
+  padding-left: 0.3rem;
+  margin-top: 1rem;
+}
+
+#confirmation-message section p {
+  padding: 0.3rem;
+  border-top: 0.1rem solid #ffffff;
+}
+
+#settingsFb {
+  font-style: italic;
+}
+
+#fb-aside {
+  font-style: normal;
+}
+
+#search-abc {
+  font-size: 1.5rem;
+  color: #cdd5e2;
+  font-style: italic;
+  line-height: 3rem;
+  margin-right: 1rem;
+}
+
+#search-image {
+  transform: scaleX(-1);
+  margin-left: 0.8rem;
+  margin-top: 0.5rem;
+  opacity: 0.3;
+}
+
+#search-container {
+  background: #ffffff;
+  border-bottom: 0.1rem solid #e7e7e7;
+  height: 3rem;
+}
+
+#search-container:after {
+  content: "";
+  position: absolute;
+  left: 3.5rem;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  background: #c7c7c7 none repeat scroll 0% 0%;
+  line-height: 1.8rem;
+}
+
+#search-container > p {
+  padding: 0;
+}
+
+#search-start {
+  height: 3rem;
+}
+
+.contact-item {
+  font-style: italic;
+}
+
+#about-ice-view {
+  background: #ffffff;
+}
+
+.ice-select {
+  width: 100%;
 }

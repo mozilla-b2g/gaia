@@ -8,7 +8,7 @@ section[role="region"] > header:first-child {
   display: block;
   z-index: 10;
   padding: 0;
-  height: 5rem;
+  height: 2.25rem;
   border: none;
 }
 
@@ -111,10 +111,10 @@ section[role="region"] > header {
 
 section[role="region"] header h2 {
   margin: 0;
-  padding: 0.8rem 3rem;
+  padding: 0.3rem 3rem;
   font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.8rem;
+  font-size: 1.4rem;
+  line-height: 1.5rem;
 }
 
 /* -----------------------------------------------------------------
@@ -175,6 +175,13 @@ section[role="region"] > header:first-child .icon-close {
 
 section[role="region"] > header:first-child .icon-back {
   background-image: url(headers/images/icons/back.png);
+}
+
+#settings-forwd span {
+  background-image: url(headers/images/icons/forwd.png);
+  display: block;
+  width: 2rem;
+  height: 3rem;
 }
 
 section[role="region"] > header:first-child .icon-menu {
@@ -278,8 +285,8 @@ section[role="region"].skin-dark > header:first-child button:focus {
 
 section[role="region"].skin-dark header h2,
 .skin-dark > section[role="region"] header h2 {
-  background-color: #2c353b;
-  color: #fff;
+  background-color: #e7e7e7;
+  color: #858585;
   border: none;
 }
 
@@ -344,6 +351,7 @@ section[role="region"].skin-organic > header:first-child .icon-edit,
 section[role="region"].skin-organic header h2,
 .skin-organic section[role="region"] header h2 {
   background-color: #e7e7e7;
-  color: #4d4d4d;
+  color: #858585;
   border: none;
+  margin-left: -2rem;
 }

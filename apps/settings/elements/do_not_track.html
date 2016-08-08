@@ -1,7 +1,7 @@
 <element name="doNotTrack" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#privacy-security">
       <h1 data-l10n-id="doNotTrack-header"></h1>
     </gaia-header>
 
@@ -25,29 +25,12 @@
             <span data-l10n-id="doNotHavePrefOnTracking">Do not tell websites and apps anything about my tracking preferences</span>
           </label>
         </li>
-      </ul>
-      <header>
-        <h2 data-l10n-id="doNotTrack-dt">How does Do Not Track work?</h2>
-      </header>
-      <ul>
-        <li class="description">
-          <p data-l10n-id="doNotTrack-dd1">
-            When you turn on the Do Not Track feature, your device tells every
-            website and app (as well as advertisers and other content providers)
-            that you do not want your behavior tracked.
-          </p>
-          <p data-l10n-id="doNotTrack-dd2">
-            Turning on Do Not Track will not affect your ability to log into
-            websites, nor cause your device to forget your private information —
-            such as the contents of shopping carts, location information, or
-            log-in information.
-          </p>
-          <p>
-            <a href="http://dnt.mozilla.org" data-l10n-id="learn-more" class="link-text">Learn More</a>
-          </p>
+        <li>
+          <a href="#do-not-track-more-info" data-l10n-id="doNotTrackMoreInfo"></a>
         </li>
       </ul>
-    </div>
+
+      </div>
 
     <panel data-path="panels/do_not_track/panel"></panel>
   </template>

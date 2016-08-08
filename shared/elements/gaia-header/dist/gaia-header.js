@@ -597,7 +597,7 @@ const KNOWN_ACTIONS = {
  *
  * @type {String}
  */
-const TITLE_FONT = 'italic 300 24px FiraSans';
+const TITLE_FONT = 'italic 300 20px FiraSans';
 
 /**
  * The padding (start/end) used if
@@ -618,13 +618,13 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 16;
+const MINIMUM_FONT_SIZE_UNCENTERED = 20;
 
 /**
  * This is the maximum font-size
  * for the header title.
  */
-const MAXIMUM_FONT_SIZE = 23;
+const MAXIMUM_FONT_SIZE = 20;
 
 /**
  * Register the element.
@@ -1251,7 +1251,7 @@ module.exports = component.register('gaia-header', {
 
   .inner {
     display: flex;
-    min-height: 50px;
+    min-height: 35px;
     direction: ltr;
     -moz-user-select: none;
 
@@ -1272,8 +1272,8 @@ module.exports = component.register('gaia-header', {
     position: relative;
 
     display: none; /* 1 */
-    width: 50px;
-    font-size: 30px;
+    width: 25px;
+    font-size: 15px;
     margin: 0;
     padding: 0;
     border: 0;
@@ -1382,10 +1382,10 @@ module.exports = component.register('gaia-header', {
     white-space: nowrap;
     text-overflow: ellipsis;
     text-align: center;
-    line-height: 50px; /* 1 */
+    line-height: 35px; /* 1 */
     font-weight: 300;
     font-style: italic;
-    font-size: 24px;
+    font-size: 20px;
 
     color:
       var(--header-title-color,

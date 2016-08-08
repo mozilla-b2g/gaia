@@ -15,7 +15,7 @@ var ContactsBTExport = function ContactsBTExport() {
   };
 
   var _hasDeterminativeProgress = function btex_hasDeterminativeProgress() {
-    return false;
+    return true;
   };
 
   var _getExportTitle = function btex_getExportTitle() {

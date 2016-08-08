@@ -1,7 +1,7 @@
 <element name="battery" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#device-section">
       <h1 data-l10n-id="battery-header"></h1>
     </gaia-header>
 
@@ -36,12 +36,10 @@
             </select>
           </span>
         </li>
-        <li class="description">
-          <p data-l10n-id="powerSave-explanation">
-            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
-            Geolocation connections to extend battery life. You can still turn these
-            services back on manually.
-          </p>
+        <li>
+          <a href="#about-power-save-mode">
+            <span data-l10n-id="aboutPowerSaveModeTitle"></span>
+          </a>
         </li>
       </ul>
     </div>

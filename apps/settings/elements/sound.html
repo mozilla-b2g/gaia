@@ -1,7 +1,7 @@
 <element name="sound" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#personalization">
       <h1 data-l10n-id="sound-header"></h1>
     </gaia-header>
 
@@ -23,21 +23,27 @@
           <label class="range-icons volume media">
             <p data-l10n-id="media-sound">Media</p>
             <span data-icon="sound-max"></span>
-            <input type="range" step="1" min="0" value="8" max="15">
+            <div id="media-range">
+              <input type="range" step="1" min="0" value="8" max="15" alt="media_file">
+            </div>
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume notification">
             <p data-l10n-id="ringtone-and-notification-sound">Ringtones & Notifications</p>
             <span data-icon="call-ringing"></span>
-            <input type="range" step="1" min="0" value="8" max="15">
+            <div id="ringtone-range">
+              <input type="range" step="1" min="0" value="8" max="15">
+            </div>
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume alarm">
             <p data-l10n-id="alarm-sound">Alarm</p>
             <span data-icon="alarm-clock"></span>
-            <input type="range" step="1" min="0" value="8" max="15">
+            <div id="alarm-range">
+              <input type="range" step="1" min="0" value="8" max="15">
+            </div>
           </label>
         </li>
       </ul>
@@ -72,35 +78,10 @@
             <span data-l10n-id="manage-tones">Manage Tones</span>
           </a>
         </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="other-sounds">Other Sounds</h2>
-      </header>
-      <ul>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="phone.ring.keypad" checked>
-            <span data-l10n-id="dialpad">Dial Pad</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="camera.sound.enabled" checked>
-            <span data-l10n-id="camera">Camera</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="message.sent-sound.enabled" checked>
-            <span data-l10n-id="sent-message">Sent Message</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked>
-            <span data-l10n-id="unlock-screen">Unlock Screen</span>
-          </label>
+        <li id="manage-tones">
+          <a class="manage-tones-button menu-item" href="#other-sound">
+            <span data-l10n-id="other-sounds">Others Sounds</span>
+          </a>
         </li>
       </ul>
     </div>

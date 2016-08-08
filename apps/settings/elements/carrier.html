@@ -1,7 +1,7 @@
 <element name="carrier" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#network">
       <h1 data-l10n-id="cellularAndData-header"></h1>
     </gaia-header>
 
@@ -33,7 +33,16 @@
         </li>
         <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></li>
       </ul>
-
+      <header>
+        <h2 data-l10n-id="voLteSetting">VoLTE Settings</h2>
+      </header>
+      <ul>
+        <li>
+          <a class="menu-item" href="#carrier-ims-settings">
+            <span data-l10n-id="imsSettings">IMS Settings</span>
+          </a>
+        </li>
+      </ul>
       <div class="carrier-advancedSettings" hidden>
         <header>
           <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
@@ -70,6 +79,12 @@
             </a>
           </li>
         </ul>
+      </div>
+      <div class="carrier-dialog-overlay" hidden>
+        <p id="pop-p1" data-l10n-id="dataRoaming-warning-head"></p>
+        <hr id="line">
+        <p class="pop-para" data-l10n-id="dataRoaming-warning-message"></p>
+        <p class="pop-para" data-l10n-id="dataRoaming-warning-message-ques"></p>
       </div>
     </div>
 

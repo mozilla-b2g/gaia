@@ -11,6 +11,17 @@ html, body {
   display: block;
 }
 
+#Contact-Settings-DialogBox {
+  background: #868686;
+  font-style: italic;
+  opacity: 1;
+}
+
+#Contact-Settings-DialogBox section p {
+  border-top: 0.1rem solid #ffffff;
+  padding: 1rem 0;
+}
+
 form[role="dialog"][data-type="confirm"] > section {
   display: none;
 }
@@ -76,4 +87,21 @@ p[role="status"] {
 
 #progress p[role="status"] {
   text-align: start;
+}
+
+#progressTitle {
+  display: inline;
+  padding: 0;
+}
+#progressMsg {
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
+#progress, #wait {
+  vertical-align: middle;
+}
+
+#progressElement {
+  background: #ffffff;
 }

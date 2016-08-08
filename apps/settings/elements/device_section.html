@@ -1,0 +1,37 @@
+<element name="device-section" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="device"></h1>
+      <a href="#" id="settings-forwd"><span class="icon icon-forwd"></span></a>
+      </gaia-header>
+    <div>
+    <ul>
+        <li>
+          <a id="menuItem-deviceInfo" class="menu-item" data-icon="info" href="#about" data-l10n-id="deviceInfo"></a>
+        </li>
+        <li>
+          <a id="menuItem-downloads" class="menu-item" data-icon="download" href="#downloads" data-l10n-id="downloads"></a>
+        </li>
+        <li>
+          <a class="menuItem-battery menu-item" data-icon="battery-10" href="#battery" data-l10n-id="battery" aria-describedby="battery-desc">
+            <span data-l10n-id="battery"></span>
+            <small id="battery-desc" class="battery-desc menu-item-desc" hidden></small>
+          </a>
+        </li>
+        <li>
+          <a id="menuItem-accessibility" class="menu-item" data-icon="accessibility" href="#accessibility" data-l10n-id="accessibility"></a>
+        </li>
+        <li data-show-name="developer.menu.enabled" hidden>
+          <a id="menuItem-developer" class="menu-item" data-icon="developer" href="#developer" data-l10n-id="developer"></a>
+        </li>
+        <li>
+          <a id="menuItem-improveBrowserOS" class="menu-item" data-icon="feedback" href="#improveBrowserOS" data-l10n-id="improveBrowserOS"></a>
+        </li>
+        <li>
+          <a id="menuItem-help" class="menu-item" data-icon="help" href="#help" data-l10n-id="help"></a>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>

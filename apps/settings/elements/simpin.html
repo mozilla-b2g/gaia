@@ -1,7 +1,7 @@
 <element name="simpin" extends="section">
   <template>
 
-    <gaia-header class="simpin-header" action="back" data-href="#root">
+    <gaia-header class="simpin-header" action="back" data-href="#privacy-security">
       <h1 data-l10n-id="simSecurity-header"></h1>
     </gaia-header>
 
@@ -10,13 +10,13 @@
         <h2 data-l10n-id="whatIsSimPin">What is a SIM PIN?</h2>
       </header>
       <ul>
-        <li class="description">
-          <p data-l10n-id="simPinIntro1">
+        <li class="description" id="sim-text">
+          <p data-l10n-id="simPinIntro1" class="sim-text-color">
             A SIM PIN prevents access to the SIM card cellular data networks.
             When it’s on, any device containing the SIM card will request the
             PIN upon restart.
           </p>
-          <p data-l10n-id="simPinIntro2">
+          <p data-l10n-id="simPinIntro2" class="sim-text-color">
             A SIM PIN is not the same as the Passcode used to unlock the device.
           </p>
         </li>
@@ -24,7 +24,7 @@
       <ul class="simpin-container"></ul>
     </div>
 
-    <panel data-path="panels/simpin/panel"><panel>
+    <panel data-path="panels/simpin/panel"></panel>
     <div class="simpin-tmpl" hidden>
        <!--
        <li class="simpin-enabled simpin-enabled-${sim-index} simpin-${sim-index}">

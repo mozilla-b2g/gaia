@@ -80,23 +80,27 @@ label.pack-radio.danger input ~ span:after {
  * ---------------------------------- */
 
 label.pack-switch input ~ span:after {
-  content: '';
+  content: 'Off';
   position: absolute;
   right: 0;
-  top: 50%;
-  width: 6rem;
-  margin: -1.4rem 0 0;
-  height: 2.7rem;
+  top: 19px;
+  width: 2.3rem;
+  height: 2rem;
   pointer-events: none;
-  border-radius: 1.35rem;
   overflow: hidden;
-  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0 / 9.2rem 2.7rem;
   transition: background 0.2s ease;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: rgb(153, 156, 178);
+  justify-content: center;
+  text-align: left;
+  font-style: italic;
 }
 
 /* switch: 'ON' state */
 label.pack-switch input:checked ~ span:after {
-  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 9.2rem 2.7rem;
+  content: 'On';
+  color: #33d6ff;
 }
 
 /* switch: disabled state */
@@ -123,7 +127,7 @@ html[dir="rtl"] label.pack-switch input ~ span:after {
 
 /* switch: 'ON' state */
 html[dir="rtl"] label.pack-switch input:checked ~ span:after {
-  background-image: url(switches/images/switch/background_rtl.png);
+  content: 'On';
+  color: #33d6ff;
   background-position: -3.2rem 0;
 }
-

@@ -30,13 +30,18 @@ var CarrierSettings = (function(window, document, undefined) {
     'evdob': 'cdma',
     'ehrpd': 'cdma'
   };
-
+  var _imsProfileCallingConstants = {
+    'cellular_preferred': 0,
+    'cellular_only': 1,
+    'wifi_preferred': 2,
+    'wifi_only': 3
+  };
   var _;
   var _settings;
   var _mobileConnections;
   var _iccManager;
   var _voiceTypes;
-
+  var _imsHandler;
   /** mozMobileConnection instance the panel settings rely on */
   var _mobileConnection = null;
   /** Flag */
@@ -51,6 +56,7 @@ var CarrierSettings = (function(window, document, undefined) {
     _settings = window.navigator.mozSettings;
     _mobileConnections = window.navigator.mozMobileConnections;
     _iccManager = window.navigator.mozIccManager;
+    _imsHandler = navigator.mozMobileConnections[0].imsHandler;
     if (!_settings || !_mobileConnections || !_iccManager) {
       return;
     }
@@ -102,6 +108,10 @@ var CarrierSettings = (function(window, document, undefined) {
           document.querySelector('#carrier-detail gaia-header h1');
         navigator.mozL10n.setAttributes(detailHeader, 'simSettingsWithIndex',
           { index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1 });
+      } else if (currentHash === '#carrier-ims-settings') {
+        cs_initImsSetting();
+      } else if (currentHash === '#carrier-ims-profile') {
+        cs_initImsCallingProfile();
       }
 
       if (!currentHash.startsWith('#carrier-')) {
@@ -116,6 +126,87 @@ var CarrierSettings = (function(window, document, undefined) {
         return;
       }
     });
+  }
+
+  function cs_initImsCallingProfile() {
+    var currentImsStatus = getImsStatus();
+    var cellularPreferred =
+      document.getElementById('menuItem-cellular-preferred');
+    var cellularOnly = document.getElementById('menuItem-cellular-only');
+    var wifiPreferred = document.getElementById('menuItem-wifi-preferred');
+    var wifiOnly = document.getElementById('menuItem-wifi-only');
+    if (!currentImsStatus) {
+      cellularPreferred.setAttribute('class', 'carrier-ims-profile-option');
+      wifiPreferred.setAttribute('class', 'carrier-ims-profile-option');
+      wifiOnly.setAttribute('class', 'carrier-ims-profile-option');
+      cellularOnly.removeAttribute('class');
+    } else {
+      cellularPreferred.removeAttribute('class');
+      wifiPreferred.removeAttribute('class');
+      wifiOnly.removeAttribute('class');
+      cellularOnly.setAttribute('class', 'carrier-ims-profile-option');
+    }
+  }
+
+  function cs_initImsSetting() {
+    var enableImsSetting = document.querySelector('.menuItem-enableImsService');
+    var enableImsSettingInput =
+      document.querySelector('.menuItem-enableImsService input');
+    var imsRoamingInput =
+      document.querySelector('.menuItem-enableImsRoaming input');
+    var currentProfileSpan = document.getElementById('imsCalling-desc');
+    var roamingDialogPanel = document.querySelector('.ims-roaming');
+    var turnOnBtn = document.querySelector('.ims-roaming-turn-on');
+    var cancelBtn = document.querySelector('.ims-roaming-cancel');
+    var isEnabled = this.getImsStatus();
+    var currentProfile = this.getPreferredImsProfile();
+    currentProfileSpan.textContent = getCurrentImsProfile(currentProfile);
+    enableImsSettingInput.checked = isEnabled;
+    enableImsSettingInput.onchange = function() {
+      setImsStatus(this.checked);
+    };
+    imsRoamingInput.onchange = function() {
+
+    };
+  }
+
+  function getCurrentImsProfile(profileValue) {
+    var value = '';
+    switch (profileValue) {
+      case 0:
+        value = 'Cellular Preferred';
+        break;
+      case 1:
+        value = 'Cellular Only';
+        break;
+      case 2:
+        value = 'Wifi Preferred';
+        break;
+      case 3:
+        value = 'Wifi Only';
+        break;
+    }
+    return value;
+  }
+
+  function getImsStatus() {
+    return _imsHandler.getImsEnabled();
+  }
+
+  function setImsStatus(enable) {
+    if (_imsHandler) {
+      _imsHandler.setImsEnabled(enable);
+    }
+  }
+
+  function getPreferredImsProfile() {
+    return _imsHandler.getPreferredProfile();
+  }
+
+  function setPreferredImsProfile(profile) {
+    if (_imsHandler) {
+      _imsHandler.setPreferredProfile(profile);
+    }
   }
 
   function cs_initIccsUI() {
@@ -149,11 +240,14 @@ var CarrierSettings = (function(window, document, undefined) {
       document.querySelector('#menuItem-enableDataRoaming input');
 
     function updateDataRoamingToggle(dataEnabled) {
+      var dr_expl = document.querySelector('#dataRoaming-expl');
       if (dataEnabled) {
         dataRoamingToggle.disabled = false;
+        dr_expl.className = 'toggle-show';
       } else {
         dataRoamingToggle.disabled = true;
         dataRoamingToggle.checked = false;
+        dr_expl.className = 'toggle-hide';
         dataRoamingToggle.dispatchEvent(new Event('change'));
       }
     }
@@ -177,6 +271,13 @@ var CarrierSettings = (function(window, document, undefined) {
     // We need to disable data roaming when data connection is disabled.
     _settings.addObserver(DATA_KEY, function observerCb(event) {
       dataToggle.checked = event.settingValue;
+      if (dataToggle.checked) {
+        var dc_expl = document.querySelector('#dataConnection-expl');
+        dc_expl.className = 'toggle-show';
+      } else {
+        var dc_expl = document.querySelector('#dataConnection-expl');
+        dc_expl.className = 'toggle-hide';
+      }
       if (_restartingDataConnection) {
         return;
       }

@@ -54,6 +54,13 @@ require([
       'CLIR_SUPPRESSION': 2
     };
 
+    var _ttyModeConstantsMapping = {
+      'TTY_MODE_OFF': 0,
+      'TTY_MODE_FULL': 1,
+      'TTY_MODE_HCO': 2,
+      'TTY_MODE_VCO': 3
+    };
+
     var _settings = window.navigator.mozSettings;
     var _mobileConnections = window.navigator.mozMobileConnections;
     var _voiceTypes = Array.prototype.map.call(_mobileConnections,
@@ -71,6 +78,7 @@ require([
     var _getCallForwardingOptionSuccess = true;
     /** Task scheduler */
     var _taskScheduler = null;
+    var _telephony = window.navigator.mozTelephony;
 
     /**
      * Init function.
@@ -106,6 +114,7 @@ require([
       cs_initCallWaiting();
       cs_initCallerId();
       cs_initFdnItem();
+      cs_initTtyMode();
       window.setTimeout(cs_initCallForwardingObservers, 500);
 
       // Update items in the call settings panel.
@@ -173,6 +182,35 @@ require([
       });
     }
 
+    function cs_initTtyMode() {
+      var currentTtyValue = _telephony.getTtyMode();
+      var ttyInput = document.getElementById('ril-ttyMode');
+      ttyInput.value = getTtyValue(currentTtyValue);
+      ttyInput.addEventListener('blur', function(event) {
+        var ttyValue = _ttyModeConstantsMapping[ttyInput.value];
+        _telephony.setTtyMode(ttyValue);
+      });
+    }
+
+    function getTtyValue(currentTtyValue) {
+      var value = '';
+      switch (currentTtyValue) {
+        case 1:
+          value = 'TTY_MODE_FULL';
+          break;
+        case 2:
+          value = 'TTY_MODE_HCO';
+          break;
+        case 3:
+          value = 'TTY_MODE_VCO';
+          break;
+        case 0:
+        default:
+          value = 'TTY_MODE_OFF';
+          break;
+      }
+      return value;
+    }
     /**
      * Add listeners on 'voicechange' for show/hide network type limited items.
      */
@@ -197,6 +235,7 @@ require([
      * voice type.
      */
     function cs_updateNetworkTypeLimitedItemsVisibility(voiceType) {
+      var callVoiceMailItem = document.getElementById('menuItem-voice-mail');
       // The following features are limited to GSM types.
       var callForwardingItem =
         document.getElementById('menuItem-callForwarding');
@@ -975,9 +1014,46 @@ require([
       });
     }
 
+    _getVoicemailNumber: function() {
+      var self = this;
+      var promise = new Promise(function(resolve) {
+        SettingsCache.getSettings(function(results) {
+          var numbers = results['ril.iccInfo.mbdn'];
+          var number = numbers && numbers[self._currentSimIndex];
+          resolve(number || '');
+        });
+      });
+      return promise;
+    }
+
     function cs_initVoiceMailClickEvent() {
+      var voicemailPanel = document.querySelector('#call .voice-mail');
+      var inputfield = document.querySelector('#call .vm-number');
+      var setButton = alertPanel.querySelector('.cw-voice-mail-set ');
+      var cancelButton = alertPanel.querySelector('.cw-voice-mail-set-cancel');
       document.querySelector('.menuItem-voicemail').onclick = function() {
-        DialogService.show('call-voiceMailSettings');
+        var _currentSimIndex =
+          window.DsdsSettings.getIccCardIndexForCallSettings();
+        var number = _getVoicemailNumber();
+        inputfield.value = number;
+        var cursorPos = inputfield.value.length;
+        inputfield.focus();
+        inputfield.setSelectionRange(0, cursorPos);
+        setButton.addEventListener('click', function cs_alertSetClicked(event) {
+          SettingsCache.getSettings(function(results) {
+            var numbers = results['ril.iccInfo.mbdn'] || [];
+            numbers[_currentSimIndex] = inputfield.value;
+            navigator.mozSettings.createLock().set({
+              'ril.iccInfo.mbdn': numbers
+            });
+          });
+          voicemailPanel.hidden = false;
+        });
+        cancelButton.addEventListener('click',
+          function cs_alertCancelClicked(event) {
+            voicemailPanel.hidden = true;
+          });
+        voicemailPanel.hidden = false;
       };
     }
 

@@ -16,7 +16,7 @@ button,
   font-style: italic;
   width: 100%;
   height: 4rem;
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0 1.2rem;
   -moz-box-sizing: border-box;
   display: inline-block;
@@ -39,16 +39,14 @@ button,
 /* Recommend */
 button.recommend,
 .bb-button.recommend {
-  background-color: #00caf2;
-  color: #fff;
+  font-size: 1.9rem;
 }
 
 /* Danger */
 button.danger,
 .danger.bb-button {
-  background-color: #e51e1e;
-  color: #fff;
-}
+  font-size: 1.5rem;
+  }
 
 /* Pressed */
 button:active,
@@ -148,7 +146,6 @@ li .button {
   text-align: start;
   border: 0.1rem solid #c7c7c7;
   background: rgba(0,0,0,0.05);
-  margin: 0 0 1rem;
   overflow: hidden;
   border-radius: 0;
   display: flex;
@@ -158,6 +155,20 @@ li .button {
   white-space: normal;
   line-height: 2rem;
   padding: 1rem 1.2rem;
+  font-size: 1.5rem;
+  margin: 0 -1.5rem;
+  padding: 1.5rem 1.5rem 1rem 0rem;
+  font-style: normal;
+}
+
+/* -----------------------------------------
+ * Buttons - Remove background and Border (Clear History Button : UX: 6.4.5)
+ * -----------------------------------------*/
+li button,
+li .bb-button,
+li .button {
+  background: rgba(0,0,0,0);
+  border: none;
 }
 
 /* Press */
@@ -252,7 +263,7 @@ li .button.icon-dialog:before {
   bottom: 0.5rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid #00aac5;
+  border-left: 0.7rem solid transparent;
   transform: rotate(45deg);
   z-index: 1;
 }
@@ -315,7 +326,7 @@ select {
   -moz-box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: #333;
   margin: 0 0 1rem;
   padding: 0;
@@ -344,6 +355,22 @@ select:-moz-focusring {
   text-shadow: 0 0 0 #fff;
 }
 
+.button.icon select.auto-retrival{
+  top: 0;
+  text-shadow: -0.3rem 0.5rem 0 #797E80;
+  font-size: 1.4rem;
+}
+.button.icon select.callerId-select {
+  text-shadow: -0.2rem 1.5rem #797E80;
+}
+
+.button.icon select.menu-list-item{
+  top: 0;
+  color: #797E80;
+  font-size: 1.4rem;
+  text-shadow: 0 0 rgb(51,51,51);
+  min-height: 8rem;
+}
 /* Hides dropdown arrow until bug #649849 is fixed */
 .bb-button.icon select,
 .button.icon select,
@@ -359,7 +386,7 @@ select:-moz-focusring {
   -moz-padding-end: 5rem;
   text-indent: 0;
   font-weight: 400;
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   /*
     The select element uses the text color to determine the color of the outline.
     We put a text shadow with needed offset and no blur, so that replaces the text.
@@ -466,4 +493,8 @@ html[dir="rtl"] .button[data-icon] select {
   left: unset;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
+}
+
+#button-icon {
+  margin-top: -1rem;
 }

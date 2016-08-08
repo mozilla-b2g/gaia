@@ -1,0 +1,26 @@
+<element name="account" extends="section">
+  <template>
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="accounts"></h1>
+    </gaia-header>
+    <div>
+      <ul>
+         <li>
+            <a id="menuItem-fxa" class="menu-item" data-icon="firefox" href="#fxa" data-l10n-id="fxa-accountsSection" aria-describedby="fxa-desc">
+              <span data-l10n-id="fxa-accounts"></span>
+              <small id="fxa-desc" class="menu-item-desc">Create Account or Sign In</small>
+            </a>
+         </li>
+          <li class="findmyDevice">
+            <a id="menuItem-findmydevice" class="menu-item" data-icon="find" href="#findmydevice" data-l10n-id="findmydeviceSection" aria-describedby="findmydevice-desc">
+              <span data-l10n-id="findmydevice"></span>
+              <small id="findmydevice-desc" class="findmydevice-desc menu-item-desc">Disabled</small>
+            </a>
+          </li>
+        </ul>
+    </div>
+    <panel data-path="js/firefox_accounts/panel_loader.js"></panel>
+    <script src="shared/js/findmydevice_iac_api.js"></script>
+    <script src="shared/js/settings_helper.js"></script>
+  </template>
+</element>

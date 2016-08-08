@@ -1,0 +1,55 @@
+<element name="personalization" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="personalization"></h1>
+      <a href="#" id="settings-forwd"><span class="icon icon-forwd"></span></a>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a id="menuItem-sound" class="menu-item" data-icon="sound-max"
+             href="#sound" data-l10n-id="sound"></a>
+        </li>
+        <li>
+          <a id="menuItem-display" class="menu-item" data-icon="brightness"
+             href="#display" data-l10n-id="display"></a>
+        </li>
+        <li>
+          <a id="menuItem-homescreen" class="menu-item" data-icon="homescreen"
+             href="#homescreen" data-l10n-id="homescreen"></a>
+        </li>
+        <li>
+          <a id="menuItem-search" class="menu-item" data-icon="search"
+             href="#search" data-l10n-id="search"></a>
+        </li>
+        <li>
+          <a id="menuItem-notifications" class="menu-item"
+             data-icon="notifications" href="#notifications"
+             data-l10n-id="notifications"></a>
+        </li>
+        <li>
+          <a id="menuItem-dateAndTime" class="menu-item" data-icon="time"
+             href="#dateTime" data-l10n-id="dateAndTimeSection"
+             aria-describedby="time-desc">
+            <span data-l10n-id="dateAndTime"></span>
+            <small id="time-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+        <li>
+          <a class="menuItem-languageAndRegion menu-item" data-icon="languages"
+             href="#languages" data-l10n-id="languageSection"
+             aria-describedby="language-desc">
+            <span data-l10n-id="language"></span>
+            <small id="language-desc" class="language-desc menu-item-desc"></small>
+          </a>
+        </li>
+        <li class="themes-section">
+          <a id="menuItem-themes" class="menu-item" data-icon="themes"
+             href="#themes" data-l10n-id="themes"></a>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>

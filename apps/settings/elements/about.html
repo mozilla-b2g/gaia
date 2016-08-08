@@ -1,7 +1,7 @@
 <element name="about" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#device-section">
       <h1 data-l10n-id="deviceInfo-header"></h1>
     </gaia-header>
 
@@ -35,7 +35,7 @@
       </header>
       <ul>
         <li>
-          <p data-l10n-id="check-for-updates"></p>
+          <span data-l10n-id="check-for-updates"></span>
           <span class="button icon icon-dialog">
             <select name="app.update.interval">
               <option value="86400" data-l10n-id="check-update-daily" selected></option>
@@ -61,27 +61,9 @@
         <h2 data-l10n-id="aboutBrowserOS"></h2>
       </header>
       <ul>
-        <li class="description">
-          <p data-l10n-id="browser-os-desc"></p>
-        </li>
         <li>
-          <a class="menu-item" href="#about-yourRights">
-            <span data-l10n-id="your-rights"></span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" href="#about-yourPrivacy">
-            <span data-l10n-id="your-privacy"></span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" href="#about-legal">
-            <span data-l10n-id="about-legal-info"></span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" href="https://www.mozilla.org/credits/">
-            <span data-l10n-id="about-credit-info"></span>
+          <a href="#about-browser-os">
+            <span data-l10n-id="aboutBrowserOS"></span>
           </a>
         </li>
       </ul>
@@ -97,7 +79,7 @@
 
     <form role="dialog" data-type="confirm" class="reset-phone-dialog" hidden>
       <section>
-        <h1 data-l10n-id="reset-warning-title"></h1>
+        <h1 data-l10n-id="reset-phone-title"></h1>
         <p data-l10n-id="reset-warning-body"></p>
       </section>
       <menu>

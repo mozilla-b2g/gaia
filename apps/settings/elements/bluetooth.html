@@ -1,7 +1,7 @@
 <element name="bluetooth" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#network">
       <h1 data-l10n-id="bluetooth-header"></h1>
     </gaia-header>
 
@@ -12,7 +12,7 @@
             <input type="checkbox" data-ignore>
             <span data-l10n-id="bluetooth">Bluetooth</span>
           </label>
-          <p data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
+          <p data-l10n-id="bluetooth-enable-msg" class="explanation">
             Turn Bluetooth on to view devices in the area.
           </p>
         </li>
@@ -50,8 +50,8 @@
     </div>
 
     <form role="dialog" data-type="confirm" id="update-device-name" hidden>
-      <section>
-        <h1 data-l10n-id="change-device-name">Change phone name</h1>
+      <section id="device-name-update">
+        <h1 data-l10n-id="rename-my-device" id="change-device-name-info">Rename My Device</h1>
         <p>
           <input type="text" id="update-device-name-input" value="" dir="auto"/>
           <span data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</span>
@@ -73,7 +73,7 @@
     </form>
 
     <form role="dialog" data-type="confirm" id="unpair-device" hidden>
-      <section>
+      <section id="device-option-unpair">
         <h1 data-l10n-id="device-option-unpair-confirmation">Confirmation</h1>
         <p data-l10n-id="device-option-unpair-device">Unpair device?</p>
       </section>

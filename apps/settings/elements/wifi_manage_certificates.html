@@ -2,7 +2,7 @@
   <template>
 
     <gaia-header action="back" data-href="#wifi">
-      <h1 data-l10n-id="manageCert"></h1>
+      <h1 data-l10n-id="manageCertificates"></h1>
     </gaia-header>
 
     <div>
@@ -10,11 +10,14 @@
         <h2 data-l10n-id="certificateList"></h2>
       </header>
       <ul class="wifi-certificateList">
+      <li>
+        <span data-l10n-id="nocertificateImported"></span>
+      </li>
       </ul>
+      <header>
+        <h2 data-l10n-id="importHeader"></h2>
+      </header>
       <ul class="operate-certificate">
-        <li>
-          <button class="icon deleteCertificate" data-l10n-id="deleteCertificate" disabled="true"></button>
-        </li>
         <li>
           <a class="menu-item importCertificate" href="#wifi-selectCertificateFile">
             <span data-l10n-id="importCertificate"></span>

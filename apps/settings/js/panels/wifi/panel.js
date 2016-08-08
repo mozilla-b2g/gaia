@@ -30,7 +30,9 @@ define(function(require) {
           wifiAvailableNetworks: panel.querySelector('.wifi-availableNetworks'),
           dialogElement: panel.querySelector('.wifi-bad-credentials-dialog'),
           okBtn: panel.querySelector('.wifi-bad-credentials-confirm'),
-          cancelBtn: panel.querySelector('.wifi-bad-credentials-cancel')
+          cancelBtn: panel.querySelector('.wifi-bad-credentials-cancel'),
+          wifiAvailableNetworksHeader :panel.querySelector('.wifiAvailableNetworks '),
+          wifiSubHeading :panel.querySelector('.explanations')
         };
 
         elements.infoItem = elements.wifiAvailableNetworks.querySelector(
@@ -187,7 +189,8 @@ define(function(require) {
           // Fail to write mozSettings, return toggle control to the user.
           checkbox.disabled = false;
         };
-        checkbox.disabled = true;
+          checkbox.disabled = true;
+
       },
       _onScanItemClick: function() {
         this._networkList().then((networkList) => {
@@ -214,6 +217,9 @@ define(function(require) {
              */
             networkList.clear(true);
             elements.wpsColumn.hidden = false;
+            elements.wifiAvailableNetworksHeader.hidden= false;
+            elements.wifiSubHeading.style.display="none";
+            document.getElementById("wifi-desc").textContent = "Enabled";
           } else {
             if (this._wps.inProgress) {
               elements.wpsInfoBlock.
@@ -229,6 +235,9 @@ define(function(require) {
             networkList.clear(false);
             networkList.autoscan = false;
             elements.wpsColumn.hidden = true;
+            elements.wifiAvailableNetworksHeader.hidden=true;
+            elements.wifiSubHeading.style.display="block";
+            document.getElementById("wifi-desc").textContent = "Disabled";
           }
         });
       },

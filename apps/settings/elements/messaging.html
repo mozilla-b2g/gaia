@@ -30,10 +30,9 @@
           <p class="explanation" data-l10n-id="message-read-reports-details">Request read report for each message sent</p>
         </li>
         <li id="menuItem-autoRetrieve" aria-disabled="true" class="hint">
-          <span data-l10n-id="auto-retrieve">Auto Retrieve</span>
-          <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
-          <span class="button icon icon-dialog">
-            <select name="ril.mms.retrieval_mode">
+          <span data-l10n-id="auto-retrieve">Auto Retrieve Messages</span>
+          <span class="button icon icon-dialog retrive">
+            <select name="ril.mms.retrieval_mode" class="auto-retrival">
               <option value="manual" data-l10n-id="manual-retrieve">Off</option>
               <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
               <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
@@ -71,8 +70,6 @@
         </li>
       </ul>
     </div>
-
     <panel data-path="panels/messaging/panel"></panel>
-
   </template>
 </element>

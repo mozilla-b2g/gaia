@@ -1,0 +1,43 @@
+<element name="carrier-ims-settings" extends="section">
+  <template>
+    <gaia-header action="back" data-href="#carrier">
+      <h1 data-l10n-id="imsSettings"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li id="menuItem-enableImsService" aria-disabled="true">
+          <label class="pack-switch">
+            <input type="checkbox">
+            <span class="carrier-ims-switch" data-l10n-id="enableImsServices">Enable IMS Services</span>
+            <p class="explanation" data-l10n-id="enableImsServices-explanation"></p>
+          </label>
+        </li>
+        <li>
+          <a href="#carrier-ims-profile">
+            <span data-l10n-id="imsCallingProfiles">IMS Calling Profiles</span>
+            <small id="imsCalling-desc"></small>
+          </a>
+        </li>
+        <li id="menuItem-enableImsRoaming" aria-disabled="true">
+          <label class="pack-switch">
+            <input type="checkbox">
+            <span class="carrier-ims-switch" data-l10n-id="imsRoaming">IMS Roaming</span>
+            <p class="explanation" data-l10n-id="imsRoamingExplanation"></p>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <form role="dialog" data-type="confirm" hidden class="ims-roaming">
+      <section>
+        <h1 class="carrier-roaming-dialog" data-l10n-id="turnOnImsRoaming"></h1>
+        <p data-l10n-id="imsRoamingExplanation"></p>
+        <p class="roaming-explanation" data-l10n-id="imsRoamingConfirmation"></p>
+      </section>
+      <menu>
+        <button class="ims-roaming-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="ims-roaming-turn-on recommend" data-l10n-id="turnOn">Turn On</button>
+      </menu>
+    </form>
+  </template>
+</element>

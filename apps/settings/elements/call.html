@@ -1,14 +1,14 @@
 <element name="call" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#network">
       <h1 data-l10n-id="callSettings-header"></h1>
     </gaia-header>
 
     <div>
       <ul>
-        <li>
-          <a class="menu-item menuItem-voicemail" href="#">
+    <li id="menuItem-voice-mail">
+      <a class="menuItem-voicemail" href="#">
             <span data-l10n-id="voiceMail">Voicemail</span>
             <small id="voiceMail-desc"></small>
           </a>
@@ -29,9 +29,9 @@
           </label>
         </li>
         <li id="menuItem-callerId" aria-disabled="true" hidden>
-          <a data-l10n-id="callerId">Caller ID</a>
-          <span class="button icon icon-dialog">
-            <select id="ril-callerId" data-setting="ril.callerId">
+          <a class="list-label" data-l10n-id="callerId">Caller ID</a>
+          <span class="button icon icon-dialog  menu-list">
+            <select class="callerId-select" id="ril-callerId" data-setting="ril.callerId">
               <option value="CLIR_DEFAULT" data-l10n-id="callerId-default">Network default</option>
               <option value="CLIR_INVOCATION" data-l10n-id="callerId-hide">Hide number</option>
               <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show">Show number</option>
@@ -39,22 +39,48 @@
           </span>
         </li>
         <li id="menuItem-callFdn" hidden>
-          <a class="menu-item" href="#" data-href="#call-fdnSettings">
+          <a href="#" data-href="#call-fdnSettings">
             <span data-l10n-id="fdnSettings">Fixed Dialing Numbers</span>
             <small id="fdnSettings-desc"></small>
           </a>
         </li>
         <li id="menuItem-callForwarding" hidden>
-          <a class="menu-item" data-href="#call-cfSettings">
+          <a data-href="#call-cfSettings">
             <span data-l10n-id="callForwarding">Call forwarding</span>
             <small id="li-cf-desc"></small>
           </a>
         </li>
         <li id="menuItem-callBarring" hidden>
-          <a class="menu-item" data-href="#call-cbSettings">
+          <a data-href="#call-cbSettings">
             <span data-l10n-id="callBarring">Call barring</span>
             <small id="li-cb-desc"></small>
-          </a>
+          </a> 
+    </li>
+    <header>
+      <h2 data-l10n-id="othersettings"></h2>
+    </header>
+
+    <li id="menuItem-answerCall">
+      <a class="list-label" data-l10n-id="answerCall">Answer Call</a>
+      <span class="button icon icon-dialog menu-list">
+        <select class="menu-list-item" id="ril-answerCall" data-setting="ril.answerCall">
+          <option value="ANSWER_CALL_SEND" data-l10n-id="answerCall-sendKey">Send Key</option>
+          <option value="ANSWER_CALL_FLIP" data-l10n-id="answerCall-flipOpen">Flip Open</option>
+          <option value="ANSWER_CALL_ANY" data-l10n-id="answerCall-anyKey">Any Key</option>
+        </select>
+      </span>
+    </li>
+
+    <li id="menuItem-ttyMode">
+      <a class="list-label" data-l10n-id="ttyMode">TTY Mode</a>
+      <span class="button icon icon-dialog menu-list">
+        <select class="menu-list-item" id="ril-ttyMode" data-setting="ril.ttyMode">
+          <option value="TTY_MODE_OFF" data-l10n-id="ttyMode-off">Off</option>
+          <option value="TTY_MODE_FULL" data-l10n-id="ttyMode-full">Full</option>
+          <option value="TTY_MODE_HCO" data-l10n-id="ttyMode-hco">HCO(Hearing Carry Over)</option>
+          <option value="TTY_MODE_VCO" data-l10n-id="ttyMode-vco">HCO(Voice Carry Over)</option>
+        </select>
+      </span>
         </li>
       </ul>
     </div>
@@ -75,6 +101,19 @@
       <menu>
         <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
         <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
+      </menu>
+    </form>
+    <form role="dialog" data-type="confirm" hidden class="cw-voice-mail">
+      <section class="vm-section">
+        <h1 class="vm-voicemail-text" data-l10n-id="voiceMail-number"></h1>
+        <div class="vm-parent">
+          <input type="tel" class="vm-number">
+          <span class="vm-placeholder">123</span>
+        </div>
+      </section>
+      <menu>
+        <button class="cw-voice-mail-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="cw-voice-mail-set recommend" data-l10n-id="set">Set</button>
       </menu>
     </form>
 

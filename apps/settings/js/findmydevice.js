@@ -153,13 +153,23 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       }
 
       var checkbox = document.querySelector('#findmydevice-enabled input');
-      checkbox.disabled = true;
+      var finddevice=document.querySelector('#findmydevice-enabled small');
+      var findmydevice=document.querySelector('.findmyDevice small');
+      if (checkbox.checked) {
+        finddevice.textContent = "Enabled";
+        } else {
+          findmydevice.textContent= "Disabled";
+        }
 
       if (checkbox.checked === false) {
+        finddevice.textContent = "Disabled";
+        findmydevice.textContent= "Disabled";
         wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_TRY_DISABLE);
       } else {
         SettingsHelper('findmydevice.enabled').set(true, function() {
-          checkbox.disabled = false;
+            finddevice.textContent = "Enabled";
+            findmydevice.textContent = "Enabled";
+            checkbox.disabled = false;
         });
       }
     },

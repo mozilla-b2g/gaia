@@ -14,21 +14,21 @@
           <input type="text" data-setting="tethering.wifi.ssid" maxlength="32" dir="auto"/>
         </li>
         <li>
-          <p data-l10n-id="wifi-security">Security</p>
-          <span class="button icon icon-dialog">
+          <p data-l10n-id="wifi-security" id="wifi-security">Security</p>
+          <span class="button icon"id="button-icon">
             <select class="security-selector" data-setting="tethering.wifi.security.type"></select>
           </span>
         </li>
-        <li class="description password-description">
-          <p data-l10n-id="hotspot-password-desc">The password must have at least 8 characters.</p>
-        </li>
-        <li class="password">
-          <p data-l10n-id="wifi-password">Password</p>
+        <li class="password" id="password-info">
+       <p data-l10n-id="hotspot-password-desc" class="password-description" >The password must have at least 8 characters.</p>
+        <p data-l10n-id="wifi-password"id="wifi-password-info">Password</p>
           <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
-          <label class="pack-checkbox">
+         <li>
+          <label class="pack-checkboxshow" id="show-password">
             <input type="checkbox" data-ignore name="show_password">
-            <span data-l10n-id="showPassword">Show password</span>
+            <span data-l10n-id="showPassword" id="show-password-display">Show password</span>
           </label>
+         </li>
         </li>
       </ul>
     </div>

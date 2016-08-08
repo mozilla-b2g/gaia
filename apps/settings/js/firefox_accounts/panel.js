@@ -16,6 +16,7 @@ var FxaPanel = (function fxa_panel() {
     unverifiedEmail,
     resendEmail,
     resendLink,
+    signoutemail,
     fxaHelper;
 
   function init(fxAccountsIACHelper) {
@@ -31,6 +32,9 @@ var FxaPanel = (function fxa_panel() {
     logoutBtn = document.getElementById('fxa-logout');
     loggedInEmail = document.getElementById('fxa-logged-in-text');
     unverifiedEmail = document.getElementById('fxa-unverified-text');
+    signoutemail = document.getElementById('fxa-signout-alert');
+    menuStatus1 = document.getElementById('findmydevice-desc');
+    menuStatus = document.getElementById('fxa-desc'),
 
     // listen for changes
     onVisibilityChange();
@@ -54,6 +58,8 @@ var FxaPanel = (function fxa_panel() {
 
   function refreshStatus() {
     fxaHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.getAccounts(onStatusChange, onStatusError);
+
   }
 
   // if e == null, user is logged out.
@@ -76,6 +82,49 @@ var FxaPanel = (function fxa_panel() {
       showUnverifiedPanel(email);
     }
   }
+
+  function onStatusChange(e) {
+    var email = e ? Normalizer.escapeHTML(e.email) : '';
+    console.log("onstatus change");
+
+    if (!e) {
+      menuStatus.setAttribute('data-l10n-id', 'fxa-invitation');
+      menuStatus.removeAttribute('data-l10n-args');
+      navigator.mozL10n.setAttributes(menuStatus1, 'fxa-disabled', {
+      });
+    } else if (e.verified) {
+      navigator.mozL10n.setAttributes(menuStatus, 'fxa-logged-in-text2', {
+        email: email
+        });
+        navigator.mozL10n.setAttributes(menuStatus1, 'fxa-enabled', {
+        });
+
+    } else { // unverified
+      navigator.mozL10n.setAttributes(menuStatus, 'fxa-confirm-email', {
+        email: email
+      });
+    }
+  }
+
+  function onVisibilityChange() {
+    if (document.hidden) {
+      fxaHelper.removeEventListener('onlogin', refreshStatus);
+      fxaHelper.removeEventListener('onverified', refreshStatus);
+      fxaHelper.removeEventListener('onlogout', refreshStatus);
+    } else {
+      fxaHelper.addEventListener('onlogin', refreshStatus);
+      fxaHelper.addEventListener('onverified', refreshStatus);
+      fxaHelper.addEventListener('onlogout', refreshStatus);
+      refreshStatus();
+    }
+  }
+
+
+
+  function onStatusError(err) {
+    console.error('FxaMenu: Error getting Firefox Account: ' + err.error);
+  }
+
 
   function onFxAccountError(err) {
     console.error('FxaPanel: Error getting Firefox Account: ' + err.error);
@@ -101,6 +150,10 @@ var FxaPanel = (function fxa_panel() {
     navigator.mozL10n.setAttributes(loggedInEmail, 'fxa-logged-in-text', {
       email: email
     });
+    navigator.mozL10n.setAttributes(signoutemail, 'fxa-signout-alert', {
+    email: email
+  });
+
     loggedInPanel.hidden = false;
     logoutBtn.onclick = onLogoutClick;
   }
@@ -136,8 +189,30 @@ var FxaPanel = (function fxa_panel() {
   function onLogoutClick(e) {
     e.stopPropagation();
     e.preventDefault();
-    fxaHelper.logout(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.logout(onStatusChange, onStatusError);
+    var pop = document.getElementById("fxa-form");
+    pop.hidden = true;
   }
+
+  var cancelHandler = function() {
+   var pop = document.getElementById("fxa-form");
+   pop.hidden = true;
+   };
+
+  var makeUnhidden = function(){
+   var pop = document.getElementById("fxa-form");
+   pop.hidden = false;
+
+  var cancelButton = document.getElementById('fxa-cancel');
+   cancelButton.addEventListener('click', cancelHandler);
+  };
+
+  var Format_open = function(email){
+   var openFormat = document.getElementById("sign-out");
+   openFormat.addEventListener('click',makeUnhidden);
+};
+ Format_open();
+
 
   function _onResendClick(e) {
     e.stopPropagation();
@@ -148,11 +223,11 @@ var FxaPanel = (function fxa_panel() {
     fxaHelper.getAccounts(function onGetAccounts(accts) {
       var email = accts && accts.email;
       if (!email) {
-        return onFxAccountStateChange(accts);
+        return onStatusChange(accts);
       }
-      fxaHelper.resendVerificationEmail(email, _onResend.bind(null, email),
-                                        onFxAccountError);
-    }, onFxAccountError);
+      fxaHelper.resendVerificationEmail(email, _onResend.bind(null , email),
+                                        onStatusError);
+    }, onStatusError);
   }
 
   function _onResend(email) {
@@ -168,7 +243,7 @@ var FxaPanel = (function fxa_panel() {
   function onLoginClick(e) {
     e.stopPropagation();
     e.preventDefault();
-    fxaHelper.openFlow(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.openFlow(onStatusChange, onStatusError);
   }
 
   return {

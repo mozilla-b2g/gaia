@@ -48,22 +48,27 @@ label.pack-switch input:checked ~ span:after {
  * ---------------------------------- */
 
 label.pack-switch input ~ span:after {
-  content: '';
+  content: 'Off';
   position: absolute;
   right: 0;
-  top: 50%;
-  width: 6rem;
-  margin: -1.4rem 0 0;
+  top: 25%;
+  width: 3rem;
   height: 2.7rem;
+  pointer-events: none;
   border-radius: 1.35rem;
   overflow: hidden;
-  background: #e6e6e6 url(images/background_off.png) no-repeat -3.2rem 0 / 9.2rem 2.7rem;
   transition: background 0.2s ease;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: rgb(153, 156, 178);
+  justify-content: center;
+  text-align: left;
 }
 
 /* switch: 'ON' state */
 label.pack-switch input:checked ~ span:after {
-  background: #e6e6e6 url(images/background.png) no-repeat 0 0 / 9.2rem 2.7rem;
+  content: 'On';
+  color: #33d6ff;
 }
 
 /* switch: disabled state */

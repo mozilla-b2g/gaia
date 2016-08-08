@@ -1,0 +1,36 @@
+<element name="carrier-ims-profile" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#carrier-ims-settings">
+      <h1 data-l10n-id="imsCallingProfiles"></h1>
+    </gaia-header>
+    <div>
+      <ul>
+        <li id="menuItem-cellular-preferred">
+          <label class="pack-radio">
+            <input type="radio" name="app.imsprofile" value="cellular_preferred">
+            <span data-l10n-id="cellularPreferred"></span>
+          </label>
+        </li>
+        <li id="menuItem-cellular-only">
+          <label class="pack-radio">
+            <input type="radio" name="app.imsprofile" value="cellular_only" checked>
+            <span data-l10n-id="cellularOnly"></span>
+          </label>
+        </li>
+        <li id="menuItem-wifi-preferred">
+          <label class="pack-radio">
+            <input type="radio" name="app.imsprofile" value="wifi_preferred">
+            <span data-l10n-id="wifiPreferred"></span>
+          </label>
+        </li>
+        <li id="menuItem-wifi-only">
+          <label class="pack-radio">
+            <input type="radio" name="app.imsprofile" value="wifi_only">
+            <span data-l10n-id="wifiOnly"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>

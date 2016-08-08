@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="action"] {
-  background: #2d2d2d;
+  background: rgba(45, 45, 45, 0.8) none repeat scroll 0% 0%;
   overflow: hidden;
   position: fixed;
   z-index: 100;
@@ -13,11 +13,6 @@
   right: 0;
   bottom: 0;
   padding: 0 0 7rem;
-  /**
-   * Using "font-size: 0" to avoid the unwanted visual space (about 3px) created
-   * by white spaces and line breaks in the code between inline-block elements.
-   */
-  font-size: 0;
   color: #fff;
 }
 
@@ -30,6 +25,16 @@
   margin-left: -0.1rem;
 }
 
+[role="dialog"][data-type="action"] > header:before {
+  content: "";
+  position: absolute;
+  left: 4%;
+  bottom: 0;
+  width: 92%;
+  border-bottom: 0.1rem solid #ffffff;
+}
+
+
 [role="dialog"][data-type="action"] > header {
   -moz-box-sizing: border-box;
   font-size: 1.6rem;
@@ -39,15 +44,16 @@
   right: 0;
   z-index: 10;
   height: 5rem;
-  line-height: 4.9rem;
+  line-height: 5.9rem;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
   font-weight: normal;
-  padding: 0 3rem;
-  border-bottom: 0.1rem solid #616262;
+  padding: 0 0 0 1.2rem;
+  text-align: left;
+  font-style: italic;
 }
 
 [role="dialog"][data-type="action"] > header h1 {
@@ -198,15 +204,14 @@
 
 /* Specific component code */
 [role="dialog"][data-type="action"] > menu {
-  margin: 0;
-  padding: 0;
+  margin: 0 0.5rem 0 0.5rem;
+  padding: 1.5rem 0 0;
   max-height: calc(100% - 13.5rem); /*header(5rem) + footer(7rem) + padding(1.5rem)*/
   height: auto;
-  padding-top: 1.5rem;
   overflow: auto;
   width: auto;
-  border: none;
-  background: none;
+  border: medium none;
+  background: transparent none repeat scroll 0% 0%;
   position: absolute;
   left: 0;
   right: 0;
@@ -214,8 +219,8 @@
 }
 
 [role="dialog"][data-type="action"] > menu > button {
-  width: calc(100% - 3rem);
-  height: 4rem;
+  width: calc(100% - 0.8rem);
+  height: 5.4rem;
   -moz-box-sizing: border-box;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -223,20 +228,29 @@
   overflow: hidden;
   font-weight: normal;
   line-height: 4rem;
-  outline: none;
+  outline: medium none;
   font-size: 1.6rem;
   text-shadow: none;
   text-align: start;
   padding: 0 1.2rem;
   -moz-padding-end: 0.2rem;
-  margin: 0 1.5rem 1rem 1.5rem;
-  background: rgba(87, 87, 87, 0.8);
-  border: none;
+  background: #fff;
+  border: medium none;
   border-radius: 0;
   position: relative;
-  color: #fff;
+  color: #000;
   font-family: sans-serif;
   font-style: italic;
+  margin: 0;
+}
+
+[role="dialog"][data-type="action"] > menu > button:before{
+  content: "";
+  position: absolute;
+  left: 8%;
+  bottom: 0;
+  width: 80%;
+  border-bottom: 0.1rem solid #616262;
 }
 
 [role="dialog"][data-type="action"] > menu > button:last-child {
@@ -249,6 +263,7 @@
   border: none;
   margin-bottom: 1.5rem;
   border-radius: 2rem;
+  height: 4rem;
 }
 
 [role="dialog"][data-type="action"] > menu > button:last-child:before {
@@ -263,7 +278,7 @@
 }
 
 [role="dialog"][data-type="action"] > menu > button:nth-last-child(2) {
-  margin-bottom: 1.5rem;
+  margin: 0;
 }
 
 /* Press state */
@@ -346,4 +361,3 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child:b
   left: auto;
   right: 0;
 }
-

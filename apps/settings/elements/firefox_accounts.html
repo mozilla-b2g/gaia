@@ -1,7 +1,7 @@
 <element name="fxa" extends="section" id="fxa-container">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#account">
       <h1 data-l10n-id="fxa-accounts-header"></h1>
     </gaia-header>
 
@@ -14,7 +14,7 @@
             and apps like the Firefox Marketplace.
           </p>
         </li>
-        <li>
+        <li class="fxaButton">
           <label>
             <button class="recommend" id="fxa-login">
               <span data-l10n-id="fxa-invitation">Create Account or Sign In</span>
@@ -36,14 +36,14 @@
             Click the verification link in your email to confirm your account.
           </p>
           <p id="fxa-resend-email">
-            Don't see an email? <a href="#">Resend</a>.
+          If you don't see email please select <a href="#">Resend</a>.
           </p>
         </li>
         <li>
           <label>
-            <button class="danger" id="fxa-cancel-confirmation">
+            <a class="danger" id="fxa-cancel-confirmation">
               <span data-l10n-id="fxa-cancel-confirmation">Cancel Account Confirmation</span>
-            </button>
+            </a>
           </label>
         </li>
       </ul>
@@ -58,7 +58,8 @@
             Your Firefox Account lets you use features like Find My Device
             and apps like the Firefox Marketplace.
           </p>
-          <p data-l10n-id="fxa-logged-in-text" id="fxa-logged-in-text">
+          <p data-l10n-id="fxa-logged-in-text1"></p>
+          <p data-l10n-id="fxa-logged-in-text" id="fxa-logged-in-text" class="emailid">
             Logged in as foo@bar.com
           </p>
         </li>
@@ -69,27 +70,34 @@
       </header>
       <ul>
         <li>
-          <span data-l10n-id="fxa-marketplace-app">Marketplace</span>
-        </li>
-        <li>
-          <span data-l10n-id="fxa-find-my-device-app">Find My Device</span>
+          <a href="#findmydevice">
+            <span data-l10n-id="fxa-find-my-device-app">Find My Device</span>
+          </a>
         </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="fxa-options">Options</h2>
-      </header>
       <ul>
         <li>
-          <label>
-            <button id="fxa-logout">
-              <span data-l10n-id="fxa-sign-out"> Sign Out </span>
-            </button>
-          </label>
+          <a id="sign-out">
+              <span data-l10n-id="fxa-sign-out"></span>
+          </a>
         </li>
       </ul>
     </div>
 
-    <script defer="" src="js/firefox_accounts/panel_loader.js"></script>
+      <script defer="" src="js/firefox_accounts/panel_loader.js"></script>
+
+      <form role="dialog" data-type="confirm" id="fxa-form" hidden>
+        <section>
+          <h1 data-l10n-id="fxa-sign-out"></h1>
+          <p data-l10n-id="fxa-signout-alert" id="fxa-signout-alert"></p>
+        </section>
+        <menu>
+          <button data-l10n-id="cancel" id="fxa-cancel"></button>
+          <button id="fxa-logout">
+            <span data-l10n-id="fxa-sign-out"></span>
+          </button>
+        </menu>
+      </form>
   </template>
 </element>

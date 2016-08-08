@@ -1,0 +1,23 @@
+<element name="wifi-knownNetworks" extends="section">
+  <template>
+    <gaia-header action="back" data-href="#wifi-manageNetworks">
+      <h1 data-l10n-id="knownNetworks"></h1>
+    </gaia-header>
+    <div>
+     <ul class="wifi-knownNetworks" data-state="ready">
+     </ul>
+    </div>
+    <form role="dialog" data-type="confirm">
+      <section>
+        <h1 data-l10n-id="forgetNetwork-confirmation"></h1>
+        <p data-l10n-id="forgetNetwork-dialog"></p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" type="reset"></button>
+        <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger"></button>
+      </menu>
+    </form>
+  <panel data-path="panels/wifi_manage_networks/panel"></panel>
+  <panel data-path="panels/wifi_manage_networks/wifi_known_network"></panel>
+  </template>
+</element>

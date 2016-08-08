@@ -1,0 +1,19 @@
+<element name="message-settings" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#apn-settings">
+      <h1 data-l10n-id="messageSettings-header"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a class="menu-item" data-apn-type="mms" href="#message-settings">
+            <span data-l10n-id="messageSettings">Message Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <panel data-path="panels/apn_settings/panel"></panel>
+  </template>
+</element>

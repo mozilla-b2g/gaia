@@ -109,16 +109,35 @@ section[role="region"] > header {
 
 section[role="region"] > div {
   position: absolute;
-  top: 5rem;
+  top: 4rem;
   right: 0;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - 5rem);
+  height: calc(100% - 4rem);
   overflow-y: scroll;
   will-change: scroll-position;
 }
 
+section[role="region"] > div.vm-parent{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  will-change: scroll-position;
+}
+
+.fdn-dialog-parent {
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 3rem;
+  border-top: 0.1rem solid #fff;
+}
 /**
  * The back button icon shouldn't be
  * the same color as other icons.
@@ -127,15 +146,6 @@ section[role="region"] > div {
 gaia-header a:first-child,
 gaia-header button:first-child {
   color: var(--header-action-button-color) !important;
-}
-
-/*
- * Need this for scrollable background layer
- * optimization in gecko. See Bug 950250
- */
-section[role="region"],
-section[role="region"] > div > ul {
-  background-color: #f4f4f4;
 }
 
 /**
@@ -163,6 +173,23 @@ ul li > a.menu-item > * {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+#description-hide {
+  display: none;
+}
+
+#password-info {
+  height: auto;
+  border-bottom: none;
+}
+
+#wifi-password-info {
+  margin-top: -2rem;
+}
+
+#wifi-password {
+  margin-top: 0;
 }
 
 /******************************************************************************
@@ -197,6 +224,16 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
  * Explanation texts
  */
 
+#availableOperators li.explanation {
+  padding: 0.5rem 3rem;
+  padding-left: 0.5rem;
+  font-size: 1.4rem;
+  color: #a59999;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+  border-bottom: none;
+}
+
 .explanation {
   padding: 0.5rem 3rem;
   font-style: italic;
@@ -204,21 +241,41 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   color: #505859;
 }
 
-.description {
-  font-size: 1.7rem;
+ul li p.explanation{
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.description p span {
+  font-size: 1.4rem;
   line-height: 2.3rem;
   white-space: normal;
   -moz-hyphens: auto;
+  border-bottom: none;
+  color: #000;
+}
+
+.emailid {
+  margin-top: -2rem;
 }
 
 .description p,
 .description a,
 .description label {
-  font-size: 1.7rem;
+  font-size: 1.4rem;
   line-height: 2.3rem;
   white-space: normal;
+  font-style: normal;
 }
 
+.description p.storage-details{
+  font-size: 1.3rem;
+  padding: 1.5rem 0;
+}
+
+ul li.explanation{
+  font-size: 1.3rem;
+  padding: 1.5rem 0;
+}
 .description label {
     padding: 0;
 }
@@ -238,9 +295,19 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   color: #505859;
 }
 
+.fdn-description{
+  margin-left: 1rem;
+}
+
+.clear-link{
+  font-size: 1.6rem;
+  color: #000;
+  text-decoration: none;
+}
+
 .link-text {
   font-size: 1.4rem;
-  color: #35679A;
+  color: #00caf2;
   text-decoration: underline;
 }
 
@@ -256,13 +323,17 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   line-height: 6rem;
 }
 
+ul li > span.retrive{
+  position: static;
+}
+
 .hint .explanation {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
   padding-top: 0.5rem;
   padding-bottom: 1.3rem;
-  -moz-padding-start: 1.5rem;
+  -moz-padding-start: 0.2rem;
   -moz-padding-end: 4rem;
   white-space: normal;
 }
@@ -273,6 +344,48 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 .hint .explanation[hidden] {
   display: none;
+}
+
+#dataConnection-expl,
+#dataRoaming-expl {
+  margin-top: -2rem;
+  color: #999999;
+  padding-bottom: 1.5rem;
+  padding-left: 0;
+}
+
+.toggle-show {
+  display: block;
+}
+
+.toggle-hide {
+  display: none;
+}
+
+
+/******************************************************************************
+ * Carrier dialog overlay items
+ */
+
+.pop-para {
+  color: #fff;
+  font-size: 1.8rem;
+  padding-left: 1.8rem;
+  padding-right: 3.5rem;
+  font-style: italic;
+}
+
+#pop-p1 {
+  color: #fff;
+  font-size: 2rem;
+  padding: 3rem;
+  font-style: italic;
+  margin-top: 1.5rem;
+  margin-left: -1.0rem;
+}
+
+#line {
+  margin: -3.5rem 1.5rem 0;
 }
 
 
@@ -347,6 +460,7 @@ section li.password > label {
   min-height: 0;
   margin-top: 0.5rem;
   -moz-margin-start: 0;
+  margin-left: 1rem;
 }
 
 section li.password > label > span:after {
@@ -359,10 +473,10 @@ section li.password > label > span:after {
 section li.password > label > span {
   -moz-padding-start: 3rem;
   height: 3rem;
-  color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
   -moz-margin-end: 1.5rem;
+  font-style: italic;
 }
 
 section li.password > label:active {
@@ -371,7 +485,7 @@ section li.password > label:active {
 }
 
 section li.password > p {
-  padding: 0.5rem 1.5rem 0;
+  font-style: italic;
   line-height: 3.3rem;
 }
 
@@ -379,12 +493,15 @@ section li.password > p {
   -moz-user-focus: ignore;
 }
 
-section ul.operate-certificate {
+section ul.operate-certificate:after {
+  content: '';
+  border-bottom: 0.1rem solid #999;
+  width: 90%;
   position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: url(images/document_bg.png);
-}
+  display: block;
+  margin-left: 5%;
+  }
+
 
 /******************************************************************************
 * Media Storage settings
@@ -395,7 +512,7 @@ section ul.operate-certificate {
   border: solid 0.1rem #A6A6A6;
   border-radius: 0.3rem;
   display: inline-block;
-  height: 3rem;
+  height: 2rem;
   margin: 0.8rem 5%;
   padding: 0.1rem;
   width: 90%;
@@ -404,6 +521,18 @@ section ul.operate-certificate {
 #mediaStorage .space-stackedbar .stackedbar-item {
   display: inline-block;
   height: 3rem;
+}
+
+#mediaStorage ul li{
+  min-height: 6rem;
+}
+
+#mediaStorage ul li a{
+  padding-bottom: 2.5rem;
+}
+
+#mediaStorage .size {
+  top: -10px;
 }
 
 #mediaStorage .space-stackedbar .color-music,
@@ -439,12 +568,12 @@ section ul.operate-certificate {
 
 #mediaStorage .stackedbar-color-label {
   display: inline-block;
-  height: 2rem;
-  left: 1.5rem;
+  height: 2.5rem;
+  left: 1rem;
   padding: 0;
   position: absolute;
-  top: 2.1rem;
-  width: 2rem;
+  top: 1.7rem;
+  width: 2.5rem;
 }
 
 #mediaStorage .stackedbar-color-label + a {
@@ -507,18 +636,19 @@ section ul.operate-certificate {
 }
 #cb-passcode-title {
   border-top: 0;
-  border-bottom: 0.1rem solid #686868;
-  padding: 1.5rem 3.5rem;
-  margin-bottom: 2rem;
+  padding: 1.5rem 1rem;
   font-size: 1.7rem;
+  font-style: italic;
+  color: #cbcbcb;
 }
 #cb-passcode-pseudo-input {
-  width: 80%;
+  width: 100%;
+  margin-left: 1rem;
 }
 #cb-passcode-def {
   display: block;
   border: 0;
-  -moz-padding-start: 3.5rem;
+  -moz-padding-start: 1.5rem;
   line-height: 2rem;
   font-size: 1.4rem;
   font-weight: lighter;
@@ -553,9 +683,9 @@ section ul.operate-certificate {
   width: auto;
   height: auto;
   margin: 1.6rem 0 0.4rem;
-  padding: 0 2rem;
-  color: #000;
-  font-size: 1.8rem;
+  color: #a1a1a1;
+  font-size: 1.5rem;
+  font-style: italic;
 }
 
 /**
@@ -668,12 +798,26 @@ span.passcode-digit[data-dot]::before {
   background-color: transparent;
 }
 
+#apn-warn-ques {
+  border-top: none;
+}
+
+.apn-warn-msg {
+  font-size: 2.5rem;
+}
+
+#apn-warn-title {
+  font-size: 2rem;
+  margin: 2.5rem -1.5rem 0;
+}
+
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
  */
 
 #hotspot ul #hotspot-settings-section > a span {
   max-width: 100%;
+  font-style: italic;
 }
 
 /******************************************************************************
@@ -737,14 +881,6 @@ span.passcode-digit[data-dot]::before {
 }
 #display li:last-child {
   border-bottom: none;
-}
-
-/******************************************************************************
- * Sound settings
- */
-
-.manage-tones-button {
-  -moz-padding-start: 3rem;
 }
 
 /******************************************************************************
@@ -1175,4 +1311,239 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
 html[dir="rtl"] ul li > label.range-icons span {
   left: unset;
   right: 0;
+}
+
+.fdn-dialog-placeholder,
+.vm-placeholder{
+  float: right;
+  margin-right: 1rem;
+  margin-top: -3.9rem;
+  color: rgb(204, 208, 219);
+  font-style: italic;
+  font-size: 1.5rem;
+}
+
+#bluetooth-enable-msg {
+  margin-left: 0;
+  font-style: italic;
+}
+
+#bluetooth-status p {
+  margin-left: -0.2rem;
+  font-style: italic;
+}
+
+.vm-voicemail-text,
+.carrier-roaming-dialog {
+  color: #ffffff;
+}
+
+form[role="dialog"][data-type="confirm"] h1.fdn-sim-pin-dialog {
+  width: 80%;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 1.8rem;
+}
+
+form[role="dialog"][data-type="confirm"] h1.vm-voicemail-text{
+  margin-bottom: 2rem;
+  border-bottom: 0.1rem solid;
+  padding: 0 0 1rem 0;
+}
+
+form[role="dialog"][data-type="confirm"].cw-voice-mail{
+  padding: 0 1.5rem 40rem;
+}
+
+ul li p.cf-text-style  {
+  font-size: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem;
+  font-style: italic;
+}
+
+.cf-default-text-span{
+  float: right;
+  margin-right: 1rem;
+  margin-top: -4rem;
+  color: rgb(204, 208, 219);
+  font-style: italic;
+  font-size: 1.5rem;
+}
+
+#show-password {
+margin-left: -2rem;
+}
+
+#password-info input{
+  margin-top: -1.5rem;
+}
+
+.fdnContact-name + span,
+.fdnContact-number + span {
+  visibility: hidden;
+}
+
+.fdnContact-name:focus + span,
+.fdnContact-number:focus + span {
+  visibility: visible;
+}
+
+input[type="text"].input-area-text-padding,
+input[type="tel"].input-area-text-padding{
+  padding: 0 3rem 0 0;
+}
+#update-device-name-input {
+  border: 0.8rem solid #33D6FF;
+  box-shadow: 0 0 0 0.1rem #707070 inset;
+  transition: box-shadow 0.3s ease 0s, border 0.3s ease 0s;
+  border: 0.8rem solid #33d6ff;
+  padding-left: 0;
+  float:left;
+  padding-right: 2.6rem;
+  width: 100%;
+  height: 5.5rem;
+  margin-top: 2rem;
+}
+
+#update-device-name-input {
+  border: 0.8rem solid #33D6FF;
+  box-shadow: 0 0 0 0.1rem #707070 inset;
+  transition: box-shadow 0.3s ease 0s, border 0.3s ease 0s;
+  border: 0.8rem solid #33d6ff;
+  padding-left: 0;
+  float: left;
+  padding-right: 2.6rem;
+  width: 100%;
+  height: 5.5rem;
+  margin-top: 2rem;
+}
+
+input[type="tel"].vm-number,
+input[type="tel"].sim-pin2-number {
+  border: 0.8rem solid #33D6FF;
+  box-shadow: 0 0 0 0.1rem #707070 inset;
+  transition: box-shadow 0.3s ease 0s, border 0.3s ease 0s;
+  padding-left: 0;
+  float: left;
+  padding-right: 2.6rem;
+  width: 100%;
+}
+
+ul li.fdnlistadd {
+  border: none;
+}
+
+ul li p.fdn-label {
+  font-size: 1.4rem;
+  color: #505859;
+  font-style: italic;
+  padding: 1.5rem 0 1rem 1.5rem;
+}
+
+form[role="dialog"][data-type="confirm"] > section.fdn-dialog-section,
+form[role="dialog"][data-type="confirm"] > section.vm-section {
+  padding: 0;
+  margin-top: 2rem;
+}
+
+input.cf-placeholder:focus::-moz-placeholder {
+  color: #ccd0db;
+}
+
+input.cf-placeholder::-moz-placeholder {
+  color: transparent;
+}
+
+input.cf-placeholder:focus + span {
+  visibility: visible;
+}
+
+input.cf-placeholder + span{
+  visibility: hidden;
+}
+
+li > span.menu-list{
+  position: static;
+  min-height: auto;
+}
+#media-range input {
+
+  margin-left: 0;
+  width: calc(100% - 4.5rem);
+}
+#media-range {
+  padding-top: 0;
+  margin-left: 5.0rem;
+  padding-right: 2.0rem;
+}
+ul li > label.range-icons.volume.media div[id="media-range"]:hover:before {
+  content: attr(min) " ";
+}
+ul li > label.range-icons.volume.media div[id="media-range"]:hover:after {
+  content: attr(max) " ";
+}
+#ringtone-range input {
+
+  margin-left: 0;
+  width: calc(100% - 4.5rem);
+}
+#ringtone-range {
+  padding-top: 0;
+  margin-left: 5.0rem;
+  padding-right: 2.0rem;
+}
+ul li > label.range-icons.volume.notification div[id="ringtone-range"]:hover:before {
+  content: attr(min) " ";
+}
+ul li > label.range-icons.volume.notification div[id="ringtone-range"]:hover:after {
+  content: attr(max) " ";
+}
+#alarm-range input {
+
+  margin-left: 0;
+  width: calc(100% - 4.5rem);
+}
+#alarm-range {
+  padding-top: 0;
+  margin-left: 5.0rem;
+  padding-right: 2.0rem;
+}
+ul li > label.range-icons.volume.alarm div[id="alarm-range"]:hover:before {
+  content: attr(min) " ";
+}
+ul li > label.range-icons.volume.alarm div[id="alarm-range"]:hover:after {
+  content: attr(max) " ";
+}
+ul li > label.range-icons span.moon1_icons {
+  margin: 2.8rem 1.5rem 0;
+}
+#brightness {
+  min-height: 8rem;
+}
+#wallpaper-section {
+  height:10rem
+}
+.wallpaper .wallpaper-button > span#wallpaper-text {
+  background-color: #999;
+  font-style: italic;
+  font-size: 1.7rem;
+  width: 14.6rem;
+  cursor: pointer;
+}
+
+section[role="region"],
+section[role="region"] > div > ul {
+  background-color: rgba(245, 245, 245, 0.09);
+}
+
+.carrier-ims-profile-option {
+  display: none;
+}
+
+form[role="dialog"][data-type="confirm"] p.roaming-explanation {
+  border-top: none;
+}
+
+ul li#sim-text p.sim-text-color {
+  color: #000000;
 }

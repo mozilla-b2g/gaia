@@ -5,12 +5,11 @@ define(function(require) {
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
-  var ThemesItem = require('panels/root/themes_item');
   var HomescreenItem = require('panels/root/homescreen_item');
-  var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var STKItem = require('panels/root/stk_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
   var DsdsSettings = require('dsds_settings');
+
 
   var queryRootForLowPriorityItems = function(panel) {
     // This is a map from the module name to the object taken by the constructor
@@ -36,20 +35,15 @@ define(function(require) {
         mediaStorageSection: panel.querySelector('.media-storage-section')
       },
       'StorageAppItem': panel.querySelector('.application-storage-desc'),
-      'WifiItem': panel.querySelector('#wifi-desc'),
-      'ScreenLockItem': panel.querySelector('.screenLock-desc'),
-      'SimSecurityItem': panel.querySelector('.simCardLock-desc')
+      'WifiItem': panel.querySelector('#wifi-desc')
     };
   };
 
   return function ctor_root_panel() {
     var root;
     var airplaneModeItem;
-    var themesItem;
     var homescreenItem;
-    var privacyPanelItem;
     var stkItem;
-
     var lowPriorityRoots = null;
     var initLowPriorityItemsPromise = null;
     var initLowPriorityItems = function(rootElements) {
@@ -70,6 +64,31 @@ define(function(require) {
       return initLowPriorityItemsPromise;
     };
 
+    /**
+     * Update the sim and NFC related items based on mozMobileConnections and Device.
+     */
+
+    var updateSimItemsAndNfc = function rph_refrehsSimItems() {
+       if (navigator.mozMobileConnections) {
+         if (navigator.mozMobileConnections.length === 1) { // single sim
+           document.getElementById('simCardManager-settings').hidden = true;
+         } else { // dsds
+           document.getElementById('simSecurity-settings').hidden = true;
+         }
+       } else {
+         // hide telephony panels
+         var elements = ['call-settings',
+                         'data-connectivity',
+                         'messaging-settings'];
+         elements.forEach(function(el) {
+           document.getElementById(el).hidden = true;
+         });
+       }
+       var nfcItem = document.querySelector('.nfc-settings');
+        nfcItem.hidden = !navigator.mozNfc;
+     };
+      updateSimItemsAndNfc();
+
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root = Root();
@@ -77,16 +96,9 @@ define(function(require) {
 
         airplaneModeItem =
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
-        themesItem =
-          ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
-        privacyPanelItem = PrivacyPanelItem({
-          element: panel.querySelector('.privacy-panel-item'),
-          link: panel.querySelector('.privacy-panel-item a')
-        });
         stkItem = STKItem({
-          iccMainHeader: panel.querySelector('#icc-mainheader'),
           iccEntries: panel.querySelector('#icc-entries')
         });
 
@@ -104,7 +116,7 @@ define(function(require) {
           }
         });
 
-        // If the device supports dsds, callSettings must be changed 'href' for 
+        // If the device supports dsds, callSettings must be changed 'href' for
         // navigating call-iccs panel first.
         if (DsdsSettings.getNumberOfIccSlots() > 1) {
           var callItem = document.getElementById('menuItem-callSettings');
@@ -125,8 +137,6 @@ define(function(require) {
       },
       onShow: function rp_onShow(panel) {
         airplaneModeItem.enabled = true;
-        themesItem.enabled = true;
-        privacyPanelItem.enabled = true;
         homescreenItem.enabled = true;
 
         if (initLowPriorityItemsPromise) {
@@ -137,9 +147,7 @@ define(function(require) {
       },
       onHide: function rp_onHide() {
         airplaneModeItem.enabled = false;
-        themesItem.enabled = false;
         homescreenItem.enabled = false;
-        privacyPanelItem.enabled = false;
 
         if (initLowPriorityItemsPromise) {
           initLowPriorityItemsPromise.then(function(items) {

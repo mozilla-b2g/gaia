@@ -9,5 +9,5 @@
  * See https://bugzil.la/1124098.
  */
 #languages .more-languages[hidden] {
-  display: block;
+  display: none;
 }
