@@ -59,96 +59,18 @@
     }
 
     node.addEventListener('click',
-      this.requestHighlight.bind(this, node));
+      this.requestActivate.bind(this, node));
     return node;
   };
 
-  LockScreenNotificationBuilder.prototype.requestHighlight =
-  function lsnb_requestHighlight(node) {
+  LockScreenNotificationBuilder.prototype.requestActivate =
+  function lsnb_requestActivate(node) {
     window.dispatchEvent(new CustomEvent(
-      'lockscreen-notification-request-highlight', {
+      'lockscreen-notification-request-activate', {
         detail: {
-          node: node,
-          highlighter:  this.highlight.bind(this, node)
+           'notificationId' : node.dataset.notificationId
         }
       }));
-  };
-
-  /**
-   * When it get clicked, do the UI change.
-   */
-  LockScreenNotificationBuilder.prototype.highlight =
-  function lsnb_highlight(node) {
-    // Cancel other's highlight first.
-    var highlighted = this.container.querySelector(this.selector.highlighted);
-    if (highlighted) {
-      this.removeHighlight(highlighted);
-    }
-    var button = this.createActionButton(node.dataset.notificationId);
-    node.appendChild(button);
-    node.classList.add('actionable');
-    window.dispatchEvent(new CustomEvent(
-      'lockscreen-notification-notify-highlighted', {
-      detail: {
-        id: node.dataset.notificationId,
-        timestamp: Date.now()
-      }
-    }));
-    setTimeout(() => {
-      // UX require to clean idle and highlighted notification
-      // after sevaral seconds.
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notification-request-clean-highlighted', {
-        detail: {
-          id: node.dataset.notificationId,
-          timestamp: Date.now()
-        }
-      }));
-    }, this.timeoutHighlighted);
-
-    // Find previous one and cancel it's bottom border.
-    var previous = node.previousElementSibling;
-    var oldPrevious = document.querySelector(
-        '#notifications-lockscreen-container '+
-        '.notification.previous-actionable');
-    if (null !== oldPrevious) {
-      oldPrevious.classList.remove('previous-actionable');
-    }
-    if (null !== previous) {
-      previous.classList.add('previous-actionable');
-    }
-  };
-
-  LockScreenNotificationBuilder.prototype.removeHighlight =
-  function lsnb_removeHighlight(node) {
-    node.classList.remove('actionable');
-    node.querySelector('.button-actionable').remove();
-  };
-
-  /**
-   * Create the button and make the notification actionalbe.
-   *
-   * @param notificationId {string} - the ID need to fire the event
-   * @return {DOMElement}
-   */
-  LockScreenNotificationBuilder.prototype.createActionButton =
-  function lsnb_createActionButton(notificationId) {
-    var button = document.createElement('span');
-    button.classList.add('button-actionable');
-    button.dataset.l10nId = 'open-notification';
-    button.addEventListener('touchstart', (evt) => {
-      button.parentElement.classList.add('activated');
-    });
-
-    button.addEventListener('touchend', (evt) => {
-      button.parentElement.classList.remove('activated');
-      button.classList.add('activated');
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notification-request-activate', {
-        detail: { 'notificationId': notificationId }
-      }));
-    });
-    return button;
   };
 
   exports.LockScreenNotificationBuilder = LockScreenNotificationBuilder;

@@ -180,14 +180,6 @@
         this.dispatchEvent('secure-killapps');
         this.lockIfEnabled(true);
         break;
-
-      case 'click':
-        if (this.altCameraButton === evt.target) {
-          this.handleIconClick(evt.target);
-          break;
-        }
-        break;
-
       case 'touchstart':
         // Edge case: when the passcode is valid, passpad should fade out.
         // So the touchevent should do nothing.
@@ -254,6 +246,7 @@
       case 'lockscreenslide-activate-left':
         this._activateCamera();
         break;
+      case 'keyup':
       case 'lockscreenslide-activate-right':
         this._activateUnlock();
         break;
@@ -382,8 +375,6 @@
     window.addEventListener('lockscreen-mode-switch', this);
 
     /* Gesture */
-    this.area.addEventListener('touchstart', this);
-    this.altCameraButton.addEventListener('click', this);
     this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
@@ -614,10 +605,6 @@
   LockScreen.prototype.handleIconClick =
   function ls_handleIconClick(target) {
     switch (target) {
-      case this.areaCamera:
-      case this.altCameraButton:
-        this._activateCamera();
-        break;
       case this.areaUnlock:
         this._activateUnlock();
         break;
@@ -660,7 +647,7 @@
   function ls_unlock(instant, detail) {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
-
+    window.removeEventListener('keyup', this);
     // The lockscreen will be hidden, stop refreshing the clock.
     this.clock.stop();
     this.chargingStatus.stop();
@@ -697,7 +684,7 @@
   function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-
+    window.addEventListener('keyup', this);
     this.overlay.focus();
     this.overlay.classList.toggle('no-transition', instant);
 
@@ -974,13 +961,11 @@
   LockScreen.prototype.getAllElements =
   function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['conn-states', 'clock-time', 'date', 'area',
+    var elements = ['conn-states', 'clock-time', 'date',
         'area-unlock', 'area-camera', 'icon-container',
         'area-slide', 'media-container', 'passcode-code',
-        'alt-camera', 'alt-camera-button',
-        'passcode-pad',
         'panel-emergency-call', 'canvas', 'message',
-        'notification-arrow', 'masked-background'];
+        'notification-arrow', 'masked-background', 'enter-code'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -1094,6 +1079,18 @@
       // delegate the unlocking function call to panel state.
       window.dispatchEvent(new CustomEvent(
         'lockscreen-notify-passcode-validationsuccess'));
+    };
+
+  /**
+   * 'Enter pin code' text is not visible in case of pass code is not set.
+   */
+  LockScreen.prototype.onPasscodeSettingChanged =
+    function ls_onPasscodeSettingChanged(value) {
+      if (!value){
+        this.enterCode.classList.add('lockscreen-enter-code-icon-hide');
+      } else {
+        this.enterCode.classList.remove('lockscreen-enter-code-icon-hide');
+      }
     };
 
   LockScreen.prototype.setupRemoteLock =

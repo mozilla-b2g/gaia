@@ -67,7 +67,8 @@
 (function(exports) {
 
   var LockScreenStateManager = function() {};
-
+  const KEY_CODE_ZERO = 48;
+  const KEY_CODE_NINE = 57;
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
@@ -77,6 +78,7 @@
     });
     this.configs = {
       listenEvents: [
+        'keyup',
         'lockscreen-notify-homepressed',
         'screenchange',
         'lockscreen-notification-request-activate-unlock',
@@ -84,8 +86,6 @@
         'lockscreen-request-lock',
         'lockscreen-notify-passcode-validationsuccess',
         'lockscreen-appclosed',
-        'lockscreenslide-activate-left',
-        'lockscreenslide-activate-right',
         'lockscreen-keypad-input',
         'lockscreen-inputappopening',
         'lockscreen-inputappopened',
@@ -96,7 +96,9 @@
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
-          this.onPasscodeEnabledChanged.bind(this)
+          this.onPasscodeEnabledChanged.bind(this),
+        'lockscreen.locked':
+          this.onScreenLocked.bind(this)
       }
     };
     // The state 'templates'. This component would do transfer among
@@ -411,10 +413,6 @@
       case 'lockscreen-notify-homepressed':
         this.onHomePressed();
         break;
-      case 'lockscreenslide-activate-left':
-        this.onUnlockingApp();
-        break;
-      case 'lockscreenslide-activate-right':
       case 'lockscreen-notification-request-activate-unlock':
         this.onActivateUnlock();
         break;
@@ -452,6 +450,13 @@
         // terminated: kill
         // @see: SecureAppManager
         this.onSecureAppClosing();
+        break;
+      case 'keyup':
+        if (this.lockScreenStates.passcodeEnabled &&
+            (evt.keyCode >= KEY_CODE_ZERO && this.lockScreen.locked &&
+            evt.keyCode <= KEY_CODE_NINE)) {
+          this.onActivateUnlock();
+        }
         break;
     }
   };
@@ -602,6 +607,20 @@
       this.lockScreenStates.passcodeEnabled = 'false' === value ? false : true;
     } else {
       this.lockScreenStates.passcodeEnabled = value;
+    }
+    this.lockScreen.onPasscodeSettingChanged(value);
+  };
+
+  /**
+   * 'keyup' event is removed when device is unlocked and added when device is
+   * locked.
+   */
+  LockScreenStateManager.prototype.onScreenLocked =
+  function lssm_onScreenLocked(value) {
+    if (value) {
+      window.addEventListener('keyup', this);
+    } else {
+      window.removeEventListener('keyup', this);
     }
   };
 

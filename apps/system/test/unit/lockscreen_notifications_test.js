@@ -493,42 +493,6 @@ suite('system/LockScreenNotifications', function() {
       });
     });
 
-    suite('top-actionable class is correctly added in ' +
-          'onNotificationHighlighted',
-      function() {
-      // we then see if the class is added correctly, or not added,
-      // when we try to highlight each notification.
-
-      var testTopActionableClass = function(notificationIndex, expected) {
-        var id = 'id-' + notificationIndex;
-
-        lockScreenNotifications.onNotificationHighlighted(id, 123000);
-
-        assert.equal(
-          lockScreenNotifications.container.classList.contains(
-            'top-actionable'
-          ),
-          expected,
-          'with notification index ' + notificationIndex + ' container should' +
-          (!expected ? ' not' : '') + ' have the top-actionable class'
-        );
-      };
-
-      range(numTestNotifications).forEach(index => {
-        // the notification is the visually top in the viewport if its rev-index
-        // is the number of notifications visible in the viewport; its (normal)
-        // index would be (numNotifications - numVisibleNotifications);
-        // we expect that notification, when highlighted, to trigger
-        // |top-actionable| class to be added.
-        test('test on ' + index + '-th notification', () => {
-          testTopActionableClass(
-            index,
-            (numTestNotifications - numNotificationInViewport) === index
-          );
-        });
-      });
-    });
-
     suite('_tryAddTopMaskByNotification is correctly called in ' +
           'onCleanHighlighted and onNotificationsBlur',
       function() {
@@ -603,51 +567,6 @@ suite('system/LockScreenNotifications', function() {
         .notificationOutOfViewport(stubNode),
         'The request is denied.');
       lockScreenNotifications.container = originalContainer;
-    });
-
-    suite('top-actionable class is correctly removed with ' +
-          'tryAddTopMaskByNotification',
-      function() {
-      // we then see if the class is removed correctly, or not removed,
-      // when we try to un-highlight each notification.
-
-      setup(function(){
-        lockScreenNotifications.container.classList.add('top-actionable');
-      });
-
-      var testTopActionableClass = function(notificationIndex, expected) {
-        var id = 'id-' + notificationIndex;
-
-        var notificationNode =
-          lockScreenNotifications.container.querySelector(
-            '[data-notification-id="' + id + '"]'
-          );
-
-        lockScreenNotifications._tryAddTopMaskByNotification(notificationNode);
-
-        assert.equal(
-          lockScreenNotifications.container.classList.contains(
-            'top-actionable'
-          ),
-          expected,
-          'with notification index ' + notificationIndex + ' container should' +
-          (!expected ? ' not' : '') + ' have the top-actionable class'
-        );
-      };
-
-      range(numTestNotifications).forEach(index => {
-        // the notification is the visually top in the viewport if its rev-index
-        // is the number of notifications visible in the viewport; its (normal)
-        // index would be (numNotifications - numVisibleNotifications);
-        // we expect that notification, when unhighlighted, to trigger
-        // |top-actionable| class to be removed.
-        test('test on ' + index + '-th notification', () => {
-          testTopActionableClass(
-            index,
-            (numTestNotifications - numNotificationInViewport) !== index
-          );
-        });
-      });
     });
   });
 });
