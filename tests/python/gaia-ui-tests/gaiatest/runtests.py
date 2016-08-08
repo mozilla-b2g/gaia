@@ -17,6 +17,8 @@ from gaiatest import __name__
 from gaiatest import (GaiaTestCase,
                       GaiaArguments,
                       GaiaTestRunnerMixin,
+                      TreeherderArguments,
+                      TreeherderTestRunnerMixin,
                       GaiaImageCompareArguments)
 from version import __version__
 
@@ -26,6 +28,7 @@ class GaiaTestArguments(BaseMarionetteArguments):
     def __init__(self, **kwargs):
         BaseMarionetteArguments.__init__(self, **kwargs)
         self.register_argument_container(GaiaArguments())
+        self.register_argument_container(TreeherderArguments())
         self.register_argument_container(GaiaImageCompareArguments())
 
 
@@ -38,7 +41,7 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
     resultclass = GaiaTestResult
 
 
-class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin):
+class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
 
@@ -72,6 +75,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin):
 
         BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
+        TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
     def start_httpd(self, need_external_ip):
