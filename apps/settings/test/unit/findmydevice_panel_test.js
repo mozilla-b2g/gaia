@@ -140,6 +140,12 @@ suite('Find My Device panel > ', function() {
     assert.isTrue(settingsSection.hidden);
   });
 
+  test('persist login state when logged out of FxA', function() {
+    MockMozId.onlogout();
+    assert.isFalse(
+      MockSettingsHelper.instances['findmydevice.logged-in'].value);
+  });
+
   test('consider ourselves logged out if onerror fires when not offline',
   function() {
     MockMozId.onerror('{"name": "NOT_OFFLINE"}');
@@ -163,6 +169,12 @@ suite('Find My Device panel > ', function() {
     MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
+  });
+
+  test('persist login state when logged in to FxA', function() {
+    MockMozId.onlogin();
+    assert.isTrue(
+      MockSettingsHelper.instances['findmydevice.logged-in'].value);
   });
 
   test('ignore clicks when button is disabled', function() {
