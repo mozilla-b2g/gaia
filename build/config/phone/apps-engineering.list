@@ -1,7 +1,6 @@
 apps/*
 webapps/*
 dev_apps/in_app_pay_test
-dev_apps/mochitest
 dev_apps/ds-test
 dev_apps/geoloc
 dev_apps/l20n-app
