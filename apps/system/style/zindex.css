@@ -129,7 +129,7 @@
    triggered by #top-panel, therefore we must ensure it has an appropriate
    z-index in fullscreen modes.
    (The z-indexes differ depending on whether this is a .fullscreen-app or a
-   -moz-full-screen-ancestor; when -moz-full-screen, the z-index is assigned to
+   .fullscreen-ancestor; when -moz-full-screen, the z-index is assigned to
    MAX_INT here in zindex.css) */
 #screen.fullscreen-app:not(.utility-tray) #top-panel {
   z-index: 16386;
@@ -346,32 +346,32 @@
 }
 
 /* We promote the following overlays on top of the fullscreen web content. */
-#screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
-#screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="system-dialog"],
+#screen.fullscreen-ancestor > [data-z-index-level="sleep-menu"],
+#screen.fullscreen-ancestor > [data-z-index-level="action-menu"],
+#screen.locked.fullscreen-ancestor > [data-z-index-level="statusbar"],
+#screen.fullscreen-ancestor > [data-z-index-level="lockscreen-camera"],
+#screen.fullscreen-ancestor > [data-z-index-level="system-dialog"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.attentionWindow,
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,
-#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboards"],
+#screen.fullscreen-ancestor > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
+#screen.fullscreen-ancestor > [data-z-index-level="system-overlay"],
+#screen.fullscreen-ancestor > [data-z-index-level="dialog-overlay"],
+#screen.fullscreen-ancestor > [data-z-index-level="app"] > .appWindow.attentionWindow,
+#screen.fullscreen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,
+#screen.fullscreen-ancestor > [data-z-index-level="keyboards"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app-uninstall-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="software-buttons"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
+#screen.fullscreen-ancestor > [data-z-index-level="notification-toaster"],
+#screen.fullscreen-ancestor > [data-z-index-level="cards-view"],
+#screen.fullscreen-ancestor > [data-z-index-level="permission-screen"],
+#screen.fullscreen-ancestor > [data-z-index-level="app-install-dialog"],
+#screen.fullscreen-ancestor > [data-z-index-level="app-uninstall-dialog"],
+#screen.fullscreen-ancestor > [data-z-index-level="ime-layout-dialog"],
+#screen.fullscreen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
+#screen.fullscreen-ancestor > [data-z-index-level="software-buttons"],
+#screen.fullscreen-ancestor > [data-z-index-level="gesture-panel"],
+#screen.fullscreen-ancestor > [data-z-index-level="attention-indicator"],
+#screen.fullscreen-ancestor > [data-z-index-level="utility-tray"],
+#screen.fullscreen-ancestor > [data-z-index-level="statusbar"],
+#screen.fullscreen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }
 
@@ -382,7 +382,7 @@
   z-index: 2147483647;
 }
 
-#screen:-moz-full-screen-ancestor > #statusbar:not(.fullscreen) {
+#screen.fullscreen-ancestor > #statusbar:not(.fullscreen) {
   display: none;
 }
 

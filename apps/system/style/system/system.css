@@ -273,7 +273,7 @@ textarea,
   pointer-events: none;
 }
 
-#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-ancestor #dialog-overlay,
 #dialog-overlay.fullscreen {
   top: 0;
   bottom: 0;

@@ -354,11 +354,6 @@ html[dir="rtl"] .appWindow.invoked {
   visibility: visible;
 }
 
-/* Bug 1071235: Workaround for bug 1076783 */
-.browser-container:-moz-full-screen-ancestor > .screenshot-overlay {
-  visibility: hidden;
-}
-
 .appWindow.collapsible .screenshot-overlay {
   margin-top: var(--rocketbar-urlbar-height);
 }
@@ -595,7 +590,7 @@ html[dir="rtl"] .appWindow.invoked {
   the transform for this case.
   See: https://bugzilla.mozilla.org/show_bug.cgi?id=1212960
 */
-#screen:-moz-full-screen-ancestor > #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).active {
+#screen.fullscreen-ancestor > #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).active {
   transform: unset;
 }
 

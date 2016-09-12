@@ -1,5 +1,5 @@
 .animation-circle,
-#screen:-moz-full-screen-ancestor .appWindow > div.animation-circle,
+#screen.fullscreen-ancestor .appWindow > div.animation-circle,
 .appWindow.fullscreen-app > div:not(.titlebar):not(.maximized).animation-circle {
   position: fixed;
   z-index: 9999;
