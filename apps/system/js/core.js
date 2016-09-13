@@ -20,6 +20,7 @@
     'WallpaperManager',
     'LayoutManager',
     'SoftwareButtonManager',
+    'FullscreenManager',
     'AppCore',
     'ScreenManager'
   ];

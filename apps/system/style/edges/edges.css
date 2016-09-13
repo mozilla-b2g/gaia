@@ -56,7 +56,7 @@
 }
 
 @media (orientation: landscape) {
-  #screen:not(:-moz-full-screen-ancestor).software-button-enabled #right-panel {
+  #screen:not(.fullscreen-ancestor).software-button-enabled #right-panel {
     width: 7rem;
     border-radius: 2rem 0 0 2rem;
   }

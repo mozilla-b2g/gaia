@@ -89,7 +89,7 @@ html[dir="ltr"] #statusbar-tray { background-position: right; }
 html[dir="rtl"] #statusbar-tray { background-position: left; }
 
 #screen.utility-tray-in-transition #statusbar-tray,
-#screen:-moz-full-screen-ancestor #statusbar-tray,
+#screen.fullscreen-ancestor #statusbar-tray,
 #screen.utility-tray-in-transition #utility-tray #statusbar-tray {
   background-image: -moz-element(#statusbar-icons);
 }

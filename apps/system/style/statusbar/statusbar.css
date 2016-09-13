@@ -7,7 +7,7 @@
 /* In both fullscreen modes, accept pointer events to trigger the status bar
    unless the utility tray is showing. */
 #screen.fullscreen-app:not(.utility-tray) #top-panel,
-#screen:not(.utility-tray):-moz-full-screen-ancestor > #top-panel {
+#screen:not(.utility-tray).fullscreen-ancestor > #top-panel {
   pointer-events: all;
 }
 
@@ -92,7 +92,7 @@ to be available for moz-elements */
 /* AppChrome would normally provide the theme color for the statusbar.
    However, when in native full-screen mode, AppChrome isn't visible; just
    use black for now, as we do with #screen.attention. */
-#screen:-moz-full-screen-ancestor #statusbar {
+#screen.fullscreen-ancestor #statusbar {
   background-color: black;
 }
 
