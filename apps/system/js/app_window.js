@@ -1135,17 +1135,18 @@
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
+      var newUrl = evt.detail.url;
       // Integration test needs to locate the frame by this attribute.
-      this.browser.element.dataset.url = evt.detail;
-      if (this.config.url !== evt.detail) {
-        this.title = evt.detail;
+      this.browser.element.dataset.url = newUrl;
+      if (this.config.url !== newUrl) {
+        this.title = newUrl;
         this.favicons = {};
         this.webManifestURL = null;
         this.webManifest = null;
         this.meta = {};
-        this.config.url = evt.detail;
+        this.config.url = newUrl;
         if (!this.manifest && !this.nameChanged) {
-          this.name = new URL(evt.detail).hostname;
+          this.name = new URL(newUrl).hostname;
         }
       }
       this.publish('locationchange');
