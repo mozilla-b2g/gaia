@@ -24,7 +24,7 @@
       let isFullscreenAncestor = fullscreenElement &&
           this.element.contains(fullscreenElement);
 
-      this.element.classList.toggle('.fullscreen-ancestor',
+      this.element.classList.toggle('fullscreen-ancestor',
                                     isFullscreenAncestor);
     },
 
