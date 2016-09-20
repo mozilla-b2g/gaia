@@ -274,7 +274,7 @@ var BluetoothTransfer = {
       return;
     }
 
-    var storage = this._deviceStorage;
+    var storage = navigator.getDeviceStorage('sdcard');
 
     var availreq = storage.available();
     availreq.onsuccess = function(e) {
