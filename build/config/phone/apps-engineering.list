@@ -10,6 +10,7 @@ dev_apps/test-ime
 dev_apps/share-receiver
 dev_apps/template
 dev_apps/test-agent
+dev_apps/test-camera
 dev_apps/test-container
 dev_apps/test-iac-publisher
 dev_apps/test-iac-subscriber
