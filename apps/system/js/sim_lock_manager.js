@@ -29,6 +29,7 @@
     _duringCall: false,
     _showPrevented: false,
     _alreadyShown: false,
+    _timerID: null,
 
     _handle_simslotready: function() {
       this.showIfLocked();
@@ -47,7 +48,17 @@
     },
 
     '_handle_simslot-cardstatechange': function(evt) {
-      this.showIfLocked(evt.detail.index);
+      var showPinScreen = () => {
+        clearTimeout(this._timerID);
+        this._timerID = null;
+        this.showIfLocked(evt.detail.index);
+      };
+
+      if (evt.detail.index !== 0) {
+        this._timerID = setTimeout(showPinScreen, 1000);
+      } else {
+        showPinScreen();
+      }
     },
 
     '_handle_ftuopen': function() {
