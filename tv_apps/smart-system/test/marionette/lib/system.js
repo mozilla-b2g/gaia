@@ -54,7 +54,7 @@ System.prototype = {
     var body = this.client.findElement('body');
     this.client.waitFor(function() {
       return body.getAttribute('ready-state') == 'fullyLoaded';
-    });
+    }, { timeout: 120000 });
   },
 
   waitForLaunch: function(url) {
