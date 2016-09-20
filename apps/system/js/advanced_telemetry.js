@@ -570,23 +570,21 @@
   // This method loops through the payload of histograms and converts each
   // histogram payload to the 'dict' format required by the server for parsing.
   AdvancedTelemetryPing.prototype.packHistograms = function() {
-    var nameAddonHist = this.packet.payload.addonHistograms;
-    var nameKeyHist = this.packet.payload.keyedHistograms;
+    function packHistogramType(level, self) {
+      for (var key in level) {
+        // Discard any Histograms with no data.
+        if (Object.keys(level[key]).length === 0) {
+          delete level[key];
+          continue;
+        }
 
-    // Pack the Addon Histograms.
-    for (var addon in nameAddonHist) {
-      for (var hist in nameAddonHist[addon]) {
-        nameAddonHist[addon][hist] =
-          this.packHistogram(nameAddonHist[addon][hist]);
+        for (var hist2 in level[key]) {
+          level[key][hist2] = self.packHistogram(level[key][hist2]);
+        }
       }
     }
-
-    // Pack the Keyed Histograms.
-    for (var key in nameKeyHist) {
-      for (var hist2 in nameKeyHist[key]) {
-        nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
-      }
-    }
+    packHistogramType(this.packet.payload.addonHistograms, this);
+    packHistogramType(this.packet.payload.keyedHistograms, this);
   };
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {

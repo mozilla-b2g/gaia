@@ -349,7 +349,9 @@ suite('AdvancedTelemetry:', function() {
                 ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
                 counts: [0, 0, 0, 0, 2, 1, 1, 0, 0, 0]
               }
-            }
+            },
+            DEVTOOLS_HUD_APP_MEMORY_SCANEND_V2: {},
+            DEVTOOLS_HUD_APP_STARTUP_TIME_VISUALLYLOADED: {}
           },
           addonHistograms: {
             addon3: {
@@ -363,7 +365,8 @@ suite('AdvancedTelemetry:', function() {
                 ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
                 counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
               }
-            }
+            },
+            addon4: {}
           }
         }
       };
