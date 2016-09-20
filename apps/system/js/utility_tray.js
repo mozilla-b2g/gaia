@@ -215,13 +215,13 @@ exports.UtilityTray = {
   },
 
   hide(immediately) {
-    if (this.motion.state === 'open' || this.motion.state === 'opening') {
+    if (this.motion.state !== 'closed') {
       this.motion.close(immediately);
     }
   },
 
   show(immediately) {
-    if (this.motion.state === 'closed' || this.motion.state === 'closing') {
+    if (this.motion.state !== 'open') {
       this.motion.open(immediately);
     }
   },
