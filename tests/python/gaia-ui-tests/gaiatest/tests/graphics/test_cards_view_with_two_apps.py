@@ -13,6 +13,7 @@ from gaiatest.apps.gallery.app import Gallery
 
 class TestCardsView(GaiaImageCompareTestCase):
 
+    _test_apps = ['Contacts', 'Gallery']
     images = 'IMG_0001.jpg'
     image_count = 4
 
