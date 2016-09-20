@@ -499,17 +499,23 @@ suite('system/Rocketbar', function() {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {},
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      valueSelector: {
+        hide: function() {}
+      }
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
       .returns(Promise.resolve());
+    var valueSelectorHideStub = this.sinon.stub(activeApp.valueSelector,
+      'hide');
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith('app.url'));
     assert.ok(activateStub.calledOnce);
+    assert.ok(valueSelectorHideStub.calledOnce);
   });
 
   test('handleEvent() - global-search-request: inactive app', function() {
