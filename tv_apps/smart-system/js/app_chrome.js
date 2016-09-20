@@ -11,16 +11,6 @@
 (function(exports) {
   var _id = 0;
 
-  var newTabManifestURL = null;
-  SettingsCache.observe('rocketbar.newTabAppURL', '',
-    function(url) {
-      // The application list in applications.js is not yet ready, so we store
-      // only the manifestURL for now and we look up the application whenever
-      // we trigger a new window.
-      newTabManifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
-        'manifest.webapp' : '';
-    });
-
   /**
    * The chrome UI of the AppWindow.
    *
@@ -691,18 +681,6 @@
 
   AppChrome.prototype.hideOverflowMenu = function ac_hideOverflowMenu() {
     this.overflowMenu.hide();
-  };
-
-  /* Bug 1054466 switched the browser overflow menu to use the system style,
-   * but we eventually want to switch back to the new style. We can do that
-   * by removing this function.
-   */
-  AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
-    if (this.app.contextmenu) {
-      var name = this.isSearch() ?
-        this.app.config.searchName : this.title.textContent;
-      this.app.contextmenu.showDefaultMenu(newTabManifestURL, name);
-    }
   };
 
   exports.AppChrome = AppChrome;
