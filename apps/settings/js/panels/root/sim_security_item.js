@@ -40,12 +40,17 @@ define(function(require) {
      */
     set enabled(enabled) {
       // 1. SimSecurityItem only shows up on Single SIM devices
-      // 2. If there is no activeSlot, it means we don't have to do anything
+      // 2. If there is no activeSlot, we show No SIM card
       // 3. If internal variable is enabled and we still want to enable,
       // we don't have to do anything and vice versa.
       if (SIMSlotManager.isMultiSIM() ||
-        !this._activeSlot || enabled === this._itemEnabled) {
+         enabled === this._itemEnabled) {
           return;
+      }
+
+      if (!this._activeSlot) {
+        this._element.setAttribute('data-l10n-id', 'noSimCard');
+        return;
       }
 
       this._itemEnabled = enabled;
