@@ -158,7 +158,7 @@ Keyboards.emoji = {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-recent',
-          targetPage: 0
+          targetPage: 5
         },
         {
           value: '',
@@ -261,7 +261,7 @@ Keyboards.emoji = {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-recent',
-          targetPage: 0
+          targetPage: 5
         },
         {
           value: '',
@@ -419,7 +419,7 @@ Keyboards.emoji = {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-recent',
-          targetPage: 0
+          targetPage: 5
         },
         {
           value: '',
@@ -515,7 +515,7 @@ Keyboards.emoji = {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-recent',
-          targetPage: 0
+          targetPage: 5
         },
         {
           value: '',
@@ -651,7 +651,7 @@ Keyboards.emoji = {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-recent',
-          targetPage: 0
+          targetPage: 5
         },
         {
           value: '',
@@ -682,6 +682,49 @@ Keyboards.emoji = {
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ]
     ]
-    }
+    }, {
+    dynamicPanelKeys: 'recent',
+    keys: [
+      [
+        {
+          value: '',
+          keyCode: -3,
+          className: 'alternate-indicator emoji-ime-switch'
+        },
+        {
+          value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-recent active',
+          targetPage: 5
+        },
+        {
+          value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-people',
+          targetPage: 0
+        },
+        { value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-nature',
+          targetPage: 1
+        },
+        { value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-object',
+          targetPage: 2
+        },
+        { value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-place',
+          targetPage: 3
+        },
+        { value: '',
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'emoji-symbol',
+          targetPage: 4
+        },
+        { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ]
+    ]}
   ]
 };
