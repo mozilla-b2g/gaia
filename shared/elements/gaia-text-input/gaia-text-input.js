@@ -31,6 +31,7 @@ module.exports = component.register('gaia-text-input', {
 
     this.type = this.getAttribute('type');
     this.inputmode = this.getAttribute('x-inputmode');
+    this.maxlength = this.getAttribute('maxlength');
     this.disabled = this.hasAttribute('disabled');
     this.clearable = this.hasAttribute('clearable');
     this.placeholder = this.getAttribute('placeholder');
