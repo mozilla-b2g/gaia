@@ -79,7 +79,11 @@ define(function(require) {
       }
 
       if (!_currentNavigation) {
-        return false;
+        if (panelId === 'root') {
+          return true;
+        } else {
+          return false;
+        }
       }
 
       // Get the parent panel id of the current panel.
