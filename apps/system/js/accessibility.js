@@ -169,6 +169,12 @@
                   this.toggleShade(aValue, !aValue);
                 }
                 this.screen.classList.toggle('screenreader', aValue);
+                if(aValue !== oldValue) {
+                  this.announceScreenReader('screenReaderStarted',
+                    'screenReaderStopped')
+                    .then(() => this.resetSpeaking())
+                    .catch(err => console.error(err));
+                }
                 break;
 
               case 'accessibility.colors.enable':
@@ -400,12 +406,8 @@
      * @memberof Accessibility.prototype
      */
     setHintsTimeout: function ar_setHintsTimeout(aHints) {
-      clearTimeout(this.hintsTimer);
       this.hintsTimer = setTimeout(function onHintsTimeout() {
-        this.isSpeakingHints = true;
-        this.speak(aHints, { enqueue: true })
-          .then(() => this.isSpeakingHints = false)
-          .catch(err => console.error(err));
+        this.speak(aHints, { enqueue: true });
       }.bind(this), this.HINTS_TIMEOUT);
     },
 
@@ -576,35 +578,41 @@
      */
     cancelHints: function ar_cancelHints() {
       clearTimeout(this.hintsTimer);
-      if(this.isSpeakingHints){
-        this.cancelSpeech();
-        this.isSpeakingHints = false;
-      }
+      this.cancelSpeech();
     },
 
     /**
-     * Based on whether the screen reader is currently enabled, announce the
-     * instructions of how to enable/disable it.
+     * Based on whether the screen reader is currently enabled, announce a
+     * message such as instructions of how to enable/disable it.
      * @memberof Accessibility.prototype
      */
-    announceScreenReader: function ar_announceScreenReader() {
+    announceScreenReader: function ar_announceScreenReader(
+      enabledData = 'disableScreenReaderSteps',
+      disabledData = 'enableScreenReaderSteps') {
       var enabled = this.settings['accessibility.screenreader'];
       this.isSpeaking = true;
       return this.speak({
-        string: enabled ? 'disableScreenReaderSteps' : 'enableScreenReaderSteps'
-      }, {enqueue: false});
+        string: enabled ? enabledData : disabledData
+      }, {enqueue: false, force: true});
     },
 
     /**
      * Use speechSynthesis to speak screen reader utterances.
+     * Will only speak when the screen reader is enabled or the force
+     * option has been set.
      * @param  {?Array} aData Speech data before it is localized.
      * synthesis is completed.
-     * @param  {?Object} aOptions = {} Speech options such as enqueue etc.
+     * @param  {?Object} aOptions = {} Speech options such as enqueue, force,
+     * and etc.
      * @memberof Accessibility.prototype
      */
     speak: function ar_speak(aData, aOptions = {}) {
-      return this.speechSynthesizer.speak(
-        aData, aOptions, this.rate, this.volume);
+      if (this.settings['accessibility.screenreader'] || aOptions.force) {
+        return this.speechSynthesizer.speak(
+          aData, aOptions, this.rate, this.volume);
+      } else {
+        return Promise.reject();
+      }
     },
 
     /**
