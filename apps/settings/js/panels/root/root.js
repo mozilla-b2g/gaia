@@ -29,12 +29,13 @@ define(function(require) {
       LazyLoader.load([
         'js/firefox_accounts/menu_loader.js',
         'js/dsds_settings.js',
-        'js/telephony_settings.js',
-        'js/telephony_items_handler.js'
+        'js/telephony_items_handler.js',
+        'js/panels/root/telephony_settings.js'
       ], function() {
         TelephonySettingHelper
           .init()
           .then(function telephonySettingInitDone() {
+            // for performance metrix
             window.dispatchEvent(new CustomEvent('telephony-settings-loaded'));
           });
       });

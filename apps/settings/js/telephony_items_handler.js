@@ -8,7 +8,7 @@
 window.TelephonyItemsHandler = (function() {
   var DATA_TYPE_SETTING = 'operatorResources.data.icon';
 
-  var dataTypeMapping = {
+  const dataTypeMapping = {
     'lte' : '4G LTE',
     'ehrpd': '4G CDMA',
     'hspa+': '3.5G HSPA+',
