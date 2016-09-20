@@ -37,13 +37,14 @@ suite('GridItem', function() {
   test('basic auth in icon urls', function() {
     var subject = new GaiaGrid.GridItem();
     subject.app = {
-      origin: 'some:user@mozilla.org'
+      origin: 'app://user.mozilla.org',
+      manifestURL: 'app://user.mozilla.org/manifest.webapp'
     };
 
     var result = subject.closestIconFromList({
       100: '/icon.png'
     });
-    assert.equal(result, 'some:user@mozilla.org/icon.png');
+    assert.equal(result, 'app://user.mozilla.org/icon.png');
   });
 
   test('scale doesn\'t affect style width', function() {
