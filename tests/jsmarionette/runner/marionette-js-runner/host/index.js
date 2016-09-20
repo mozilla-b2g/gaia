@@ -1,6 +1,5 @@
 'use strict';
-var Host = require('./host');
-var Session = require('./session');
+let Host = require('./host');
 
 exports.help = {
   group: {
@@ -60,5 +59,22 @@ exports.help = {
   }
 };
 
-exports.createHost = Host.create;
-exports.createSession = Session.create;
+/**
+ * @return {Promise<Host>}
+ */
+exports.createHost = function() {
+  let host = new Host();
+  return host.start().then(() => host);
+};
+
+/**
+ * @return {Promise<Session>}
+ */
+exports.createSession = function(host, profile, options) {
+  options = Object.assign({profile, buildapp: 'desktop'}, options);
+  let ctor = options.buildapp === 'device' ?
+    require('./session/device_session') :
+    require('./session/non_device_session');
+  let session = new ctor(host, options);
+  return session.start().then(() => session);
+};
