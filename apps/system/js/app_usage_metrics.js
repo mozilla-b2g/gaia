@@ -54,9 +54,9 @@
   // that it survives across device restarts.
   const PERSISTENCE_KEY = 'metrics.app_usage.data.v2';
 
-  // This is the asyncStorage key we use to persist our device ID
-  // v1 of this ID used a randomly generated String, while v2 uses a UUID
-  const DEVICE_ID_KEY = 'metrics.app_usage.deviceID.v2';
+  // We use the same asyncStorage key as what is used for ftuPing so one
+  // random ID is shared between the two.
+  const DEVICE_ID_KEY = 'ftu.pingID';
 
   // Various event types we use. Constants here to be sure we use the
   // same values when registering, unregistering and handling these.
