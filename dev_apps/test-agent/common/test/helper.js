@@ -114,6 +114,7 @@
     chai.use(patchChai);  
     window.requireCommon('vendor/chai/chai-as-promised.js');
     window.assert = chai.assert;
+    window.chai = chai;
     window.expect = chai.expect;
     window.should = chai.should();
   });
