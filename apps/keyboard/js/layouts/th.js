@@ -1,6 +1,7 @@
 Keyboards.th = {
   label: 'Thai',
   shortLabel: 'Th',
+	imEngine: 'thai',
   menuLabel: 'ไทย', /*ไทย*/
   basicLayoutKey: 'กขค', /*กขค*/
   types: ['text', 'url', 'email'],
