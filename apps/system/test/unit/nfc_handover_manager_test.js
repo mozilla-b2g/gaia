@@ -94,12 +94,17 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('start', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
       this.sinon.stub(window.navigator, 'mozSetMessageHandler');
       nfcHandoverManager.start();
 
       assert.isFalse(nfcHandoverManager.incomingFileTransferInProgress);
       assert.isFalse(nfcHandoverManager.bluetoothStatusSaved);
       assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      fakePromise.mFulfillToValue(MockBTAdapter);
+      assert.equal(nfcHandoverManager._adapter, MockBTAdapter);
+      assert.ok(Service.request.calledWith('Bluetooth:adapter'));
       assert.ok(window.navigator.mozSetMessageHandler
         .calledWith('nfc-manager-send-file'));
     });
