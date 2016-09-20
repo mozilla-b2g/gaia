@@ -187,7 +187,7 @@ function main(argv) {
   });
 
   // when the mocha child exits, we want to exit as well.
-  runner.process.on('exit', function(exitCode) {
+  runner.process.on('exit', function() {
     // flush stdout buffer before exiting.
     if (stdoutBuffer.length) {
       console.log(stdoutBuffer);
@@ -196,7 +196,7 @@ function main(argv) {
     if (stderrBuffer.length) {
       console.error(stderrBuffer);
     }
-    process.exit(exitCode);
+    process.exit();
   });
 
   process.once('SIGINT', function() {
