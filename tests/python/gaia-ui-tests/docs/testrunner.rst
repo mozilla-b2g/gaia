@@ -45,10 +45,10 @@ If you don't have a Firefox OS device, you can download the latest build of the 
 `here <http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central>`_,
 but make sure you download the appropriate file for your operating system.
 
-* **Linux (32bit)**: b2g-[VERSION].multi.linux-i686.tar.bz2
-* **Linux (64bit)**: b2g-[VERSION].multi.linux-x86_64.tar.bz2
-* **Mac**: b2g-[VERSION].multi.mac64.dmg
-* **Windows**: b2g-[VERSION].multi.win32.zip
+* **Linux (32bit)**: b2g-[VERSION].en-US.linux-i686.tar.bz2
+* **Linux (64bit)**: b2g-[VERSION].en-US.linux-x86_64.tar.bz2
+* **Mac**: b2g-[VERSION].en-US.mac64.dmg
+* **Windows**: b2g-[VERSION].en-US.win32.zip
 
 Once downloaded, you will need to extract the contents to a local folder.
 ``$B2G_HOME`` refers to the location of the local folder for the remainder of the
