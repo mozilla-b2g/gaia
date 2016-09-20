@@ -33,4 +33,6 @@ definitions:
   marionette_js_tv_tests:
     chunks: 1
 
+  raptor_decision_trial:
+
   jsmarionette_unit_tests:
