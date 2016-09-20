@@ -38,6 +38,7 @@ suite('Bootstrap', function() {
 
     suiteSetup(function(done) {
       addEventListenerSpy = sinon.spy(window, 'addEventListener');
+
       // The other suites rely on this suite running first for bootstrap.js
       // to be loaded.
       require('/shared/js/sync/bootstrap.js', done);
@@ -60,6 +61,16 @@ suite('Bootstrap', function() {
   });
 
   suite('Bootstrap.handleSyncRequest', function() {
+    var consoleErrorSpy, consoleWarnSpy;
+    setup(function() {
+      consoleErrorSpy = sinon.spy(console, 'error');
+      consoleWarnSpy = sinon.spy(console, 'warn');
+    });
+    teardown(function() {
+      consoleErrorSpy.restore();
+      consoleWarnSpy.restore();
+    });
+
     function run(shouldFail = false) {
       MockSyncEngine.shouldFail = shouldFail;
       return Bootstrap.handleSyncRequest({
@@ -86,14 +97,36 @@ suite('Bootstrap', function() {
       };
     }
 
+    function errorLogged(method) {
+      var spy = (method === 'warn' ? consoleWarnSpy : consoleErrorSpy), args;
+      if (spy.args.length === 0 || spy.args[0].length === 0) {
+        return null;
+      }
+
+      try {
+        return parseInt(spy.args[0][0].match(/\((\d*)\)/)[1]);
+      } catch(e) {
+        if (spy.args[0][0].substring(0, '[SyncEngine'.length) ===
+            '[SyncEngine') {
+          try {
+            args = JSON.parse(spy.args[0][1]);
+          } catch(e) {
+            return spy.args;
+          }
+          return spy.args[0][0] + ' ' + args['0'];
+        }
+        return spy.args[0][0];
+      }
+    }
+
     test('checks request is an object', function(done) {
       var spy = this.sinon.spy(MockLazyLoader, 'load');
-      expect(Bootstrap.handleSyncRequest()).to.be
-          .rejectedWith(ERROR_SYNC_INVALID_REQUEST_OPTIONS)
-          .and.notify(function(err) {
-            expect(spy.args[0][0]).to.equal('shared/js/sync/errors.js');
-            done(err);
-          });
+      Bootstrap.handleSyncRequest().catch(err => {
+        expect(errorLogged()).to.equal('fxsync-error-invalid-request-options');
+        expect(err.message).to.equal(ERROR_SYNC_INVALID_REQUEST_OPTIONS);
+        expect(spy.args[0][0]).to.equal('shared/js/sync/errors.js');
+        done();
+      });
     });
 
     test('checks request.URL is a string', function(done) {
@@ -242,7 +275,7 @@ suite('Bootstrap', function() {
     test('invalid sync request', function() {
       window.dispatchEvent(new CustomEvent(IAC_EVENT));
       expect(consoleErrorSpy.called).to.equal(true);
-      expect(consoleErrorSpy.args[0][0]).to.equal('Wrong IAC request');
+      expect(consoleErrorSpy.args[0][0]).to.equal('Wrong IAC request (3002)');
       expect(postMessageSpy.called).to.equal(false);
       expect(closeStub.called).to.equal(true);
     });
@@ -256,7 +289,7 @@ suite('Bootstrap', function() {
         }
       }));
       expect(consoleErrorSpy.called).to.equal(true);
-      expect(consoleErrorSpy.args[0][0]).to.equal('Unknown IAC request');
+      expect(consoleErrorSpy.args[0][0]).to.equal('Unknown IAC request (3004)');
       expect(postMessageSpy.called).to.equal(false);
       expect(closeStub.called).to.equal(true);
     });

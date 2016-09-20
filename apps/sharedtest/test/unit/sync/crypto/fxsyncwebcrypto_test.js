@@ -45,7 +45,7 @@ suite('FxSyncWebCrypto', () => {
       FxSyncWebCrypto.importKeyBundle().then(() => {
         expect(false, 'Should not reach here.');
       }, err => {
-        expect(err.message).to.equal('Could not import key bundle.');
+        expect(err.message).to.equal('Could not import key bundle. (1001)');
         done();
       });
     });
