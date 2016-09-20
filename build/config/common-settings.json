@@ -205,6 +205,7 @@
    "ril.mms.user": "",
    "ril.mms.retrieval_mode": "automatic-home",
    "ril.mms.authtype": "notDefined",
+   "ril.sms.maxReadAheadEntries": 9,
    "dom.mms.operatorSizeLimitation": 307200,
    "airplaneMode.enabled": false,
    "airplaneMode.status": "disabled",
