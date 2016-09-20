@@ -91,18 +91,13 @@ SettingsPromiseManager.prototype.get = function(obj) {
 };
 
 SettingsPromiseManager.prototype.getOne = function(key) {
-  var promise = new Promise(function(resolve, reject) {
-    var req = this._getReadLock().get(key);
-    req.onsuccess = function() {
+  var promise = this._getReadLock().get(key).then(function() {
       this._cleanLock('read');
-      resolve(req.result[key]);
-    }.bind(this);
-    req.onerror = function() {
+      return this.result[key];
+    }.bind(this), function() {
       this._cleanLock('read');
-      reject();
-    }.bind(this);
-  }.bind(this));
-
+    }.bind(this)
+  );
   return promise;
 };
 
@@ -115,17 +110,12 @@ SettingsPromiseManager.prototype.set = function(obj, value) {
     throw new Error('SettingsPromiseManager.set: require object.');
   }
 
-  var promise = new Promise(function(resolve, reject) {
-    var req = this._getWriteLock().set(obj);
-    req.onsuccess = function() {
+  var promise = this._getWriteLock().set(obj).then(function() {
       this._cleanLock('write');
-      resolve();
-    }.bind(this);
-    req.onerror = function() {
+    }.bind(this), function() {
       this._cleanLock('write');
-      reject();
-    }.bind(this);
-  }.bind(this));
+    }.bind(this)
+  );
 
   return promise;
 };
