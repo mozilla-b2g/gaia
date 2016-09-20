@@ -160,7 +160,8 @@
                   <button type="button" class="stop-button"
                           data-l10n-id="stop-button"></button>
                 </div>
-                <button type="button" class="menu-button" alt="Menu"></button>
+                <button type="button" class="menu-button"
+                    data-l10n-id="menu-button" alt="Menu"></button>
                 <button type="button" class="windows-button"
                         data-l10n-id="windows-button"></button>
               </div>
