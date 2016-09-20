@@ -30,7 +30,10 @@ suite('system/ViewSource', function() {
     setup(function() {
       this.sinon.stub(Service, 'query').returns({
         config: {
-          url: 'app://fake.gaiamobile.org'
+          origin: 'app://fake.gaiamobile.org',
+          manifest: {
+            launch_path: '/index.html'
+          }
         }
       });
 
@@ -46,7 +49,7 @@ suite('system/ViewSource', function() {
     test('viewer URL is correct', function() {
       var iframe = element.querySelector('iframe');
       assert.equal(
-        iframe.src, 'view-source:app://fake.gaiamobile.org/');
+        iframe.src, 'view-source:app://fake.gaiamobile.org/index.html');
     });
 
     test('z-index set', function() {
@@ -137,7 +140,7 @@ suite('system/ViewSource', function() {
     setup(function() {
       this.sinon.stub(Service, 'query', function(param) {
         if (param === 'getTopMostWindow') {
-          return {config: {url: 'asdf'}};
+          return {config: {origin: 'asdf.html'}};
         }
         return dimension === param && value;
       });
