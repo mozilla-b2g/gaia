@@ -272,7 +272,16 @@
      */
     displayed: function displayed(callback) {
       var body = {name: 'isElementDisplayed'};
-      return this._sendCommand(body, callback, 'value');
+      var displayed = this._sendCommand(body, callback, 'value');
+      if (!displayed) {
+        return displayed;
+      }
+      var hidden = this.scriptWith(function(element) {
+        var computed = window.getComputedStyle(element);
+        return computed.display === 'none' || computed.visibility === 'hidden';
+      });
+      var ariaHidden = this.getAttribute('aria-hidden');
+      return !hidden && (ariaHidden !== 'true');
     },
 
     /**
