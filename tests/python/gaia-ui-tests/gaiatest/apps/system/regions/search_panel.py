@@ -45,7 +45,7 @@ class SearchPanel(Base):
         # The search results frame is not findable with AppWindowManager
         self._switch_to_search_results_frame()
 
-    def go_to_url(self, url):
+    def go_to_url(self, url, is_private=False):
         # If a URL exists already, clear the field
         self.marionette.find_element(*self._rocketbar_input_locator).clear()
 
@@ -59,11 +59,17 @@ class SearchPanel(Base):
 
         Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        if 'http' in urllib.quote(url, safe=':/?=&~').lower():
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name in urllib.quote(url, safe=':/?=&~'))
 
-        from gaiatest.apps.search.regions.browser import Browser
-        return Browser(self.marionette)
+        if is_private:
+            from gaiatest.apps.search.app import PrivateWindow
+            private_browser = PrivateWindow(self.marionette)
+            private_browser.wait_for_page_to_load()
+            return private_browser
+        else:
+            from gaiatest.apps.search.app import Browser
+            browser = Browser(self.marionette)
+            browser.wait_for_page_to_load()
+            return browser
 
     def wait_for_search_results_to_load(self, minimum_expected_results=1):
         Wait(self.marionette).until(lambda m: len(m.find_elements(

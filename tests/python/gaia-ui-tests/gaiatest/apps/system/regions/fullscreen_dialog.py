@@ -7,7 +7,7 @@ from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
-from gaiatest.apps.search.regions.browser import Browser
+from gaiatest.apps.search.app import Browser
 
 
 class TrackingDialog(PageRegion):
