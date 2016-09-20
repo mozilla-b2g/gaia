@@ -1,0 +1,46 @@
+{
+  "name": "Wifi Direct Test",
+  "description": "Wifi Direct Test",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "role": "Bookmarks",
+  "developer": {
+    "name": "Henry Chang",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "default_locale": "en-US",
+  "permissions": {
+    "themeable":{},
+    "browser": {},
+    "embed-apps": {},
+    "mobileconnection":{},
+    "voicemail":{},
+    "bluetooth":{},
+    "device-storage:pictures":{ "access": "readonly" },
+    "device-storage:music":{ "access": "readonly" },
+    "device-storage:videos":{ "access": "readonly" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:apps":{ "access": "readonly" },
+    "webapps-manage":{},
+    "open-remote-window":{},
+    "permissions":{},
+    "systemXHR": {},
+    "settings":{ "access": "readwrite" },
+    "wifi-manage":{},
+    "time":{},
+    "desktop-notification":{},
+    "power":{},
+    "idle":{},
+    "telephony":{},
+    "audio-channel-notification":{},
+    "audio-channel-alarm":{},
+    "downloads":{},
+    "nfc":{},
+    "sms":{},
+    "firefox-accounts": {}
+  },
+  "messages": [
+     { "wifip2p-pairing-request": "/index.html" }
+  ],
+  "orientation": "default"
+}
