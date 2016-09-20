@@ -264,7 +264,6 @@ html[dir="rtl"] .appWindow.invoked {
 .appWindow > .fade-overlay {
   background-color: black;
   visibility: hidden;
-  opacity: 0.8;
 }
 
 .appWindow.homescreen.fadeout .fade-overlay.hidden {
@@ -273,10 +272,6 @@ html[dir="rtl"] .appWindow.invoked {
 
 .appWindow.fadeout .fade-overlay {
   visibility: visible;
-}
-
-.appWindow.homescreen.fadeout .fade-overlay {
-  opacity: 1;
 }
 
 .appWindow > .touch-blocker {
@@ -358,10 +353,14 @@ html[dir="rtl"] .appWindow.invoked {
   margin-top: var(--rocketbar-urlbar-height);
 }
 
+/* Bug 1044103: The opacity of the screenshot is controlledœ
+   by the background property below 
+*/
+
 .appWindow > .identification-overlay {
   pointer-events: none;
 
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
 
   visibility: hidden;
   opacity: 0;
