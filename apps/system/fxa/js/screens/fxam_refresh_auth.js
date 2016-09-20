@@ -81,6 +81,7 @@ var FxaModuleRefreshAuth = (function() {
       this.fxaShowPwRefresh.addEventListener('change', (function() {
         var passwordFieldType = !!this.fxaShowPwRefresh.checked ? 'text' :
                                                                   'password';
+        this.fxaPwInputRefresh.setAttribute('type', passwordFieldType);
       }).bind(this), false);
 
       this.fxaForgotPasswordRefresh.addEventListener('click',
