@@ -622,6 +622,19 @@ class YoctoAmmeter(YoctoDevice):
         self.events.append([self.data_logger.get_timeUTC(), desc])
 
 
+class FakeUpdateChecker(object):
+
+    def __init__(self, marionette):
+        self.marionette = marionette
+        self.fakeupdatechecker_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "fake_update-checker.js"))
+
+    def check_updates(self):
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.import_script(self.fakeupdatechecker_atom)
+        self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+
 class GaiaDevice(object):
 
     def __init__(self, marionette, testvars=None):
@@ -629,7 +642,6 @@ class GaiaDevice(object):
         self.testvars = testvars or {}
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -723,7 +735,6 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
                 'return window.wrappedJSObject.b2g_ready;', new_sandbox=False))
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
-        self.marionette.import_script(self.lockscreen_atom)
 
     def stop_b2g(self):
         if self.marionette.instance:
@@ -743,11 +754,13 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
 
     def unlock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
@@ -787,6 +800,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
 
         # we need to set the default timeouts because we may have a new session
         if self.marionette.timeout is not None:
