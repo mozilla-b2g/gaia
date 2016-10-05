@@ -138,7 +138,7 @@ exports.removeAllListeners = function() {
 // cache data and show the event details faster on the most common cases
 exports.findAssociated = function(busytimeId) {
   return queryBusytime(busytimeId).then(busytime => {
-    return queryEvent(busytime.eventId).then(event => {
+    if (typeof busytime !== 'undefined') return queryEvent(busytime.eventId).then(event => {
       return {
         busytime: busytime,
         event: event
@@ -172,7 +172,7 @@ function cacheBusytime(busy) {
   }
 
   busytimes.set(_id, busy);
-  eventsToBusytimes.get(eventId).push(_id);
+  if (typeof eventsToBusytimes.get(eventId) !== 'undefined') eventsToBusytimes.get(eventId).push(_id);
   registerBusytimeChange(_id);
 }
 
@@ -262,7 +262,7 @@ function sortedInsert(group, busy) {
   });
   var event = events.get(busy.eventId);
   var calendarStore = core.storeFactory.get('Calendar');
-  group.splice(index, 0, {
+  if (typeof event !== 'undefined') group.splice(index, 0, {
     event: event,
     busytime: busy,
     color: calendarStore.getColorByCalendarId(event.calendarId)
