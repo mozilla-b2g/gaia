@@ -206,13 +206,6 @@ MockIDBFactory.attachToWindow = function(instance) {
   if (!instance) {
     instance = new this();
   }
-
-  window.indexedDB._open = window.indexedDB.open;
-  window.indexedDB.open = instance.open.bind(instance);
-  window.indexedDB._cmp = window.indexedDB.cmp;
-  window.indexedDB.cmp = instance.cmp.bind(instance);
-  window.indexedDB._deleteDatabase = window.indexedDB.deleteDatabase;
-  window.indexedDB.deleteDatabase = instance.deleteDatabase.bind(instance);
 };
 
 MockIDBFactory.restore = function() {
