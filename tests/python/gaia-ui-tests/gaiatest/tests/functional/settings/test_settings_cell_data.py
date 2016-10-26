@@ -9,6 +9,10 @@ from gaiatest.apps.system.app import System
 
 class TestSettingsCellData(GaiaTestCase):
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.disable_wifi()
+
     def test_enable_cell_data_via_settings_app(self):
         """
         https://moztrap.mozilla.org/manage/case/1373/
