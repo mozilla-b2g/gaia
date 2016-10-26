@@ -12,7 +12,7 @@ from gaiatest.apps.homescreen.regions.bottom_bar import BottomBar
 
 class ConfirmDialog(Base):
 
-    _confirm_button_locator = (By.CSS_SELECTOR, 'gaia-confirm .confirm')
+    _confirm_button_locator = (By.ID, 'confirmation-message-ok')
 
     def tap_confirm(self, bookmark=False):
         # TODO add a good wait here when Bug 1008961 is resolved
