@@ -50,3 +50,4 @@ class TestPlay3GPMusic(GaiaImageCompareTestCase):
         player_view.tap_play()
         player_view.tap_forward()
         self.take_screenshot()
+   
