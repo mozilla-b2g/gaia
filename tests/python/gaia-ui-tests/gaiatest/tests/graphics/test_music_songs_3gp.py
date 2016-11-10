@@ -16,7 +16,7 @@ class TestPlay3GPMusic(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
-
+sss
         # add video to storage
         self.push_resource('MUS_0001.3gp')
 
@@ -50,3 +50,4 @@ class TestPlay3GPMusic(GaiaImageCompareTestCase):
         player_view.tap_play()
         player_view.tap_forward()
         self.take_screenshot()
+   
