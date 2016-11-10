@@ -32,7 +32,10 @@ exports.TaskManagerUtils = {
 
     // Strip the protocol.
     if (url) {
-      url = url.substring(url.indexOf(new URL(url, app.origin).host));
+      try {
+        url = url.substring(url.indexOf(new URL(url, app.origin).host));
+      } catch(e) {
+      }
     }
 
     return url;

@@ -46,7 +46,7 @@
     _ftuManifestURL: '',
 
     /* The origin of FTU */
-    _ftuOrigin: '',
+    _ftuOrigin: null,
 
     /* The FTU ping service instance */
     _ftuPing: null,
@@ -201,7 +201,7 @@
     },
 
     _handle_appopened: function(evt) {
-      if (evt.detail.origin == this._ftuOrigin && this._isRunningFirstTime) {
+      if (evt.detail.origin === this._ftuOrigin && this._isRunningFirstTime) {
         this.publish('open');
       }
     },
@@ -222,7 +222,7 @@
     },
 
     _handle_appterminated: function(evt) {
-      if (evt.detail.origin == this._ftuOrigin) {
+      if (evt.detail.origin === this._ftuOrigin) {
         this.close();
       }
     },
