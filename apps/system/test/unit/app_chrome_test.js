@@ -1527,4 +1527,27 @@ suite('system/AppChrome', function() {
       assert.equal(0, chrome.setSiteIcon.getCall(0).args.length);
     });
   });
+
+  suite('Control Center SSL tests', function() {
+    var chrome;
+
+    test('with insecure page', function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+      chrome.setPinDialogCard();
+      assert.equal(chrome.controlCenterSecurity.dataset.l10nId,
+        'control-center-ssl-insecure');
+    });
+
+    test('with secure page', function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      this.sinon.stub(app, 'getSSLState', function() {
+        return 'secure';
+      });
+      chrome = new AppChrome(app);
+      chrome.setPinDialogCard();
+      assert.equal(chrome.controlCenterSecurity.dataset.l10nId,
+        'control-center-ssl-secure');
+    });
+  });
 });
