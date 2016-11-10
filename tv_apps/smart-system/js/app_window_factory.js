@@ -140,7 +140,8 @@
       });
       config.timestamp = detail.timestamp;
 
-      if (!config.manifest.permissions ||
+      if (!config.manifest ||
+          !config.manifest.permissions ||
           !config.manifest.permissions.presentation) {
         this._sendPresentationDenied(requestId);
         return;
