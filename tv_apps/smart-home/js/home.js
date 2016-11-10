@@ -574,7 +574,6 @@
       if (elem.CLASS_NAME == 'XScrollable') {
         this._focusScrollable = elem;
         elem.focus();
-        this.checkFocusedGroup();
       } else if (elem.nodeName) {
         if (this._focus) {
           this._focus.blur();
@@ -583,28 +582,20 @@
         elem.focus();
         this._focus = elem;
         this._focusScrollable = undefined;
-        this.checkFocusedGroup(elem);
       } else {
         this._focusScrollable = undefined;
       }
+
+      document.getElementById('main-section').classList.toggle(
+        'folder-scrollable-focused',
+        this._focusScrollable === this.folderScrollable
+      );
     },
 
     handleUnfocus: function(elem, nodeElem) {
       if(elem.CLASS_NAME == 'XScrollable') {
         this.handleCardUnfocus(
                 elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
-      }
-    },
-
-    checkFocusedGroup: function(elem) {
-      if (!this._focusedGroup) {
-        return;
-      }
-
-      // close the focused group when we move focus out of this group.
-      if (!elem || !this._focusedGroup.contains(elem)) {
-        this._focusedGroup.close();
-        this._focusedGroup = null;
       }
     },
 
@@ -632,7 +623,16 @@
       }
       this.spatialNavigator.remove(this.folderScrollable);
       this.folderScrollable.clean();
-      this._folderCard = undefined;
+
+      if (this._folderCard) {
+        var folderButton = document.querySelector(
+          '.app-button[data-card-id="' + this._folderCard.cardId + '"]');
+        if (folderButton) {
+          folderButton.classList.remove('opened');
+        }
+        this._folderCard = undefined;
+      }
+
       this.edit.isFolderReady = false;
       this.cardScrollable.setColspanOnFocus(0);
     },
@@ -709,6 +709,8 @@
               this.edit.isFolderReady = true;
               this.skipFolderBubble = undefined;
             }.bind(this));
+
+          target.classList.add('opened');
 
           window.requestAnimationFrame(initFolderAnimation);
         } else {

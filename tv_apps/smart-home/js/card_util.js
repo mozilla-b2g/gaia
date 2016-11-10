@@ -176,6 +176,12 @@
         this._fillCardIcon(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
+
+        var folderName = document.createElement('span');
+        folderName.classList.add('folder-name');
+        this._localizeCardName(folderName, card);
+
+        cardButton.appendChild(folderName);
         this.updateFolderCardIcons(cardButton, card);
       }
 
@@ -189,6 +195,10 @@
       this._localizeCardName(nameSpan, card);
       cardButton.appendChild(nameSpan);
 
+      var darkMask = document.createElement('div');
+      darkMask.classList.add('mask');
+      cardButton.appendChild(darkMask);
+
       return cardButton;
     },
 
@@ -196,7 +206,8 @@
       var spans =
            SharedUtils.nodeListToArray(cardButton.getElementsByTagName('span'));
       spans.forEach(span => {
-        if (span.classList.contains('name')) {
+        if (span.classList.contains('name') ||
+            span.classList.contains('folder-name')) {
           this._localizeCardName(span, card);
         }
       });
