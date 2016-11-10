@@ -36,7 +36,6 @@ Features available:
   - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding the autoland keyword.
   - See more at: https://github.com/mozilla/autolander [The Autolander guide on MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/Submitting_a_Gaia_patch#Easy_patch_submission_with_Autolander)
 
-
 ## Tests
 
 ### Unit Tests
