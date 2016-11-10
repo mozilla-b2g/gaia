@@ -74,9 +74,12 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
 
         homescreen_page.open_change_home_screen()
         self.take_screenshot('homescreen-change_homescreen')
-        homescreen_page.open_get_more_home_screen()
-        self.take_screenshot('homescreen-get_more_homescreen', top_frame=True)
-        homescreen_page.cancel_get_more_home_screen()
+
+        # For some reason, this takes to Marketplace app in jenkins
+        #homescreen_page.open_get_more_home_screen()
+        #self.take_screenshot('homescreen-get_more_homescreen', top_frame=True)
+        #homescreen_page.cancel_get_more_home_screen()
+
         settings.return_to_prev_menu(homescreen_page.screen_element,
                                      homescreen_page.change_homescreen_screen_element)
         settings.return_to_prev_menu(settings.screen_element, homescreen_page.screen_element)
