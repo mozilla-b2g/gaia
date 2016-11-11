@@ -4,7 +4,7 @@
 
 (function(window) {
   'use strict';
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
   var _start = new Date().getTime() / 1000;
   window.AppWindow = function AppWindow(configuration) {
