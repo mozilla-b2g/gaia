@@ -10,9 +10,11 @@
   "permissions": {
     "alarms": {},
     "browser":{},
+    "cellbroadcast":{},
     "power":{},
     "webapps-manage":{},
     "mobileconnection":{},
+    "mobilenetwork":{},
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
