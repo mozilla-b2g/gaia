@@ -105,7 +105,7 @@ var ActivityPicker = {
   },
   openSettings: function ap_openSettings(onsuccess, onerror) {
     var params = {
-      name: 'configure',
+      name: 'configure_inline',
       data: {
         target: 'device',
         section: 'messaging'

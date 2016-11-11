@@ -604,25 +604,25 @@ var Settings = {
 
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
-    var section = 'root';
-    Settings._currentActivity = activityRequest;
+    var section = activityRequest.source.data.section;
+    var isSectionNotValid = false;
+    var errorMessage = 'Trying to open an non-existent section: ' + section;
+
+    if (!section) {
+      isSectionNotValid = true;
+    } else {
+      // Validate if the section exists
+      var sectionElement = document.getElementById(section);
+      if (!sectionElement || sectionElement.tagName !== 'SECTION') {
+        isSectionNotValid = true;
+        console.warn(errorMessage);
+      }
+    }
+
     switch (name) {
       case 'configure':
-        section = activityRequest.source.data.section;
-
-        if (!section) {
-          // If there isn't a section specified,
-          // simply show ourselve without making ourselves a dialog.
-          Settings._currentActivity = null;
-        }
-
-        // Validate if the section exists
-        var sectionElement = document.getElementById(section);
-        if (!sectionElement || sectionElement.tagName !== 'SECTION') {
-          var msg = 'Trying to open an non-existent section: ' + section;
-          console.warn(msg);
-          activityRequest.postError(msg);
-          return;
+        if (isSectionNotValid) {
+          section = 'root';
         }
 
         // Go to that section
@@ -630,8 +630,19 @@ var Settings = {
           Settings.currentPanel = section;
         });
         break;
-      default:
-        Settings._currentActivity = null;
+      case 'configure_inline':
+        // Validate if the section exists
+        if (isSectionNotValid) {
+          activityRequest.postError(errorMessage);
+          return;
+        } else {
+          Settings._currentActivity = activityRequest;
+        }
+
+        // Go to that section
+        setTimeout(function settings_goToSection() {
+          Settings.currentPanel = section;
+        });
         break;
     }
 

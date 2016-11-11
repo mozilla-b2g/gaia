@@ -39,6 +39,12 @@
         "target": "device"
        },
       "disposition": "window"
+    },
+    "configure_inline": {
+      "filters": {
+        "target": "device"
+       },
+      "disposition": "window"
     }
   },
   "messages": ["bluetooth-pairing-request",
