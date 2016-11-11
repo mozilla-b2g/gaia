@@ -15,6 +15,8 @@
  *
  */
 
+/* exported MimeMapper */
+
 var MimeMapper = {
   // This list only contains the extensions we currently supported
   // We should make it more complete for further usages
@@ -40,6 +42,7 @@ var MimeMapper = {
     // Application
     // If we want to support some types, like pdf, just add
     // 'application/pdf': 'pdf'
+    'application/pdf': 'pdf',
     'application/vcard': 'vcf',
     // Text
     'text/vcard': 'vcf',
@@ -77,6 +80,7 @@ var MimeMapper = {
     // Application
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
+    'pdf': 'application/pdf',
     // Text
     'vcf': 'text/vcard'
   },
