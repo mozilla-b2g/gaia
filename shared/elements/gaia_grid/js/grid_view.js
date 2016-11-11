@@ -425,6 +425,9 @@
 
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
+      if (options.skipItems) {
+        return;
+      }
 
       // Reset offset steps
       var oldHeight = this.layout.offsetY;
