@@ -1081,6 +1081,9 @@ var WindowManager = (function() {
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
+      if (runningApps[newApp].isFullScreen())
+        screenElement.classList.add('fullscreen-app');
+
       if (newApp == homescreen) {
         // relaunch homescreen
         openWindow(homescreen, callback);
