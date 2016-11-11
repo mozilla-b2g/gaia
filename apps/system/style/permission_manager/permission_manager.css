@@ -73,6 +73,11 @@ html[dir="rtl"] #permission-message { background-position: right center; }
   font-size: 1.8rem;
 }
 
+html[dir="rtl"] #permission-more-info-link,
+html[dir="rtl"] #permission-hide-info-link {
+  text-decoration: none;
+}
+
 #permission-more-info.hidden {
   display: none;
 }
