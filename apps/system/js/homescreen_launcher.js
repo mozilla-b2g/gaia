@@ -34,6 +34,8 @@
 
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
+      window.addEventListener('mozmemorypressure', this);
+
     },
 
     handleEvent: function hl_handleEvent(evt) {
@@ -43,6 +45,11 @@
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
+          break;
+        case 'mozmemorypressure':
+          if (this.getHomescreen()._selfVisibilityState == 'background') {
+            this.getHomescreen().kill();
+          }
           break;
       }
     },
