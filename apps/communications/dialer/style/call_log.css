@@ -240,11 +240,7 @@ ol, ul {
 }
 
 .recents-edit .pack-end {
-  transform: translateX(6rem);
-}
-
-.recents-edit .call-log-contact-photo {
-  pointer-events: none;
+  display: none;
 }
 
 .recents-edit .log-item .pack-checkbox {
