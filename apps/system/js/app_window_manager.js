@@ -3,6 +3,7 @@
 'use strict';
 
 (function(exports) {
+
   var screenElement = document.getElementById('screen');
 
   /**
@@ -17,7 +18,7 @@
    * @module AppWindowManager
    */
   var AppWindowManager = {
-    DEBUG: false,
+    DEBUG: true,
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
 

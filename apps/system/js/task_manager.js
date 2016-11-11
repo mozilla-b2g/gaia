@@ -5,7 +5,8 @@
 
 'use strict';
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
+
   /**
    * Represent a stack of apps as cards
    *
@@ -502,6 +503,11 @@
                                                             removeImmediately) {
 
     var element = card.element;
+    if (!element) {
+      debug('losing card element while removing card, showing trace below.');
+      console.trace();
+      return;
+    }
     var position = element.dataset.position;
     delete this.cardsByAppID[element.dataset.appInstanceId];
     card.destroy();
