@@ -392,6 +392,7 @@ var icc = {
       this.icc_confirm_btn_close =
         document.getElementById('icc-confirm-btn_close');
       this.setupView(this.icc_confirm);
+      this.keyboardChangedEvent(this.icc_confirm, true);
     }
 
     // Clear previous icons
@@ -469,6 +470,7 @@ var icc = {
       this.icc_asyncconfirm_btn_yes =
         document.getElementById('icc-asyncconfirm-btn-yes');
       this.setupView(this.icc_asyncconfirm);
+      this.keyboardChangedEvent(this.icc_asyncconfirm, true);
     }
 
     // Clear previous icons
