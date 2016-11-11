@@ -42,13 +42,16 @@ var RingView = {
   },
 
   init: function rv_init() {
+    console.log('--> onring.js init..');
     var ActiveAlarm = window.opener.require('active_alarm');
 
     document.addEventListener('visibilitychange', this);
 
     this.firedAlarm = ActiveAlarm.firedAlarm;
     this.message = ActiveAlarm.message;
+    console.log('--> check document.hidden = ' + document.hidden);
     if (!document.hidden) {
+      console.log('--> hidden = false --> startAlarmNotification..');
       this.startAlarmNotification();
     } else {
       // The setTimeout() is used to workaround
@@ -143,11 +146,14 @@ var RingView = {
       return;
 
     this.started = true;
+    console.log('--> enabling wake lock..');
     this.setWakeLockEnabled(true);
     if (this.firedAlarm.sound) {
+      console.log('--> startAlarmNotification() ring..');
       this.ring();
     }
     if (this.firedAlarm.vibrate == 1) {
+      console.log('--> startAlarmNotification() vibrate..');
       this.vibrate();
     }
   },
