@@ -324,6 +324,11 @@
 
   AppTransitionController.prototype.resetTransition =
     function atc_resetTransition() {
+      if (this._firstTransition) {
+        this._firstTransition = false;
+        return;
+      }
+
       if (this._openingTimeout) {
         window.clearTimeout(this._openingTimeout);
         this._openingTimeout = null;
