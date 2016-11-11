@@ -39,6 +39,12 @@
      */
     gridWidth: 1,
 
+    get defaultIcon() {
+      // XXX: this is temporary default icon for bookmark,
+      // will change to UX designed icon once receive it
+      return '/shared/elements/gaia_grid/images/default_icon.png';
+    },
+
     get name() {
       return this.detail.name;
     },
