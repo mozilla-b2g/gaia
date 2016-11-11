@@ -128,6 +128,7 @@
         { id: application.manifestURL });
     }.bind(this);
 
+    console.log('B1048639: ApplicationSource constructor.');
   }
 
   ApplicationSource.prototype = {
@@ -136,6 +137,7 @@
      * Synchronizes our local result set with mozApps.
      */
     synchronize: function() {
+      console.log('B1048639: synchronize.');
       var storeItems = this.store._allItems;
       var toAdd = [];
 
@@ -176,6 +178,7 @@
      * Adds a new icon to the grid
      */
     addIconToGrid: function(application) {
+      console.log('B1048639: addIconToGrid.');
       this.makeIcons(application);
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
@@ -203,6 +206,7 @@
      * @param {Function} success Called after we fetch all initial data.
      */
     populate: function(success) {
+      console.log('B1048639: populate.');
       success(this.entries);
     },
 
@@ -211,7 +215,7 @@
      */
     makeIcons: function(eachApp) {
       var manifest = eachApp.manifest || eachApp.updateManifest;
-
+      console.log('B1048639: makeIcons', eachApp.manifestURL);
       if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
       }

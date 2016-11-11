@@ -14,7 +14,7 @@
   function CollectionSource(store) {
     this.store = store;
     this.entries = [];
-
+    console.log('B1048639: CollectionSource constructor.');
   }
 
   CollectionSource.prototype = {
@@ -60,6 +60,7 @@
      * Synchronizes our local result set with datastre.
      */
     synchronize: function() {
+      console.log('B1048639: synchronize.');
       var allCollections = {};
       var toAdd = [];
       var icons = app.grid.getIcons();
@@ -98,6 +99,7 @@
      * @param {Function} success Called after we fetch all initial data.
      */
     populate: function(success) {
+      console.log('B1048639: populate.');
       var self = this;
       CollectionsDatabase.getAll().then(function(systemCollections) {
         // We are going to iterate over system Collections
@@ -115,6 +117,7 @@
      * @param {Event} e
      */
     handleEvent: function(e) {
+      console.log('B1048639: handleEvent', e.type);
       switch (e.type) {
         case 'added':
         case 'updated':

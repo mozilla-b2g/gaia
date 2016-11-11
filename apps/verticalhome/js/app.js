@@ -69,6 +69,7 @@
      * Fetch all icons and render them.
      */
     init: function() {
+      console.log('B1048639: app init');
       this.itemStore = new ItemStore((firstTime) => {
         if (!firstTime) {
           return;
@@ -81,14 +82,17 @@
         });
       });
 
+      console.log('B1048639: app this.itemStore.all()');
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
           this.grid.add(result);
         }, this);
 
         if (this.layoutReady) {
+          console.log('B1048639: app calling renderGrid()');
           this.renderGrid();
         } else {
+          console.log('B1048639: app layout not ready');
           window.addEventListener('gaiagrid-layout-ready', function onReady() {
             window.removeEventListener('gaiagrid-layout-ready', onReady);
             this.renderGrid();
@@ -104,11 +108,13 @@
     },
 
     renderGrid: function() {
+      console.log('B1048639: app renderGrid');
       this.grid.setEditHeaderElement(document.getElementById('edit-header'));
       this.grid.render();
     },
 
     start: function() {
+      console.log('B1048639: app start');
       this.grid.start();
     },
 
@@ -121,6 +127,7 @@
      * Localizes all of the items.
      */
     onLocalized: function() {
+      console.log('B1048639: app onLocalized');
       var items = this.grid.getItems();
       var titles = [];
       items.forEach(function eachItem(item) {
@@ -160,6 +167,7 @@
      * General event handler.
      */
     handleEvent: function(e) {
+      console.log('B1048639: app handleEvent', e.type);
       switch(e.type) {
         case 'iconblobdecorated':
           var item = e.detail;

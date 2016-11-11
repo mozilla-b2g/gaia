@@ -75,11 +75,14 @@
   }
 
   function loadTable(table, indexName, iterator, aNext) {
+    console.log('B1048639: ItemStore loadTable', table, indexName);
     newTxn(table, 'readonly', function(txn, store) {
       var index = store.index(indexName);
       index.openCursor().onsuccess = function onsuccess(event) {
         var cursor = event.target.result;
+        console.log('B1048639: ItemStore txn on success ', table);
         if (!cursor) {
+          console.log('B1048639: ItemStore no cursor =(');
           return;
         }
         iterator(cursor.value);
@@ -89,6 +92,7 @@
   }
 
   function newTxn(storeName, txnType, withTxnAndStore, successCb) {
+    console.log('B1048639: ItemStore newTxn ', storeName, txnType);
     var txn = db.transaction([storeName], txnType);
     var store = txn.objectStore(storeName);
 
@@ -106,6 +110,7 @@
   }
 
   function ItemStore(onsuccess) {
+    console.log('B1048639: ItemStore constructor');
     var self = this;
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
@@ -140,17 +145,21 @@
     };
 
     request.onsuccess = function _onsuccess() {
+      console.log('B1048639: ItemStore request.onsuccess');
       onsuccess && onsuccess(isEmpty);
       db = request.result;
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
 
       if (isEmpty) {
+        console.log('B1048639: ItemStore is empty, firing config ready event.');
         window.addEventListener('configuration-ready', function onReady() {
           window.removeEventListener('configuration-ready', onReady);
+          console.log('B1048639: ItemStore is empty, calling populate.');
           self.gridOrder = configurator.getGrid();
           self.populate(cb);
         });
       } else {
+        console.log('B1048639: ItemStore is empty, calling initSources.');
         self.initSources(cb);
       }
     };
@@ -172,15 +181,19 @@
      * Fetches a list of all items in the store.
      */
     all: function(success) {
+      console.log('B1048639: ItemStore all.');
       if (!this.ready) {
+        console.log('B1048639: ItemStore not ready.');
         window.addEventListener('databaseready', this.all.bind(this, success));
         return;
       }
+      console.log('B1048639: ItemStore all success.');
 
       success(this._allItems);
     },
 
     saveTable: function(table, objArr, column, checkPersist, aNext) {
+      console.log('B1048639: ItemStore saveTable called');
       newTxn(table, 'readwrite', function(txn, store) {
         store.clear();
         for (var i = 0, iLen = objArr.length; i < iLen; i++) {
@@ -237,6 +250,7 @@
      * @param {Function} callback A function to call after fetching all items.
      */
     fetch: function(callback) {
+      console.log('B1048639: ItemStore fetch.');
       var cached = {};
       var collected = [];
 
@@ -264,6 +278,7 @@
       }
 
       function finish() {
+        console.log('B1048639: ItemStore finish with item count: ', collected.length);
         /* jshint validthis: true */
         // Transforms DB results into item classes
         for (var i = 0, iLen = collected.length; i < iLen; i++) {
@@ -297,6 +312,7 @@
      * We need to synchronize each source and delete/add records.
      */
     synchronize: function() {
+      console.log('B1048639: ItemStore synchronize sources.');
       this.sources.forEach(function eachSource(source) {
         source.synchronize();
       });
@@ -307,6 +323,7 @@
      * @param {Function} callback The callback to fire after all sources init.
      */
     initSources: function(callback) {
+      console.log('B1048639: ItemStore initSources.');
       var pending = this.sources.length;
 
       var allEntries = [];
@@ -335,6 +352,7 @@
      * @param {Function} callback Callback after database is populated.
      */
     populate: function(callback) {
+      console.log('B1048639: ItemStore populate.');
       this.initSources(function(entries) {
         this.save(entries, callback);
       }.bind(this));
@@ -344,6 +362,7 @@
      * Notifies consumers that the database is ready for queries to be makde.
      */
     notifyReady: function() {
+      console.log('B1048639: ItemStore notifyReady.');
       this.ready = true;
       dispatchEvent(new CustomEvent('databaseready'));
     },
