@@ -125,6 +125,9 @@ var StatusBar = {
 
   playingActive: false,
 
+  _currentAppearance: null,
+  _appearanceList: [],
+
   /**
    * this keeps how many current installs/updates we do
    * it triggers the icon "systemDownloads"
@@ -253,6 +256,8 @@ var StatusBar = {
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
 
+    window.addEventListener('activityopened', this);
+    window.addEventListener('activitywillclose', this);
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
@@ -283,6 +288,16 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'activitywillclose':
+        var appearance = this._appearanceList.pop();
+        this.setAppearance(appearance);
+        break;
+
+      case 'activityopened':
+        this._appearanceList.push(this._currentAppearance);
+        this.setAppearance('opaque');
+        break;
+
       case 'appopened':
         this.setAppearance('opaque');
         var app = evt.detail;
@@ -1236,6 +1251,8 @@ var StatusBar = {
    * "opaque" and "semi-transparent"
    */
   setAppearance: function sb_setAppearance(value) {
+    this._currentAppearance = value;
+
     switch (value) {
       case 'opaque':
         this.background.classList.add('opaque');
