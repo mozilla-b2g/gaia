@@ -1890,7 +1890,11 @@ For any new code use L20n.js located in ./shared/js/intl/l20n.js
 
   function translateDocument() {
     document.documentElement.lang = this.language.code;
-    document.documentElement.dir = this.language.direction;
+
+    if (document.documentElement.dataset.l10nIgnoreDir !== 'true') {
+      document.documentElement.dir = this.language.direction;
+    }
+
     translateFragment.call(this, document.documentElement);
   }
 
