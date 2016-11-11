@@ -31,6 +31,11 @@ var Configurator = (function() {
     if (searchPage) {
       var provider = window[searchPage.provider] || dummyProvider;
       if (searchPage.enabled) {
+
+        // add this for later use if we want to
+        // customize something when searchPageEnabled
+        document.body.classList.add('searchPageEnabled');
+
         provider.init();
         Homescreen.init(searchPage.separate_page ? 1 : 0);
       } else {
@@ -171,12 +176,6 @@ var Configurator = (function() {
   }
 
   function startHomescreenByDefault() {
-    var searchPage = document.querySelector('div[role="search-page"]');
-
-    if (searchPage) {
-      searchPage.parentNode.removeChild(searchPage);
-    }
-
     if (Homescreen) {
       Homescreen.init(0);
     }
