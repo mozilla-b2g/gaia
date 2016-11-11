@@ -1023,4 +1023,13 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.playing.hidden, false);
     });
   });
+
+  suite('Wifi', function() {
+    test('Wifi status change event', function() {
+      var spyUpdateWifi = sinon.spy(StatusBar.update, 'wifi');
+      var evt = new CustomEvent('wifi-statuschange');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(spyUpdateWifi.called);
+    });
+  });
 });
