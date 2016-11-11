@@ -255,7 +255,7 @@ GAIA_PORT?=
 endif
 
 # Force bash for all shell commands since we depend on bash-specific syntax
-SHELL := /bin/bash
+SHELL := /usr/bin/env bash
 
 GAIA_DIR := $(CURDIR)
 
