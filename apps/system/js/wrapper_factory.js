@@ -81,6 +81,14 @@
         callerOrigin = location.origin;
       }
 
+      // For now, only privileged apps with role=homescreen can open OOP windows
+      if (!callerApp.manifest)
+        return;
+
+      if (callerApp.manifest.type === 'privileged' &&
+          callerApp.manifest.role !== 'homescreen')
+        return;
+
       // So, we are going to open a remote window.
       evt.stopImmediatePropagation();
 
