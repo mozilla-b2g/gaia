@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AbortablePromiseQueue */
+/* global AbortablePromiseQueue, Promise */
 
 require('/js/keyboard/abortable_promise_queue.js');
 
@@ -84,6 +84,34 @@ suite('AbortablePromiseQueue', function() {
       },
       this.sinon.stub(),
       this.sinon.stub(),
+      this.sinon.stub()
+    ];
+
+    queue.run(tasks);
+  });
+
+  test('make sure run() another task won\'t be blocked by ' +
+       'the previous one', function(done) {
+    var tasks2 = [
+      this.sinon.stub()
+    ];
+
+    var tasks = [
+      this.sinon.stub(),
+      function() {
+        // a promise that will never resolve
+        var p = new Promise(function(resolve, reject) {
+        });
+
+        // Run the 2nd queue after the first one is blocked
+        queue.run(tasks2).then(function() {
+          assert.isTrue(tasks[0].calledOnce);
+          assert.isFalse(tasks[2].calledOnce);
+          assert.isTrue(tasks2[0].calledOnce);
+        }).then(done, done);
+
+        return p;
+      },
       this.sinon.stub()
     ];
 

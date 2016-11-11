@@ -28,8 +28,6 @@ AbortablePromiseQueue.prototype.start = function() {
     throw new Error('AbortablePromiseQueue: Should not be start()\'ed twice.');
   }
   this._started = true;
-
-  this._queuedTasks = Promise.resolve();
 };
 
 AbortablePromiseQueue.prototype.stop = function() {
@@ -58,6 +56,7 @@ AbortablePromiseQueue.prototype.run = function(tasks) {
   // For each task, we'll check if we really need to run it with idCheck,
   // and run it with then. If the idCheck rejects, the task will not
   // run and we will fall into catch() function at the end.
+  this._queuedTasks = Promise.resolve();
   tasks.forEach(function(task) {
     this._queuedTasks = this._queuedTasks.then(idCheck).then(task);
   }, this);
