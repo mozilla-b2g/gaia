@@ -349,9 +349,13 @@ var GaiaDataLayer = {
   },
 
   isWiFiConnected: function(aNetwork) {
-    var manager = window.navigator.mozWifiManager;
-    return manager.connection.status === 'connected' &&
-           manager.connection.network.ssid === aNetwork.ssid;
+    let manager = window.navigator.mozWifiManager;
+    let connected = manager.connection.status === 'connected';
+    if (connected && aNetwork) {
+      return manager.connection.network.ssid === aNetwork.ssid;
+    } else {
+      return connected;
+    }
   },
 
   getMozTelephonyState: function() {
