@@ -36,6 +36,12 @@ a[role="button"],
   outline: none;
 }
 
+button:not(.change) {
+  /* Text will overflow left padding when it's too long, so set left padding to 0 and add text-indent to prevent it. */
+  padding: 0 1.5rem 0 0;
+  text-indent: 1.5rem;
+}
+
 /* Press (default & recommend) */
 button:active,
 a[role="button"]:active,
@@ -126,6 +132,13 @@ li .button {
   overflow: visible;
 }
 
+/* Fix Bug 1049685 - [Tarako][Settings] Ringer's name overlay Alerts in Sound setting page
+   Bring back ellipsis for "li button" and still keep box-shadow hacks */
+li button:not(.change) {
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+
 /* Hacking box-shadow */
 li button:after,
 li a[role="button"]:after,
@@ -158,6 +171,11 @@ li button.icon,
 li a[role="button"].icon,
 li .button.icon {
   padding-right: 3rem;
+}
+
+li button.icon:not(.change) {
+  /* Text will overflow right padding when it's too long, so add 3 extra space to prevent it. */
+  text-overflow: "...   ";
 }
 
 li button.icon:before,
