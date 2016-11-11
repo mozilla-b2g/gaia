@@ -418,7 +418,7 @@ input::-moz-focus-inner {
   background: url('/shared/resources/branding/about_logo.png') no-repeat 16.5rem top, -moz-linear-gradient(#f8f8fa, #cadce6);
   background-position: top right;
   background-size: 16.5rem;
-  overflow: hidden;
+  overflow: scroll;
   color: #3e4041;
 }
 
