@@ -20,6 +20,7 @@
 	text-rendering: optimizeLegibility;
 	font-size: 30px;
 	-webkit-font-smoothing: antialiased;
+	direction: ltr; /* see bug 1119420 */
 }
 
 [data-icon]:not([data-l10n-id]):not([aria-label]):not([aria-hidden="true"]):before {
