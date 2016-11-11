@@ -34,3 +34,10 @@
   height: 4rem;
 }
 
+#simpin-dialog .input-wrapper input[type="number"] {
+  border: none;
+  padding: 0;
+  height: 4rem;
+  background: transparent;
+}
+
