@@ -200,7 +200,8 @@
             }
           });
 
-          self.debug(self._pingData.preinstalled);
+          self.debug('Preinstalled apps: ' +
+                     JSON.stringify(self._pingData.preinstalled));
           resolve();
         };
       });
