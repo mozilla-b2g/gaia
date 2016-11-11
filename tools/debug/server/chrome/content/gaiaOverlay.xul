@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://gaia/skin/gaiaOverlay.css"?>
+
+<overlay id="gaia" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript" src="chrome://gaia/content/gaiaOverlay.js"/>
+
+  <keyset id="mainKeyset">
+    <key id="key_gaia" key="l"
+         modifiers="accel,shift" oncommand="openRemoteConsole();"/>
+  </keyset>
+
+  <menupopup id="menuWebDeveloperPopup">
+    <menuitem id="appmenu_gaia"
+              label="Remote Console"
+              key="key_gaia"
+              insertbefore="devToolsEndSeparator"
+              oncommand="openRemoteConsole();"/>
+   </menupopup>
+</overlay>
+
