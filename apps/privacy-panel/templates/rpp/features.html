@@ -1,0 +1,42 @@
+<element name="rpp-features" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+    <div>
+      <ul class="remote-settings">
+        <li class="remote-locate hint">
+          <label class="pack-switch">
+            <input type="checkbox" name="rpp.locate.enabled" class="uninit">
+            <span data-l10n-id="remote-locate">Remote Locate</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-locate-desc">You can locate this device via SMS as following: “RPP locate YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-ring hint">
+          <label class="pack-switch">
+            <input type="checkbox" name="rpp.ring.enabled" class="uninit">
+            <span data-l10n-id="remote-ring">Remote Ring</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-ring-desc">You can ring this device via SMS as following: “RPP ring YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-lock hint">
+          <label class="pack-switch">
+            <input type="checkbox" name="rpp.lock.enabled" class="uninit">
+            <span data-l10n-id="remote-lock">Remote Lock</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-lock-desc">You can lock this device via SMS as following: “RPP lock YOURPASSPHRASE”</p>
+        </li>
+      </ul>
+      <div class="overlay">
+        <div class="modal modal-alert">
+          <h1 data-l10n-id="attention">Attention!</h1>
+          <p data-l10n-id="rpp-lockscreen-alert">Please activate lockscreen AND passcode in the system settings to use the Remote Privacy Protection.</p>
+          <a href="#rpp-screenlock" class="btn btn-blue pp-link">Take me there</a>
+        </div>
+      </div>
+    </div>
+  </template>
+</element>

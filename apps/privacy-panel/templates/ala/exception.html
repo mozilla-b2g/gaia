@@ -1,0 +1,57 @@
+<element name="ala-exception" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#ala-exceptions">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
+    </header>
+    <div>
+      <ul>
+        <li class="description">
+          <p>
+            <small data-l10n-id="exceptions-application-description">Adjust the custom location accuracy level of the following app:</small>
+          </p>
+        </li>
+        <li class="app-info app-element">
+          <a class="menu-item">
+            <img src="">
+            <span></span>
+          </a>
+        </li>
+        <li>
+          <p></p>
+          <span class="button icon icon-dialog">
+            <select class="app-type">
+              <option value="system-settings" data-l10n-id="global-settings">Global Settings</option>
+              <option value="blur" data-l10n-id="adjustment">Adjustment</option>
+              <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
+              <option value="no-location" data-l10n-id="no-location">No Location</option>
+              <option value="precise" data-l10n-id="precise">Precise</option>
+            </select>
+          </span>
+        </li>
+
+        <li class="type-blur type-box">
+          <label>
+            <p class="blur-label"></p>
+            <input class="blur-slider" value="1" step="1" min="1" max="12" type="range">
+          </label>
+        </li>
+
+        <li class="type-custom-location type-box">
+          <a class="menu-item set-custom-location" data-icon="notifications" href="#set-custom-location">
+            <span data-l10n-id="set-custom-location">Set custom location</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="app-custom-location-alert overlay" hidden>
+      <div class="modal modal-alert">
+        <h1 data-l10n-id="attention">Attention!</h1>
+        <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+        <button class="btn btn-blue" data-l10n-id="set-custom-location">Set custom location</button>
+      </div>
+    </div>
+  </template>
+</element>
