@@ -22,6 +22,7 @@ const HomeState = (function() {
     }
 
     HomeState.saveGrid(grid, function onSaveGrid() {
+      window.asyncStorage.setItem('isHomescreenDBavailable', true);
       grid.forEach(iterator);
       success();
     }, error);
@@ -152,14 +153,17 @@ const HomeState = (function() {
      * success callback.
      */
     init: function st_init(iteratorGrid, success, error, iteratorSVApps) {
-      openDB(function(emptyDB) {
-        if (emptyDB) {
-          loadInitialState(iteratorGrid, success, error);
-          return;
-        }
-        HomeState.getGrid(iteratorGrid, success, error);
-        HomeState.getSVApps(iteratorSVApps);
-      }, error);
+      window.asyncStorage.getItem('isHomescreenDBavailable',
+        function onItem(isHomescreenDBavailable) {
+          openDB(function(emptyDB) {
+            if (emptyDB || !isHomescreenDBavailable) {
+              loadInitialState(iteratorGrid, success, error);
+              return;
+            }
+            HomeState.getGrid(iteratorGrid, success, error);
+            HomeState.getSVApps(iteratorSVApps);
+          }, error);
+        });
     },
 
     saveGrid: function st_saveGrid(pages, success, error) {
