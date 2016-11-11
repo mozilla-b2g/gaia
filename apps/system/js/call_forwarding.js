@@ -42,7 +42,6 @@
     this._started = false;
     this._slots = null;
     this._callForwardingHelper = null;
-    this._defaultCallForwardingIconStates = null;
     this._callForwardingIconInitializedStates = null;
   }
 
@@ -115,12 +114,9 @@
         if (value === null) {
           value = false;
         }
-        that._callForwardingHelper.get(function(states) {
-          states[index] = value;
-          that._callForwardingHelper.set(states, function() {
-            that._callForwardingIconInitializedStates[index] = true;
-          });
-        });
+        that._callForwardingIconInitializedStates[index] = value;
+        that._callForwardingHelper
+          .set(that._callForwardingIconInitializedStates);
       });
     },
 
@@ -199,13 +195,11 @@
       this._started = true;
 
       this._slots = SIMSlotManager.getSlots();
-      this._defaultCallForwardingIconStates =
-        Array.prototype.map.call(this._slots, function() { return false; });
       this._callForwardingIconInitializedStates =
         Array.prototype.map.call(this._slots, function() { return false; });
 
-      this._callForwardingHelper =
-        SettingsHelper('ril.cf.enabled', this._defaultCallForwardingIconStates);
+      this._callForwardingHelper = SettingsHelper('ril.cf.enabled',
+                                    this._callForwardingIconInitializedStates);
 
       this._addEventHandlers();
 
