@@ -64,7 +64,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwarding', 'playing'],
+    'system-downloads', 'call-forwarding', 'playing', 'emergencyCalls'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -248,25 +248,30 @@ var StatusBar = {
       case 'voicechange':
         this.update.signal.call(this);
         this.update.label.call(this);
+        this.update.emergencyCalls.call(this);
         break;
 
       case 'cardstatechange':
         this.update.signal.call(this);
         this.update.label.call(this);
         this.update.data.call(this);
+        this.update.emergencyCalls.call(this);
         break;
 
       case 'callschanged':
         this.update.signal.call(this);
         this.update.data.call(this);
+        this.update.emergencyCalls.call(this);
         break;
 
       case 'simslot-iccinfochange':
         this.update.label.call(this);
+	this.update.emergencyCalls.call(this);
         break;
 
       case 'datachange':
         this.update.data.call(this);
+        this.update.emergencyCalls.call(this);
         break;
 
       case 'bluetoothconnectionchange':
@@ -653,6 +658,17 @@ var StatusBar = {
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
       icon.dataset.active = Bluetooth.connected;
+    },
+
+    emergencyCalls: function sb_updateEmergencyCallOnly() {
+      var icon = this.icons.emergencyCalls;
+      var conns = navigator.mozMobileConnections[0];
+      var emergencyCallsOnly = false;
+      
+      emergencyCallsOnly = conns.voice.emergencyCallsOnly;
+    
+      icon.hidden = !emergencyCallsOnly;
+
     },
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
