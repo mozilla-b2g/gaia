@@ -45,7 +45,7 @@ class Persona(Base):
         self.wait_for_element_displayed(*self._app_logout_event)
 
     def wait_for_ready_event(self):
-        self.wait_for_element_present(*self._app_ready_event)
+        self.wait_for_element_displayed(*self._app_ready_event)
 
     def wait_for_login_event(self):
         self.wait_for_element_displayed(*self._app_login_event)
