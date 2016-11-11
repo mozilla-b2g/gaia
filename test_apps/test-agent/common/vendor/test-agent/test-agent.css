@@ -16,8 +16,8 @@ body > iframe {
 }
 
 button {
-  border-radius: 0.3125em;
-  font-size: 1.1em;
+  border-radius: 0.3125rem;
+  font-size: 1rem;
 }
 
 button.active, button:active {
@@ -132,7 +132,7 @@ button.active, button:active {
   top: 0;
   left: 0;
   padding: 1rem 5rem;
-  background-color: rgba(250,250,250,0.7);
+  background-color: rgba(250, 250, 250, 0.35);
   width: 100%;
   height: 4.5rem;
   z-index: 4;
@@ -150,20 +150,6 @@ button.active, button:active {
 
 @media only screen and (max-width: 720px) {
   #test-agent-ui {
-    margin-top: 7.2em;
-  }
-
-  #test-agent-panel {
-    height: 6.8rem;
-  }
-
-  #test-agent-panel .execute button {
-    margin-top: 2.8rem;
-  }
-}
-
-@media only screen and (max-width: 480px) {
-  #test-agent-ui {
     margin-left: 0;
     margin-right: 0;
   }
@@ -178,24 +164,40 @@ button.active, button:active {
     top: .8rem;
   }
 
-  #test-agent-ui .test-agent-list-head {
-    margin: 0;
+  #test-agent-panel {
+    height: 5.5rem;
+    border-bottom: 1px solid #aaa;
   }
 
+  #test-agent-panel .execute button {
+    margin-top: 2.8rem;
+  }
+
+  #test-agent-panel .execute {
+    margin-top: -4rem;
+  }
+}
+
+@media only screen and (max-width: 600px) {
   #test-agent-panel {
     height: 7rem;
-    padding: 1rem 2.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #aaa;
   }
 
   form {
-    margin-top: 1.4rem;
+    margin-top: 1.7rem;
   }
 
+  #test-agent-ui ul {
+    margin: 5.9rem 0 0;
+  }
+}
+
+@media only screen and (max-width: 460px) {
   #test-agent-panel .execute {
     position: fixed;
-    margin-top: -4rem;
-    margin-left: 10.6rem;
+    margin-left: 10.7rem;
   }
 }
 
@@ -456,13 +458,7 @@ button.active, button:active {
 #mocha code .keyword { color: #8a6343; }
 #mocha code .number { color: #2f6fad; }
 
-@media screen and (max-device-width: 720px) {
-  #mocha-stats {
-    top: 2.4rem;
-  }
-}
-
-@media screen and (max-device-width: 480px) {
+@media screen and (max-device-width: 640px) {
   #mocha {
     margin: 4.2rem 0;
   }
@@ -472,7 +468,7 @@ button.active, button:active {
   }
 
   #mocha-stats {
-    top: 0;
+    top: 0.1rem;
   }
 }
 
