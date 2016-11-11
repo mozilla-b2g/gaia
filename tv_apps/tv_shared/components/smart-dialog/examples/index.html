@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Smart Button Demo</title>
+  <meta name="description" content="Demo app for smart-button" />
+  <style type="text/css">
+    html,
+    body {
+      margin: 0;
+      padding: 10rem;
+      font-size: 10px;
+      background-color: gray;
+    }
+
+    .content {
+      width: 100%;
+      text-align: center;
+      font-size: 6rem;
+      color: white;
+    }
+
+    button {
+      font-size: 6rem;
+      margin: 0 auto;
+      border-radius: 2rem;
+      padding: 1rem;
+      display: block;
+    }
+
+  </style>
+  <link rel="stylesheet" type="text/css" href="../style.css">
+  <script src="../script.js" type="text/javascript"></script>
+</head>
+<body role="application">
+  <button onclick="openDialog()">Open</button>
+  <smart-dialog id="my-dialog" title="Youtube">
+    <div class="content">
+        Smart dialog opened.
+    </div>
+    <button onclick="closeDialog()">Close</button>
+  </smart-dialog>
+  <script>
+    var dialog = document.getElementById('my-dialog');
+    window.onload = function() {
+      ['opened', 'closed', 'will-open', 'will-close'].forEach(
+        function(evt) {
+          dialog.addEventListener(evt, function() {
+              console.log(evt + ' received!');
+          });
+      });
+    };
+
+    function openDialog() {
+      dialog.open();
+    }
+
+    function closeDialog() {
+      dialog.close();
+    }
+  </script>
+</body>
+</html>
