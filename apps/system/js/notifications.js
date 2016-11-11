@@ -95,7 +95,7 @@ var NotificationScreen = {
     if (typeof MediaPlaybackWidget !== 'undefined') {
       this.mediaPlaybackWidget = new MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
-        {nowPlayingAction: 'openapp'}
+        {nowPlayingAction: 'openapp', isPrimary: true}
       );
     }
 

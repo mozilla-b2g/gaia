@@ -33,6 +33,54 @@ function MediaPlaybackWidget(container, options) {
     if (event.detail.origin === this.origin)
       this.hidden = true;
   }.bind(this));
+
+  // Listen to the launchapp event only once when this widget is created by
+  // the primary caller, here we choose the widget in the notification.js
+  if (options && options.isPrimary) {
+    window.addEventListener('launchapp', function(event) {
+      // Probably not use to use the static origin, we should use this.origin
+      // but after initialized, this.origin is undefined, need to call ->
+      // updateAppInfo() but it might break the original state.
+      var MUSIC_ORIGIN = 'app://music.gaiamobile.org';
+
+      if (event.detail.origin === MUSIC_ORIGIN) {
+        var appFrame = WindowManager.getAppFrame(MUSIC_ORIGIN);
+        if (appFrame) {
+          appFrame.addEventListener('mozbrowsererror', function(evt) {
+            // See if evt.detail.reason helps here.
+          });
+        }
+
+        var telephony = navigator.mozTelephony;
+        telephony.addEventListener('callschanged', function() {
+          var calls = telephony.calls;
+          if (calls.length !== 1 || calls[0].state !== 'incoming') {
+            return;
+          }
+
+          // Pause and kill the Music app when the incoming call comes.
+          var port = IACHandler.getPort('mediacomms');
+          if (port) {
+            port.postMessage({command: 'playpause'});
+          }
+          WindowManager.kill(MUSIC_ORIGIN);
+
+          // Listen to the statechange so that we can re-launch Music app after
+          // the call ends.
+          var incomingCall = calls[0];
+          incomingCall.addEventListener('statechange', function() {
+            incomingCall.removeEventListener('statechange', callStateChange);
+
+            if (incomingCall.state === 'disconnected') {
+              var manifestuURL = MUSIC_ORIGIN + '/manifest.webapp';
+              var app = Applications.getByManifestURL(manifestuURL);
+              app.launch();
+            }
+          });
+        });
+      }
+    }.bind(this));
+  }
 }
 
 MediaPlaybackWidget.prototype = {
