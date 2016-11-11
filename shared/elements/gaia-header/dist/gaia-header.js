@@ -1209,8 +1209,9 @@ module.exports = component.register('gaia-header', {
   sumButtonWidths: function(buttons) {
     var defaultWidth = 50;
     var sum = buttons.reduce((prev, button) => {
+      var isEmpty = !button.children.length && !button.textContent;
       var isStandardButton = button === this.els.actionButton;
-      var width = isStandardButton ? defaultWidth : button.clientWidth;
+      var width = isEmpty || isStandardButton ? defaultWidth : button.clientWidth;
       return prev + width;
     }, 0);
 
