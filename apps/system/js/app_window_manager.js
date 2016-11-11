@@ -3,7 +3,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -403,7 +403,7 @@
         case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
-          this._updateActiveApp(evt.detail.instanceID);
+          this._updateActiveApp(evt.detail.instanceID, true);
           break;
 
         case 'homescreencreated':
@@ -618,7 +618,8 @@
     },
 
     _dumpWindow: function(app, prefix) {
-      console.log((prefix ? prefix : '') + '[' + app.instanceID + ']' +
+      console.log((prefix ? prefix : '') + (app.isActive() ? '*' : ' ') +
+        '[' + app.instanceID + ']' +
           (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
       if (app.calleeWindow) {
         console.log('==>activity:[' + app.instanceID + ']' +
@@ -723,7 +724,7 @@
       window.dispatchEvent(evt);
     },
 
-    _updateActiveApp: function awm__changeActiveApp(instanceID) {
+    _updateActiveApp: function awm__changeActiveApp(instanceID, closeOpened) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
         console.warn('no active app alive: ', instanceID);
@@ -738,8 +739,24 @@
       // is the same as its current value.
       this._activeApp.resize();
 
-      this.debug('=== Active app now is: ',
+      try {
+        throw new Error('e');
+      } catch (e) {
+        this.debug(e.stack);
+      }
+      this._dumpAllWindows();
+      this.debug('=== Active app changed: ',
         (this._activeApp.name || this._activeApp.origin), '===');
+      // XXX: Kill any opened instances
+      if (closeOpened) {
+        for (var id in this._apps) {
+          var app = this._apps[id];
+          if (id !== instanceID && app.isActive() && !app.isTransitioning()) {
+            app.close();
+            this.debug('Found an background app is opened. Closing..');
+          }
+        }
+      }
     },
 
     /**

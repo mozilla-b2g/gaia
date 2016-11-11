@@ -116,7 +116,11 @@ var EdgeSwipeDetector = {
     this._touchStartEvt = e;
     this._startDate = Date.now();
 
-    var iframe = StackManager.getCurrent().getTopMostWindow().iframe;
+    var app = StackManager.getCurrent();
+    if (!app) {
+      System.debug('[EdgeSwipeDetector] undefinde app.');
+    }
+    var iframe = app.getTopMostWindow().iframe;
     this._touchForwarder.destination = iframe;
 
     var touch = e.changedTouches[0];

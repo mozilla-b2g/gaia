@@ -77,6 +77,7 @@
      */
 
     handleEvent: function acwf_handleEvent(evt) {
+      System.debug('[ActivityWindowManager] ' + evt.type);
       switch (evt.type) {
         // XXX: Workaround of bug 931339.
         // We are maintaining only one chain of activities here
