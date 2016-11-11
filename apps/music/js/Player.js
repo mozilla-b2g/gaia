@@ -251,10 +251,6 @@ var PlayerView = {
   },
 
   setCoverImage: function pv_setCoverImage(fileinfo) {
-    // Reset the image to be ready for fade-in
-    this.offscreenImage.src = '';
-    this.coverImage.classList.remove('fadeIn');
-
     getThumbnailURL(fileinfo, function(url) {
       url = url || generateDefaultThumbnailURL(fileinfo.metadata);
       this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
@@ -265,7 +261,6 @@ var PlayerView = {
       evt.target.removeEventListener('load', pv_showImage);
       var url = 'url(' + this.offscreenImage.src + ')';
       this.coverImage.style.backgroundImage = url;
-      this.coverImage.classList.add('fadeIn');
     };
   },
 
