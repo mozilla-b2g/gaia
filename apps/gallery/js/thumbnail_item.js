@@ -29,3 +29,9 @@ function ThumbnailItem(fileData) {
   // images decoded if we don't need them.
   this.htmlNode.dataset.backgroundImage = 'url("' + url + '")';
 }
+
+ThumbnailItem.isThumbnailHtmlNode = function checkHtmlNode(node) {
+  return node.nodeName.toLowerCase() === 'li' &&
+         node.classList.contains('thumbnail') &&
+         node.dataset.filename;
+};
