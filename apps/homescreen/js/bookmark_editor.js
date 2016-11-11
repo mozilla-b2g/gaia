@@ -1,5 +1,8 @@
 'use strict';
 
+/* global Message, UrlHelper */
+/* exported BookmarkEditor */
+
 var BookmarkEditor = {
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
@@ -36,6 +39,18 @@ var BookmarkEditor = {
 
     this.bookmarkTitle.value = this.data.name || '';
     this.bookmarkUrl.value = this.data.url || '';
+
+    if (!UrlHelper.isURL(this.bookmarkUrl.value)) {
+      this.addButton.disabled = 'disabled';
+    }
+
+    this.bookmarkUrl.addEventListener('keydown', (function() {
+      if (UrlHelper.isURL(this.bookmarkUrl.value)) {
+        this.addButton.disabled = '';
+      } else {
+        this.addButton.disabled = 'disabled';
+      }
+    }).bind(this), false);
   },
 
   close: function bookmarkEditor_close() {
@@ -45,17 +60,22 @@ var BookmarkEditor = {
   save: function bookmarkEditor_save(evt) {
     this.addButton.removeEventListener('click', this.saveListener);
 
-    // Only allow http(s): urls to be bookmarked.
-    if (/^https?:/.test(this.bookmarkUrl.value) == false)
+    // Only allow urls to be bookmarked.
+    // This is defensive check - callers should filter out non-URLs.
+    if (UrlHelper.isNotURL(this.bookmarkUrl.value)) {
+      this.oncancelled();
       return;
+    }
 
     this.data.name = this.bookmarkTitle.value;
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
     var homeScreenWindow = window.open('', 'main');
-    if (!homeScreenWindow)
+    // This should only happen when the activity is run without a homescreen,
+    // for example in unit tests.
+    if (!homeScreenWindow) {
       this.close();
-    else {
+    } else {
       homeScreenWindow.postMessage(
         new Message(Message.Type.ADD_BOOKMARK, this.data), this.origin);
       this.onsaved();
