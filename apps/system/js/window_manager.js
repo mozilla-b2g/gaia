@@ -272,11 +272,6 @@ var WindowManager = (function() {
       if (app && app.iframe)
         app.iframe.blur();
 
-      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
-        // Set homescreen visibility to false
-        HomescreenLauncher.getHomescreen().setVisible(false);
-      }
-
       waitForNextPaint(frame, function makeWindowActive() {
         frame.classList.add('render');
 

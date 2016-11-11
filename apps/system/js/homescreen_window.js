@@ -231,7 +231,10 @@
   };
 
   HomescreenWindow.prototype._enter_closed = function(prev, evt) {
-    this.setVisible(false);
+    if (!TrustedUIManager.isVisible() &&
+        !FtuLauncher.isFtuRunning()) {
+      this.setVisible(false);
+    }
     this.resetTransition();
     this.publish('closed');
   };
