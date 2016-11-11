@@ -1,0 +1,64 @@
+{
+  "name": "IdentityTest",
+  "csp": "default-src 'self'; script-src 'self' https://notoriousb2g.personatest.org; style-src 'self'",
+  "type": "web",
+  "description": "Identity Debug",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "Jed Parsons (jedp)",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+  },
+
+  "locales": {
+    "ar": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "de": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "el": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "en-US": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "es": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "fr": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "it": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "pt-BR": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "ru": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "tr": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    },
+    "zh-TW": {
+      "name": "IdentityTest",
+      "description": "Identity Debug"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/persona-logo-128x128.png"
+  }
+}
