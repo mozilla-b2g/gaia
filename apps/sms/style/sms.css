@@ -797,6 +797,7 @@ form.bottom[role="search"].messages-compose-form {
 
   /* override BB, first one is separator, second one is background */
   background-position: left bottom, bottom;
+  background-size: auto 100%;
 }
 
 .has-preferred-sim #messages-send-button:after {
