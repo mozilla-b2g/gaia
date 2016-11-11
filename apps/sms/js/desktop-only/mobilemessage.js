@@ -393,6 +393,7 @@
         read: true,
         type: 'sms',
         timestamp: now,
+        iccId: 'FAKE-ICCID-0',
         deliveryStatus: 'success',
         deliveryTimestamp: now
       },
@@ -404,6 +405,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
+        iccId: 'FAKE-ICCID-1',
         deliveryStatus: 'not-applicable',
         timestamp: now - 8400000000
       },
