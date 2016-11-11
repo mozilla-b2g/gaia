@@ -143,6 +143,7 @@ var WapPushManager = {
    * @param {Object} wapMessage The WAP Push message as provided by the system.
    */
   onWapPushReceived: function wpm_onWapPushReceived(wapMessage) {
+    dump('wapMessage = ' + JSON.stringify(wapMessage) + '\n');
     this._pendingMessages++;
 
     var message = ParsedMessage.from(wapMessage, Date.now());
