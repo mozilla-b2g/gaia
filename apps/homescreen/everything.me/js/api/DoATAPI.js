@@ -875,6 +875,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
             requestsQueue[JSON.stringify(options)] = options;
             reInitSession(shouldInit.cause);
+
+            Evme.EventHandler.trigger(NAME, "cantSendRequest", {
+                "method": methodNamespace + '/' + methodName,
+                "queue": requestsToPerformOnOnline
+            });
+
             return false;
         }
         

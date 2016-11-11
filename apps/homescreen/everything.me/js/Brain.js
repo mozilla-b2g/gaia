@@ -1540,6 +1540,11 @@ Evme.Brain = new function Evme_Brain() {
         
         this.cantSendRequest = function cantSendRequest(data) {
             if (data.method === 'Search/apps'){
+              Evme.Utils.isOnline(function checkConnection(isOnline) {
+                if (isOnline) {
+                  return;
+                }
+
                 var folder = Brain.SmartFolder.get(),
                     query = Evme.Searchbar.getElement().value || (folder && folder.getQuery()) || '',
                     elTo = folder? Evme.$(".evme-apps ul", folder.getElement())[0] : Evme.Apps.getList(),
@@ -1547,6 +1552,7 @@ Evme.Brain = new function Evme_Brain() {
                     textKey = bHasInstalled? 'apps-has-installed' : 'apps';
                     
                 Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
+              });
             }
         };
         
