@@ -387,8 +387,10 @@ var KeypadManager = {
     this._lastPressedKey = key;
 
     if (key != 'delete') {
-      if (keypadSoundIsEnabled) {
+      if (keypadSoundIsEnabled && !this._onCall) {
         // We do not support long press if not on a call
+        // And we do not allow to play keytone if on a call to
+        // avoid keytone and dtmf played one after the other
         TonePlayer.start(gTonesFrequencies[key], !this._onCall || shortTone);
       }
 
