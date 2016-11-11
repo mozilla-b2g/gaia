@@ -268,6 +268,7 @@
     if (!this.app.isVisible() || this.app._killed) {
       return;
     }
+    console.log('going to lockOrientation and requestForeground');
 
     this.app.setOrientation();
     if (Service.query('getTopMostWindow').getBottomMostWindow() ===

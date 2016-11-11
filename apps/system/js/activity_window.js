@@ -149,6 +149,7 @@
           } else if ('mozLockOrientation' in screen) {
             rv = screen.mozLockOrientation(orientation);
           }
+          console.log('activityWindow locking orientation to ' + orientation);
           if (rv === false) {
             console.warn('screen.mozLockOrientation() returned false for',
                          this.origin, 'orientation', orientation);
@@ -159,6 +160,7 @@
           } else if ('mozUnlockOrientation' in screen) {
             screen.mozUnlockOrientation();
           }
+          console.log('activityWindow Unlocking screen orientation..');
         }
       }
     };
