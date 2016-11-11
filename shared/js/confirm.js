@@ -39,10 +39,8 @@ var ConfirmDialog = (function() {
     messageNode.textContent = '';
     messageNode.className = '';
     action1Node.textContent = '';
-    action1Node.className = '';
     action1Node.onclick = null;
     action2Node.textContent = '';
-    action2Node.className = '';
     action2Node.onclick = null;
     screen.classList.remove('fade-in');
     screen.classList.add('fade-out');
@@ -51,6 +49,9 @@ var ConfirmDialog = (function() {
     // changes.
     window.dispatchEvent(new CustomEvent('confirmdialoghiding'));
     screen.addEventListener('animationend', function cd_fadeOut(ev) {
+      // Do not remove "hide" class until the dialog is fully hidden.
+      action1Node.className = '';
+      action2Node.className = '';
       isAnimationPlaying = false;
       screen.removeEventListener('animationend', cd_fadeOut);
       screen.classList.add('no-opacity');
