@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Seekbars</title>
+  <meta name="description" content="Scroll through content (i.e. a song or video) ">
+
+  <link rel="stylesheet" href="../seekbars.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+    }
+
+    body {
+      background: #fff;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "Open Sans", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    body[role="application"] section[role="region"]{
+      background: #fff;
+      padding: 2rem;
+    }
+
+    body[role="application"] section[role="region"] button {
+      left: 80%;
+    }
+
+    body[role="application"] section[role="region"] label.icon {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA8CAYAAAB1odqiAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MjUyNDA2NjkwQkFBMTFFMkJEOTE4NzMxRUE4NjczNTUiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MjUyNDA2NkEwQkFBMTFFMkJEOTE4NzMxRUE4NjczNTUiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoyNTI0MDY2NzBCQUExMUUyQkQ5MTg3MzFFQTg2NzM1NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoyNTI0MDY2ODBCQUExMUUyQkQ5MTg3MzFFQTg2NzM1NSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pvd7+zQAAApxSURBVHjavJh5VFTXHcffmwWGWZgdGEDKpsiiKFRAjKKImpzWVrO444JSUZRoNKTLOWlijjZaPVqbHG1UjDk5sYmn6jFN6jE1beLSxLYqJYIkDBJkZ2BmGBiWWej3N76xwzCDwB+9nC9v3r33d+99997ffb/PY5fmr2fGkRZy1yvn3zs9JkMBy469N11EZBhdmxsbxmwrYBifPcqgCOi+r8LAQBFnNNz2uXUFdJkMNf7pTJnFu5znszeZNFkik85hWXaqr3KaFX8zQzZkS234Kue5jT1VWrKtVRcRYQtWyDNwrxleh+U0tLHn1xdoyIZsX95e3OazQ8ZHj0mTJj18OienRqZQ8oLEkgXIE3qWi0QiG8mzx+c3bBRSXbJZlDNHn5yQ8ND3EzLD/17YsMk+LzurfEpCQotCpZYJBcIMz/LdmwvLSazHGqJOJtUlm9zsmXeRZfMzpSzjS8sKCruWL/7RnfiY6M6szAz23OmTjNPpFDgcjpiiXbtlJPqNTSKghlCHobpkg9suf7uUxdP43cIflZ2gR4i2Iq0pKo7E7zxRUJBYIBS6yu02G9PX22vFz6vvH3/7oRgJv+ugQf9uwbJqaghqhx5ANPd2rnwQT0ANLJYp5OkyuXyQx+MPaczpdARZzObF+Vu23cbtJbjC4/JlG39GTz8BioFCoM8Es7MyhU0dxkCz2Rzfa+2BrPbBwUHq9J+QicfjzVBqNOliidTnqHl8HqNUaQbhm2lGg6EVWV8t37RZgesM2E4IEosF2EyMQiHv06lVQhaNi1AYX1H9rfLON5WK2vp6ZbuhQzRot93uMBjuBisUpTK5IoAaFwUG9ifExTZnTkul2WC+vluurdbX6vr6+wPpvttsHjCbjAfUGk0qKxCmazXqvtioKOP0lCTTlIRJRlSpYVcUbnaN9Ow7x2n+aWTKhpaWYI1S+aBod6lcFRK6EiN11UmKj9MXLH/hGjf9lLRlH56bXVmjj3s0vU6ms631j8cPHjAZjMaYyLAw2jzUkQmyutfQZbly8xYrl9l09g/H6Ils4bqIFLuHr0WFh1dwm8KdepCnuF9b5+oQ68vAJhIzUY3OOpE14OPwHn5GrSra6qo4dUqK0NTT+zi/oqqyM2/2rCF1KY/W0Z2CJUGB3C4dGLXj409M3qhVqS00ardq6+oTvBugPM86sDGvLipmIbGf19PjJ1RBseR3PD5fhc309dyZmfqHlz6ZBwfnu06TwMDpa4tL6AS5x9kka0JCpvO5J+Tz+Q6y+fv1G1PRbuaaLds6uSWoff/YW53uNQzGdVFAQKBSLJEwUpnMGRGuMyXHxfTERUe3J8fH133zXY1rjcRSmVjpdM61dnfPfXQvpTzXk7k2VVxsHdlsWLVCck//wNTY1KzotljSrD3daWu2bqfNc1mQOGmSpM/plOhCQ40JMdHGjNQpJplEQruK3q72n+bNu2a0WIKb2tq1goAARqnRujTspazVti9ZMP862eTOym6AGEtPj+JWeYWi+kGdsqW1TRLIY6TkhzTX8eRG3PY1Y9oc1Mh7bx91rbPNbk/689++TK/U66McDiffsyNMpyMxNrZ+cW7Ov4UCQSV5h2cxJOfcTeryQzQ+UkRAi5ODhtpOHjlkMVksceX3v9V2GE2uDaFWyq2pkxPaFTLZg007dkkwMDq+vjjz1u+cI52l/ntj2R+qQ0InSsVB1PE9NNyUMyNdZTKbKQRhFHI5hRC0GeyRUVHzu629cR1trT24vzWeDsMVavU0bUhI//pnf6JfV7KT4Q71Npw82dzJcvHM0cOuylvWrta/e/5SpMNhn4a6Dchv8uOHj0IhL4mkUul8pUo9uGBWVnWoRvPQs/wHMbFykudQqQ7VJRuyXV+yUzTqMBHhQ6o6NCQoJWFiQ1pyUsWGF3c6POsJBPzHwZRHclDdusYmld1pj3Q67Kl0vg/v0EeoV5i/pqPdaP4eIy4vePGlHu867nsftj1L8nJvS4LEDu383I5Rr2FaSnI95yIGn2vszvNRhvVtWTQ72+4vzBD4ioMLdu4acHXmO9Zl5DKJ1V8Zlwx+Yxo4/njYIp671ozVcLwdjjux46Sni/QP5LRkzDAzTnqaNd4n9EdP0dB8qMxXjIkIje+vQYSV1CAh1FWEjHWjpaftIKCTeInuGgc9vUS21MZY6OkmCKgbJLQP9+n+6Mk7gZ7SYfMbsgU9/WMs9HQZ9PQBSIiC2HPIk3rRUxc0BDZBT1KqSzagp7Ogp8u+N42PNQRv9ABe9uu/r08qtzuesrfa3rTb7dvc5SCn33q7PehpP+gpBvR0HfS0n3uhM6MKE11cUFBYe+rokb09VuuB+Ogo9sZN1wxRvDqn+OVXXDQzYLMRk3wJ6BkgemJYXgXoaS/y9OOlJ9qNSxC1NawsLErD4PYEikQagTCAo6cBpr+vz4DD47WzJ47/C1FbJOejDv8dFhROo7Y5eDkP/cUdljP/+3JwUioLLpArlYCXoR7hdDgY8ATT3dVF3082fnTqHU96olDkGehZKINWi+hJBnpSgJ5WgZ4gqxUjpk5/BVXjqUqUak2BRCbzOWK+QMCoEMXhyTeAnihePQR6ooB5L94cz4CexBw9GUBPrqiNYr6VoKck0FMi6CkR9KQFPe3p7Ox8U65QtgYrlbLRnCJdJmO32WgMUalUr4Cefg16agc9VYGeqkBPFNF94ElPOlwSSaCnONDTha2lP1erQsMuuOnpSYnoqaO5aemxgwc6QE9LATS0eao4NXvTUzOX+TnoiWJJS1hY2D4Hjz/qcxKbhtGFh2eBnn6Jzv5DMe5o6clVcWpyitTU2zumwzlY6lpsp6/ORqInHcRTq5SN/r5y+BNsGkBOPEj3pM8mRDyvQxXYeU3Y/rvnZc+8IhAIB1iWTsAni+qSDdlSG6CnCuh1aIpnEEWI9jHoKYmjJxvoqRr01BAfE10BIvoC9LRgNNOZGBdzjWxATwmgp2rQUwLo6VXQ06ugJ9qlPyZ6mgB6Cgc9VYKeKkFP90FPVPhZfnHJwMnDB/cZuyyRTW1tiSO+lEO0Vc89vZCOtQGQ0xVoEPSUBHqaDHpKAj2Fg54mkB/SXK/kvs/Q9v0OgNPvbggERfS07OKVq4X3avRP4ZgL8NqZA0nxsTeWLsw7Aej50IueCL8ncu42weWHT6An+rBTxvJ4N989erjS1GXJu1NZldjeadRQoUapMCDarlIEy64itE8cdDqJOTaCnmzjpac3QE/5oCfhuu07jp/5/ZFb87Iy4oBrEY9wTdHEhYp90dHRRaCnFaCnRtz/wu/hvXb7Dn9luSq1+q9hunAT6Glj6Z69Fzyi66/oevrIoSx3XqvBsBT0dKqluUnR2dGRB3r6fCz0pAEBnQUJOcEXZSCjT73oaSKJGUpPn1JdsiFbTLFm1DFNUJCoFPQUAnq6ijU6DHrq9ywHPbEkr7b6qS7ZkC21MeoQA/RUDnr6GCM+AHpq9EdPPlIj6OkN0FM/6Kl8LPT0Cecid0akJ19TxuPdAD29Rt9mxkJPhGq3R6Cn5hFcafCx7Rgi7xHTtvzVe8cNM/9vevqvAAMAC8znTe/G/DQAAAAASUVORK5CYII=);
+    }
+
+    body[role="application"] section[role="region"] label.icon:last-of-type {
+      background-position: right -30px;
+    }
+  </style>
+
+</head>
+
+<body role="application">
+
+  <h2 class="bb-docs">Default seeker</h2>
+  <section role="region">
+    <div role="slider" aria-valuemin="0" aria-valuenow="80" aria-valuemax="100" aria-valuetext="slider description">
+      <div>
+        <progress value="80" max="100"></progress>
+        <button>handler</button>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="bb-docs">Value seeker</h2>
+  <section role="region">
+    <div role="slider" aria-valuemin="0" aria-valuenow="80" aria-valuemax="100" aria-valuetext="slider description">
+      <label>0</label>
+      <label>100</label>
+      <div>
+        <progress value="80" max="100"></progress>
+        <button>handler</button>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="bb-docs">Icon seeker</h2>
+  <section role="region">
+    <div role="slider" aria-valuemin="0" aria-valuenow="80" aria-valuemax="100" aria-valuetext="slider description">
+      <label class="icon">0</label>
+      <label class="icon">100</label>
+      <div>
+        <progress value="80" max="100"></progress>
+        <button>handler</button>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
