@@ -25,6 +25,7 @@ class TestLockScreen(GaiaTestCase):
         self.settings.launch()
         datetime_setting = self.settings.open_date_and_time()
         old_time = datetime_setting.get_current_time_datetime
+        print("Current Time is ", old_time)
 
         # Auto time update is by default set to true, turn it off to make region change
         datetime_setting.toggle_automatic_time_update()
@@ -36,6 +37,7 @@ class TestLockScreen(GaiaTestCase):
 
         # get the displayed time after the region change
         new_time = datetime_setting.get_current_time_datetime
+        print("New Time is ", new_time)
         self.assertNotEqual(new_time, old_time)
 
         # lock screen and check time on the lockscreen
@@ -65,5 +67,6 @@ class TestLockScreen(GaiaTestCase):
         # Check it reverted to the correct time, and compare it with the previously shown time
         # Allow 4 minutes difference max
         difference = lock_screen.time_in_datetime - old_time
+        print ("Test ended at", lock_screen.time_in_datetime)
 
         self.assertLessEqual(difference.seconds, 240)
