@@ -19,13 +19,18 @@ if (!window.navigator.mozL10n) {
 
 suite('SIM non-ready waiting screen >', function() {
 
-  var CARD_STATES = [null, 'pinRequired', 'pukRequired', 'other'];
-  var EXPECTED_IDS = ['no-sim2', 'sim-locked', 'sim-locked', undefined];
+  var CARD_STATES = [
+    null, 'pinRequired', 'pukRequired', 'other', 'airplaneMode'
+  ];
+  var EXPECTED_IDS = [
+    'no-sim2', 'sim-locked', 'sim-locked', undefined, 'airplane-mode'
+  ];
   var EXPECTED_MODES = [
     assertMessageMode,
     assertMessageMode,
     assertMessageMode,
-    assertWaitingMode
+    assertWaitingMode,
+    assertMessageMode
   ];
 
   var screen;

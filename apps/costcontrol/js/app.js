@@ -78,8 +78,29 @@ var CostControlApp = (function() {
 
     // In case we can not get a valid ICCID.
     }, function _errorNoSim() {
-        console.warn('Error when trying to get the ICC ID');
-        showNonReadyScreen(null);
+      function _removeListeners() {
+        for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+          var conn = navigator.mozMobileConnections[i];
+          conn.removeEventListener('iccchange', _onIccChange);
+        }
+      }
+      function _onIccChange(evt) {
+        _removeListeners();
+        waitForSIMReady(callback);
+      }
+
+      var fakeState = null;
+      AirplaneModeHelper.ready(function() {
+        if (AirplaneModeHelper.getStatus() === 'enabled') {
+          fakeState = 'airplaneMode';
+          for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+            var conn = navigator.mozMobileConnections[i];
+            conn.addEventListener('iccchange', _onIccChange);
+          }
+        }
+        console.warn('Error when trying to get the ICC ID status=' + fakeState);
+        showNonReadyScreen(fakeState);
+      });
     });
   }
 

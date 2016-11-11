@@ -131,7 +131,8 @@ var Widget = (function() {
     // Update UI when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized) {
+        if (!document.hidden && initialized &&
+            (AirplaneModeHelper.getStatus() === 'disabled')) {
           checkCardState(Common.dataSimIccId);
           updateUI();
         }
@@ -202,16 +203,18 @@ var Widget = (function() {
   // USER INTERFACE
 
   // Reuse fte panel to display errors
-  function showSimError(status) {
+  function showSimError(status, updateTextOnly) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
       var fte = document.getElementById('fte-view');
       var leftPanel = document.getElementById('left-panel');
       var rightPanel = document.getElementById('right-panel');
 
-      fte.setAttribute('aria-hidden', false);
-      leftPanel.setAttribute('aria-hidden', true);
-      rightPanel.setAttribute('aria-hidden', true);
+      if (!updateTextOnly) {
+        fte.setAttribute('aria-hidden', false);
+        leftPanel.setAttribute('aria-hidden', true);
+        rightPanel.setAttribute('aria-hidden', true);
+      }
 
       var className = 'widget-' + status;
       document.getElementById('fte-icon').classList.add(className);
@@ -450,32 +453,44 @@ var Widget = (function() {
   return {
     init: function() {
       var isWaitingForIcc = false;
-      function waitForIccAndCheckSim() {
-        if (!isWaitingForIcc) {
-          var iccManager = window.navigator.mozIccManager;
-          iccManager.addEventListener('iccdetected',
-            function _oniccdetected() {
-              isWaitingForIcc = false;
-              iccManager.removeEventListener('iccdetected', _oniccdetected);
-              Common.loadDataSIMIccId(checkSIMStatus);
-            }
-          );
-          isWaitingForIcc = true;
+
+      function _removeListeners() {
+        for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+          var conn = navigator.mozMobileConnections[i];
+          conn.removeEventListener('iccchange', _onIccChange);
         }
       }
 
+      function _onIccChange(evt) {
+        function _onIccReady() {
+          isWaitingForIcc = false;
+          _removeListeners();
+          checkSIMStatus();
+        }
+        Common.loadDataSIMIccId(_onIccReady);
+      }
+
       Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
-
-        waitForIccAndCheckSim();
-        console.warn('Error when trying to get the ICC ID');
-        showSimError('no-sim2');
+        AirplaneModeHelper.ready(function() {
+          var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
+                               'airplane-mode' : 'no-sim2';
+          console.warn('Error when trying to get the ICC ID');
+          showSimError(errorMessageId);
+          isWaitingForIcc = true;
+        });
       });
-
       AirplaneModeHelper.addEventListener('statechange',
         function _onAirplaneModeChange(state) {
           if (state === 'enabled') {
-            waitForIccAndCheckSim();
-            showSimError('no-sim2');
+            isWaitingForIcc = true;
+            for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+              var conn = navigator.mozMobileConnections[i];
+              conn.addEventListener('iccchange', _onIccChange);
+            }
+            showSimError('airplane-mode');
+          } else if (state === 'disabled' && isWaitingForIcc) {
+            var updateTextOnly = true;
+            showSimError('no-sim2', updateTextOnly);
           }
         }
       );
