@@ -5,6 +5,8 @@ requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 suite('voicemail notification', function() {
+  return;
+
   var realMozVoicemail;
   var realMozSettings;
   var realL10n;
