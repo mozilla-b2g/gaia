@@ -2,7 +2,7 @@
 echo 'Downloading Firefox'
 ./node_modules/.bin/mozilla-download --product firefox \
                  --channel prerelease \
-                 --branch aurora \
+                 --branch nightly/latest-mozilla-b2g28_v1_3 \
                  $PWD/firefox
 
 echo 'Downloading & installing node dependencies'
