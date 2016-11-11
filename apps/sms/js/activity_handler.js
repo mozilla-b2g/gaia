@@ -3,7 +3,9 @@
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
          Attachment, Template, Notify, SilentSms, Threads, SMIL, Contacts,
-         ThreadUI, Notification, Settings, Navigation */
+         ThreadUI, Notification, Settings, Navigation,
+         InterInstanceEventDispatcher
+*/
 /*exported ActivityHandler */
 
 'use strict';
@@ -382,16 +384,6 @@ var ActivityHandler = {
     }
 
     function dispatchNotification(needManualRetrieve) {
-      // The SMS app is already displayed
-      if (!document.hidden) {
-        if (Navigation.isCurrentPanel('thread', { id: threadId })) {
-          Notify.ringtone();
-          Notify.vibrate();
-          releaseWakeLock();
-          return;
-        }
-      }
-
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         var iconURL = NotificationHelper.getIconURI(app);
@@ -498,29 +490,74 @@ var ActivityHandler = {
     function handleNotification(isSilent) {
       if (isSilent) {
         releaseWakeLock();
-      } else {
-        // If message type is mms and pending on server, ignore the notification
-        // because it will be retrieved from server automatically. Handle other
-        // manual/error status as manual download and dispatch notification.
-        // Please ref mxr for all the possible delivery status:
-        // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/
-        // MmsService.js#62
-        if (message.type === 'sms') {
-          dispatchNotification();
-        } else {
-          // Here we can only have one sender, so deliveryInfo[0].deliveryStatus
-          // => message status from sender.
-          var status = message.deliveryInfo[0].deliveryStatus;
-          if (status === 'pending') {
+        return;
+      }
+
+      // If thread for new message is already displayed
+      if (!document.hidden &&
+        Navigation.isCurrentPanel('thread', { id: threadId })) {
+
+        Notify.ringtone();
+        Notify.vibrate();
+
+        releaseWakeLock();
+        return;
+      } else if (document.hidden) {
+        InterInstanceEventDispatcher.query('info').then((result) => {
+          return result.some((instance) => {
+            return instance.visible &&
+                   instance.currentPanel.panel === 'thread' &&
+                   instance.currentPanel.args.id === threadId;
+          });
+        }).then((isThreadVisible) => {
+          if (isThreadVisible) {
+            Notify.ringtone();
+            Notify.vibrate();
+
+            releaseWakeLock();
             return;
           }
 
-          // If the delivery status is manual/rejected/error, we need to apply
-          // specific text to notify user that message is not downloaded.
-          dispatchNotification(status !== 'success');
+          if (message.type === 'sms') {
+            dispatchNotification();
+          } else {
+            // Here we can only have one sender, so
+            // deliveryInfo[0].deliveryStatus => message status from sender.
+            var status = message.deliveryInfo[0].deliveryStatus;
+            if (status === 'pending') {
+              return;
+            }
+
+            // If the delivery status is manual/rejected/error, we need to apply
+            // specific text to notify user that message is not downloaded.
+            dispatchNotification(status !== 'success');
+          }
+        });
+        return;
+      }
+
+      // If message type is mms and pending on server, ignore the notification
+      // because it will be retrieved from server automatically. Handle other
+      // manual/error status as manual download and dispatch notification.
+      // Please ref mxr for all the possible delivery status:
+      // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/
+      // MmsService.js#62
+      if (message.type === 'sms') {
+        dispatchNotification();
+      } else {
+        // Here we can only have one sender, so deliveryInfo[0].deliveryStatus
+        // => message status from sender.
+        var status = message.deliveryInfo[0].deliveryStatus;
+        if (status === 'pending') {
+          return;
         }
+
+        // If the delivery status is manual/rejected/error, we need to apply
+        // specific text to notify user that message is not downloaded.
+        dispatchNotification(status !== 'success');
       }
     }
+
     SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
   },
 

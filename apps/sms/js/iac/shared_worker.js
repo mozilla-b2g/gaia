@@ -21,12 +21,20 @@
    */
   const pingRequests = new WeakMap();
 
+  const queries = new Map();
+
   /**
    * List of connected port references which are used to listen and broadcast
    * events.
    * @type {Set.<MessagePort>}
    */
   const ports = new Set();
+
+  function dump(data) {
+    ports.forEach((port) => {
+      port.postMessage({ name: 'debug', parameters: data });
+    });
+  }
 
   function closePort(port) {
     port.removeEventListener('message', onMessage);
@@ -51,6 +59,72 @@
     }
   }
 
+  function onQueryReply(port, query, replyData) {
+    if (replyData !== undefined) {
+      query.result.push(replyData);
+    }
+
+    var queryTimeout = query.timeouts.get(port);
+    if (queryTimeout) {
+      clearTimeout(queryTimeout);
+      query.timeouts.delete(port);
+    }
+
+    // All ports replied
+    if (--query.pendingCount === 0) {
+      query.port.postMessage({
+        queryId: query.id,
+        name: query.name,
+        parameters: query.result
+      });
+      queries.delete(query.id);
+    }
+  }
+
+  function onQueryMessage(message) {
+    var targetPort = message.target;
+    var query = queries.get(message.data.queryId);
+
+    // Message with the query result
+    if (query) {
+      onQueryReply(targetPort, query, message.data.parameters);
+      return;
+    }
+
+    // No other ports to query, just reply immediately
+    if (ports.size === 1) {
+      targetPort.postMessage({
+        queryId: message.data.queryId,
+        name: message.data.name,
+        parameters: []
+      });
+      return;
+    }
+
+    // Register new query to collect results and respond once all ports replied
+    query = {
+      id: message.data.queryId,
+      port: targetPort,
+      result: [],
+      pendingCount: ports.size - 1,
+      name: message.data.name,
+      timeouts: new WeakMap()
+    };
+    queries.set(query.id, query);
+
+    dump('New query: ' + JSON.stringify(query));
+
+    ports.forEach(function(port) {
+      // Don't send message to the same port
+      if (port !== targetPort) {
+        query.timeouts.set(
+          port, setTimeout(() => onQueryReply(port, query), PING_TIMEOUT)
+        );
+        port.postMessage(message.data);
+      }
+    });
+  }
+
   function onMessage(message) {
     var targetPort = message.target;
 
@@ -62,6 +136,11 @@
     // means that it's still alive, but don't broadcast if it's pong response.
     discardPingRequest(targetPort);
     if (message.data.name === 'pong') {
+      return;
+    }
+
+    if (message.data.queryId) {
+      onQueryMessage(message);
       return;
     }
 

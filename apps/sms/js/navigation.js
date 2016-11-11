@@ -123,7 +123,7 @@ var Navigation = window.Navigation = {
    * properties: panel, args.
    */
   getCurrentPanel: function n_getCurrentPanel() {
-    return currentPanel;
+    return currentPanel || {};
   },
 
   /**
