@@ -342,6 +342,30 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubLaunch.calledWith(fakeAppConfig1));
     });
 
+    test('Launching app request', function() {
+      this.sinon.useFakeTimers();
+
+      AppWindowManager.runningApps = {};
+      AppWindowManager.runningApps[app1.origin] = app1;
+      AppWindowManager.runningApps[app2.origin] = app2;
+      AppWindowManager._activeApp = app2;
+      AppWindowManager.displayedApp = app2.origin;
+      this.sinon.stub(app2, 'isTransitioning').returns(false);
+
+      var stubReady = this.sinon.stub(app1, 'ready');
+      AppWindowManager.handleEvent(new CustomEvent('launchapp', {
+        detail: fakeAppConfig1
+      }));
+
+      assert.isTrue(AppWindowManager.isBusyLaunching());
+      stubReady.yield();
+      assert.isTrue(AppWindowManager.isBusyLaunching());
+      this.sinon.clock.tick(AppWindowManager.LAUNCHING_APP_TIMEOUT);
+      assert.isFalse(AppWindowManager.isBusyLaunching());
+
+      this.sinon.clock.restore();
+    });
+
     test('Show top window', function() {
       AppWindowManager.runningApps = {};
       AppWindowManager.runningApps[app1.origin] = app1;
