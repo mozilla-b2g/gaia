@@ -110,10 +110,7 @@
   }
 
   .fake-number {
-    position: absolute;
-    line-height: 0;
-    visibility: hidden;
-    white-space: nowrap;
+    display: none;
   }
 
   /* Don't display held calls unless there is only one call */
