@@ -294,6 +294,10 @@
 
       if (!app) {
         return;
+      } else if (!this.recordingActive && !icon.hidden) {
+        // Recording is now stopped, hide the icon.
+        icon.hidden = true;
+        return;
       }
 
       var appsWithoutRocketbar = [
