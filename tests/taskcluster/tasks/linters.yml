@@ -16,4 +16,4 @@ task:
 
   extra:
     treeherder:
-      symbol: Li
+      symbol: LINT
