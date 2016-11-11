@@ -221,7 +221,7 @@ WebappShared.prototype.pushResource = function(path) {
   if (path === 'media/ringtones/' && this.gaia.distributionDir &&
     utils.getFile(this.gaia.distributionDir, 'ringtones').exists()) {
     this.moveToBuildDir(utils.getFile(this.gaia.distributionDir, 'ringtones'),
-      'ringtones');
+      'shared/resources/media/ringtones');
   }
 };
 
