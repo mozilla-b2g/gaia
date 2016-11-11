@@ -1,0 +1,234 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+html, body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#browser-tab {
+  -moz-box-flex: 1;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+}
+
+#browser-toolbar {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  height: 62px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  margin: 0;
+  padding: 0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: solid 2px #a3a3a3;
+}
+
+#browser-address {
+  -moz-box-flex: 1;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  padding: 0;
+  margin: 0;
+}
+
+#browser-url {
+  font-family: 'Open Sans';
+  -moz-box-flex: 1;
+  border: solid 2px #9ca1a6;
+  border-radius: 22px;
+  height: 44px;
+  margin: 9px 2px;
+  padding: 0 0 0 40px;
+  font-size: 18px;
+  background-image: url('images/favicon.png');
+  background-repeat: no-repeat;
+  background-position: 14px 12px;
+  font-weight: 600;
+}
+
+#browser-url.loading {
+  background-image: url('images/loading.gif');
+}
+
+.browser-button {
+  background-color: transparent;
+  -moz-appearance: none;
+  border: none;
+  display: block;
+  margin: 0;
+  padding: 0;
+  width: 56px;
+  height: 62px;
+}
+
+#browser-back-button {
+  background-image: url("images/back.png");
+}
+
+#browser-back-button:active {
+  background-image: url("images/back-pressed.png");
+}
+
+#browser-menu-button {
+  background-image: url("images/menu.png");
+}
+
+input::-moz-focus-inner {
+  border: 0;
+}
+
+#browser-tab-button {
+  display: block;
+  height: 62px;
+  line-height: 62px;
+  width: 54px;
+  margin: 0;
+  font-weight: bold;
+  font-size: 24px;
+  text-align: center;
+  color: #555;
+}
+
+#browser-tab-button::after {
+  display: block;
+  width: 1px;
+  content: ' ';
+  height: 42px;
+  background-color: rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 22px;
+  right: 56px;
+}
+
+#browser-back-button[disabled] {
+  background-image: url("images/back-disabled.png");
+}
+
+#browser-go-button {
+  margin: 0 2px;
+}
+
+#browser-content {
+  -moz-box-flex: 1;
+  width: 100%;
+  border: none;
+  background-color: white;
+}
+
+#browser-shade {
+  position: absolute;
+  top: 62px;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 62px);
+  background-color: rgba(5, 5, 5, 0.5);
+}
+
+#browser-menu {
+  position: absolute;
+  right: 8px;
+  top: 72px;
+  width: 50%;
+  background-color: #f5f2f3;
+  border-radius: 8px;
+  z-index: 999;
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 0 5px #333;
+}
+
+#browser-menu::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  -moz-transform: rotate(-45deg);
+  background-color: #f5f2f3;
+  box-shadow: 0 0 4px #333;
+}
+
+#browser-menu::after {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 16px;
+  position: absolute;
+  top: 0;
+  right: 7px;
+  background-color: #f5f2f3;
+}
+
+#browser-menu li {
+  padding: 0;
+  margin: 0 16px;
+  list-style-type: none;
+}
+
+
+#browser-menu li:last-child {
+  border-bottom: none;
+}
+
+#browser-menu li a {
+  display: block;
+  font-size: 22px;
+  padding: 19px 19px 19px 44px;
+  border-bottom: solid 1px #d0cecf;
+  text-decoration: none;
+  color: #4f5357;
+  background-repeat: no-repeat;
+  background-position: 5px 20px;
+  font-weight: 600;
+}
+
+#menu-refresh a {
+  background-image: url('images/refresh.png');
+}
+
+#menu-forward a {
+  background-image: url('images/forward.png');
+}
+
+#menu-bookmark a {
+  background-image: url('images/bookmark.png');
+}
+
+#menu-settings a {
+  background-image: url('images/settings.png');
+}
+
+#menu-downloads a {
+  background-image: url('images/downloads.png');
+}
+
+.hidden {
+  display: none;
+}

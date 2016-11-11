@@ -1,0 +1,6 @@
+body {
+	font-family: Georgia, serif;
+	background-color: #fff;
+	margin: 0;
+}
+

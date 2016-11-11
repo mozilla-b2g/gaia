@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+
+    <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <script type="text/javascript" src="webapi.js"></script>
+    <script type="text/javascript" src="js/sms.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    <title>Messages</title>
+  </head>
+
+  <body>
+    <div id="view" class="panel">
+      <div id="view-toolbar" class="toolbar toolbar-top">
+        <div id="view-back">Messages</div>
+        <h2 id="view-name">
+
+        </h2>
+        <input type="tel" id="view-num" />
+        <div id="view-edit-container">
+          <div id="view-edit">Edit</div>
+        </div>
+      </div>
+      <div id="view-list" class="list">
+      </div>
+      <div id="view-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="view-msg-text-container">
+          <textarea type="text" id="view-msg-text"></textarea>
+        </div>
+        <div id="view-msg-send-container">
+          <button id="view-msg-send" class="button">Send</button>
+        </div>
+      </div>
+    </div>
+    <div id="msg-conversations" class="panel">
+      <div id="msg-toolbar" class="toolbar toolbar-top">
+        <div id="msg-search-container">
+          <input id="msg-search" type="search" />
+        </div>
+      </div>
+      <div id="msg-conversations-list" class="list">
+      </div>
+      <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="msg-new-message-container">
+          <button id="msg-new-message" class="button" onclick="ConversationView.showConversation();">New Message</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
