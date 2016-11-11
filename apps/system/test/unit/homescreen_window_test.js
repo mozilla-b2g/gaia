@@ -100,6 +100,18 @@ suite('system/HomescreenWindow', function() {
       var stubRender;
       var spyKill;
       setup(function() {
+        MockApplications.mRegisterMockApp({
+          manifestURL: 'fakeManifestURL',
+          origin: 'fakeOrigin',
+          manifest: {
+
+          }
+        });
+
+        homescreenWindow = new HomescreenWindow('fakeManifestURL');
+        if (!'setVisible' in homescreenWindow.browser.element) {
+          homescreenWindow.browser.element.setVisible = function() {};
+        }
         stubRender = this.sinon.stub(homescreenWindow, 'render');
         spyKill = this.sinon.spy(homescreenWindow, 'kill');
       });
