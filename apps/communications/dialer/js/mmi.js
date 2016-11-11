@@ -287,9 +287,12 @@ var MmiManager = {
                                                    cardIndex)
   {
     this.init((function() {
+      console.log('[MMI] [handleMMIReceived] init, message: ' + message);
       this._pendingRequest = null;
       // Do not notify the UI if no message to show.
       if (message == null && !sessionEnded) {
+        console.log('[MMI] [handleMMIReceived] message null and session not ended, ' +
+             'do not notify the UI if no message to show');
         return;
       }
 
@@ -317,6 +320,7 @@ var MmiManager = {
    *         finished.
    */
   sendNotification: function mm_sendNotification(message, cardIndex) {
+    console.log('[MMI] [sendNotification] message: ' + message);
     var self = this;
 
     return new Promise(function(resolve, reject) {

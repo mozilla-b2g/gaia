@@ -471,9 +471,11 @@ var CallHandler = (function callHandler() {
        * then this is most likely an unsollicited message. To prevent
        * interrupting the user we post a notification for it instead of
        * displaying the dialer UI. */
+      console.log('[MMI] [onUssdReceived] dialer hidden and session ended');
       MmiManager.sendNotification(evt.message, evt.serviceId)
                 .then(releaseWakeLock);
     } else {
+      console.log('[MMI] [onUssdReceived] dialer not hidden or session not ended');
       MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
                                    evt.serviceId);
     }
