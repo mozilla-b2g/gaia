@@ -94,6 +94,7 @@ section[data-type="sidebar"] > header menu[type="toolbar"] button {
   -moz-box-sizing: border-box;
   min-width: 5rem;
   text-align: center;
+  text-decoration: none;
 }
 
 section[data-type="sidebar"] > header menu[type="toolbar"] a:last-child,
@@ -133,6 +134,18 @@ section[data-type="sidebar"] > header .icon {
   font-size: 0;
   overflow: hidden;
   position: relative;
+}
+
+/*
+ * Fix gaia-icons for drawer.css
+ */
+section[data-type="sidebar"] > header .gaia-icon {
+	font-size: 0;
+	margin: 0 -1rem;
+}
+
+section[data-type="sidebar"] > header .gaia-icon:before {
+	position: relative;
 }
 
 section[data-type="sidebar"]:after {
