@@ -41,13 +41,37 @@ var PermissionManager = (function() {
     }
   };
 
+  var getAppName = function pm_getAppName(manifestURL) {
+    var app = Applications.getByManifestURL(manifestURL);
+    if (!app)
+      return null;
+
+    var manifest = app.manifest;
+    if (!manifest)
+      return null;
+
+    if ('locales' in manifest) {
+        var locale = manifest.locales[document.documentElement.lang];
+        if (locale && locale.name)
+          return locale.name;
+    }
+
+    return manifest.name;
+  };
+
   var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
     remember.checked = detail.remember ? true : false;
     var str = '';
 
     var permissionID = 'perm-' + detail.permission.replace(':', '-');
     if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      var appName = getAppName(detail.origin + '/manifest.webapp');
+      if (!appName) {
+        console.log('appName is not found from manifest, origin=' +
+          detail.origin);
+        appName = detail.appName;
+      }
+      str = _(permissionID + '-appRequest', { 'app': appName });
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
