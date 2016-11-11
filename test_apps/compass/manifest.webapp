@@ -1,0 +1,13 @@
+{
+  "name": "Compass",
+  "description": "Compass for B2G",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "jmcf",
+    "url": "http://www.tid.es"
+  },
+  "icons": {
+    "128": "/style/icons/compass-icon2.png"
+  },
+  "orientation": "portrait-primary"
+}
