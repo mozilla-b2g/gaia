@@ -52,6 +52,10 @@ class FullscreenVideo(Base):
         self.marionette.find_element(*self._video_play_button_locator).tap()
 
     @property
+    def is_video_controls_visible(self):
+        return self.is_element_displayed(*self._video_controls_locator)
+
+    @property
     def elapsed_time(self):
         # Convert it to a real time so we can accurately assert
         text = self.marionette.find_element(*self._elapsed_text_locator).text
