@@ -15,6 +15,10 @@
         width: 600,
         height: 600
       }],
+      thumbnailSizes: [{
+        width: 20,
+        height: 20
+      }],
       recorderProfiles: {
         cif: {
           video: {
@@ -38,9 +42,11 @@
 
       navigator.mozGetUserMedia({video: true},
         function(stream) {
-           this.stream = stream;
-           callback(this);
-           this.onPreviewStateChange('started');
+          this.stream = stream;
+          callback(this);
+          if (this.onPreviewStateChange) {
+            this.onPreviewStateChange('started');
+          }
         }.bind(this),
         function() {
           console.log('Could not initialize camera.');
@@ -70,8 +76,15 @@
       console.log('mozCamera.takePicture');
       var cnvs = document.createElement('canvas');
 
-      cnvs.width = config.pictureSize.width;
-      cnvs.height = config.pictureSize.height;
+      if (config.pictureSize) {
+        cnvs.width = config.pictureSize.width;
+        cnvs.height = config.pictureSize.height;
+      } else {
+        var size = this.capabilities.pictureSizes[0];
+        cnvs.width = size.width;
+        cnvs.height = size.height;
+      }
+
       var ctx = cnvs.getContext('2d');
       ctx.drawImage(window.document.querySelector('video'), 0, 0, cnvs.width, cnvs.height);
       cnvs.toBlob(function(blob) {
