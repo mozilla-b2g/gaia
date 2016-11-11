@@ -1,0 +1,158 @@
+/* ----------------------------------
+ * HEADERS: default
+ * ---------------------------------- */
+
+.bb-header {
+  position: relative;
+  height: 5rem;
+  padding: 0;
+  color: #fff;
+  background: url(bb-headers/images/ui/header.png) repeat-x; /* need to change this with css gradient */
+  background-size: auto 100%;
+  z-index: 10;
+}
+
+.bb-header:after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: 0.3rem;
+  background: url(bb-headers/images/ui/shadow.png) repeat-x; /* need to change this with css gradient */
+  background-size: auto 100%;
+}
+
+.bb-header > h1 {
+  position: relative;
+  height: 100%;
+  margin: 0 0 0 3rem;
+  padding-right: 1rem;
+  color: #fff;
+  font-size: 2.5rem;
+  line-height: 5rem;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: normal;
+  overflow: hidden;
+}
+
+.bb-header > h1 em {
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1em;
+  font-style: normal;
+}
+
+/* Generic set of actions */
+.bb-header .bb-header-action {
+  position: relative;
+  float: left;
+  width: 3rem;
+  height: 5rem;
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.1em;
+  color: #fff;
+  text-decoration: none;
+  border: none;
+  border-radius: 0;
+  z-index: 5;
+  background: transparent no-repeat center center / 3rem auto;
+}
+
+.bb-header .bb-header-action:first-letter {
+  text-transform: uppercase;
+}
+
+.bb-header .bb-header-action::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+.bb-header [data-icon].bb-header-action {
+  font-size: 0;
+}
+
+/* Generic set of actions in toolbar */
+.bb-header > menu[type="toolbar"] {
+  position: relative;
+  float: right;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 5;
+}
+
+.bb-header > menu[type="toolbar"] .bb-header-action {
+  position: relative;
+  float: left;
+  width: auto;
+  min-width: 5rem;
+  height: 5rem;
+  border-radius: 0;
+  text-align: center;
+  text-shadow: none;
+  z-index: 5;
+}
+
+.bb-header > menu[type="toolbar"] .bb-header-action:last-child:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -0.2rem;
+  bottom: 0;
+  width: 0.2rem;
+  background: url(bb-headers/images/ui/separator.png) no-repeat left center / auto 5rem;
+  z-index: 1;
+}
+
+/* Pressed state of actions */
+.bb-header .bb-header-action::-moz-focus-inner,
+.bb-header .bb-header-action:active,
+.bb-header .bb-header-action:focus {
+  outline: none;
+  border: none;
+}
+
+.bb-header .bb-header-action:not(:disabled):active,
+.bb-header .bb-header-action:not([aria-disabled="true"]):active:after,
+.bb-header .bb-header-action:not(:disabled):active:after {
+  background-color: #008aaa;
+  transition: background-color 0.2s ease;
+}
+
+/* Icon definitions */
+.bb-header .bb-header-action[data-icon="add"] {
+  background-image: url(bb-headers/images/icons/add.png);
+}
+
+.bb-header .bb-header-action[data-icon="edit"] {
+  background-image: url(bb-headers/images/icons/edit.png);
+}
+
+.bb-header .bb-header-action[data-icon="menu"] {
+  background-image: url(bb-headers/images/icons/menu.png);
+  background-position: -1.1rem center;
+}
+
+/* Navigation links (back, cancel, etc) */
+.bb-header > .bb-header-action {
+  width: 2rem;
+  margin: 0;
+  background-color: #a03f25;
+}
+
+.bb-header > .bb-header-action:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 0.2rem;
+  background: url(bb-headers/images/ui/separator-large.png) no-repeat right center / auto 5rem;
+}
+
