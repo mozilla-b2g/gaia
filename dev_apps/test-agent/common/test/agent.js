@@ -24,6 +24,7 @@
       },
 
       start: function ka_start() {
+        dump("starting...\n");
         running = true;
         this._activate();
       },
