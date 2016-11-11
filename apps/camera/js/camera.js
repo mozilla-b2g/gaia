@@ -389,6 +389,9 @@ var Camera = {
 
     this._initialised = true;
     DCFApi.init();
+
+    document.documentElement.style.backgroundColor = '#ffffff';    
+
     PerformanceTestingHelper.dispatch('startup-path-done');
   },
 
