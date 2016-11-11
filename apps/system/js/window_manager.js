@@ -492,6 +492,9 @@ var WindowManager = (function() {
         app.fadeOut();
       }
       setOrientationForApp(HomescreenLauncher.origin);
+      if (app.resized) {
+        app.resize();
+      }
     }
 
     transitionCloseCallback = function startClosingTransition() {
