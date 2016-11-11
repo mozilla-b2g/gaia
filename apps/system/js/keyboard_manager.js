@@ -139,6 +139,7 @@ var KeyboardManager = {
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
     window.addEventListener('lock', this);
+    window.addEventListener('homescreencrashed', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -465,6 +466,14 @@ var KeyboardManager = {
           // (and, removing the focus cause Gecko to ask us to hideKeyboard())
           navigator.mozInputMethod.removeFocus();
         }
+        break;
+      case 'homescreencrashed':
+        if (this.keyboardFrameContainer.classList.contains('hide') ||
+            AppWindowManager.getDisplayedApp() !== 'homescreen') {
+          return;
+        }
+
+        this.hideKeyboardImmediately();
         break;
     }
   },
