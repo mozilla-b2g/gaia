@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Approximate runtime per 100 iterations: 37 minutes
+# Approximate runtime per 100 iterations: 40 minutes
 
 import time
 
@@ -30,19 +30,20 @@ class TestEnduranceAddContact(GaiaEnduranceTestCase):
 
         # Enter data into fields
         contact = MockContact()
-        extra_text = "-%dof%d" % (self.iteration, self.iterations)
-        new_contact_form.type_given_name(contact.givenName + extra_text)
-        new_contact_form.type_family_name(contact.familyName)
-        new_contact_form.type_phone(contact.tel['value'])
-        new_contact_form.type_email(contact.email)
-        new_contact_form.type_street(contact.street)
-        new_contact_form.type_zip_code(contact.zip)
-        new_contact_form.type_city(contact.city)
-        new_contact_form.type_country(contact.country)
-        new_contact_form.type_comment(contact.comment)
+        contact['givenName'] = "%02dof%02d" % (self.iteration, self.iterations)
+        new_contact_form.type_given_name(contact['givenName'])
+        new_contact_form.type_family_name(contact['familyName'])
+        new_contact_form.type_phone(contact['tel'][0]['value'])
+        new_contact_form.type_email(contact['email'][0]['value'])
+        new_contact_form.type_street(contact['adr'][0]['streetAddress'])
+        new_contact_form.type_zip_code(contact['adr'][0]['postalCode'])
+        new_contact_form.type_city(contact['adr'][0]['locality'])
+        new_contact_form.type_country(contact['adr'][0]['countryName'])
+        new_contact_form.type_comment(contact['note'])
 
         # Save new contact
         new_contact_form.tap_done()
+        time.sleep(2)
 
         # Ensure all contacts were added
         if self.iteration == self.iterations:
