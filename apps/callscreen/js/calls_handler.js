@@ -89,6 +89,11 @@ var CallsHandler = (function callsHandler() {
       highPriorityWakeLock = null;
     }
 
+    // Make sure we play the busy tone when appropriate
+    if (telephony.active) {
+      telephony.active.addEventListener('error', handleBusyErrorAndPlayTone);
+    }
+
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
       var alreadyAdded = handledCalls.some(function hcIterator(hc) {
@@ -236,6 +241,26 @@ var CallsHandler = (function callsHandler() {
         screenLock = null;
       }
     });
+  }
+
+  /**
+   * Play the busy tone in response to the corresponding error being triggered
+   * at the end of a call. Once the tone has finished this will also
+   * automatically close the callscreen.
+   *
+   * @param evt {Object} The event delivered in the TelephonyCall.onerror
+   *        event-handler.
+   */
+  function handleBusyErrorAndPlayTone(evt) {
+    if (evt.call.error.name === 'BusyError') {
+      // ANSI call waiting tone for a 3 seconds window.
+      var sequence = [[480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500]];
+
+      TonePlayer.playSequence(sequence);
+      exitCallScreen(/* animate */ true);
+    }
   }
 
   function handleCallWaiting(call) {

@@ -10,6 +10,7 @@ var MockCallScreen = {
   mScenario: -1,
   callEndPromptTime: 2000,
 
+  init: function() {},
   insertCall: function() {},
   moveToGroup: function() {},
   toggle: function(cb) {

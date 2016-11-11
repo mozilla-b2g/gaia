@@ -1,26 +1,25 @@
 'use strict';
+/* globals AudioCompetingHelper, CallsHandler, CallScreen,
+   KeypadManager */
 
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
+/**
+ * Function invoked at onload time to initialize the application.
+ */
+function onLoadCallScreen(evt) {
+  window.removeEventListener('load', onLoadCallScreen);
 
   CallsHandler.setup();
   AudioCompetingHelper.init('callscreen');
   CallScreen.init();
-  KeypadManager.init(true);
-});
+  KeypadManager.init(/* oncall */ true);
+}
 
-// Intentionally listening to unload event to turn off bfcache
-// which would cause Bug 1030550. This won't be removed until
-// Bug 1040565 is resolved.
-window.addEventListener('unload', function onunload(evt) {
-  window.removeEventListener('unload', onunload);
-});
+/**
+ * Dummy function introduced in bug 1083729, see below.
+ */
+function unloadCallScreen(evt) { }
 
-// Don't keep an audio channel open when the callscreen is not displayed
-document.addEventListener('visibilitychange', function visibilitychanged() {
-  if (document.hidden) {
-    TonePlayer.trashAudio();
-  } else {
-    TonePlayer.ensureAudio();
-  }
-});
+window.addEventListener('load', onLoadCallScreen);
+
+// Bug 1083729: add an empty unload event listener to circumvent bug 1078448.
+window.addEventListener('unload', unloadCallScreen);

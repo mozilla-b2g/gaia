@@ -7,9 +7,13 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
     <!-- Shared code -->
+    <script defer type="application/javascript" src="/shared/js/dialer/tone_player.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script src="/shared/js/l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+    <!-- Making sure that the shared resources will be copied into the zip file
+    <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
+    -->
 
     <!-- Specific code -->
     <script defer type="application/javascript" src="js/keypad.js"></script>
@@ -29,9 +33,9 @@
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-row">
-              <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
+              <div class="keypad-key" role="key" data-value="1">
                 <span>1</span>
-                <em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
+                <em class="keypad-subicon"></em>
               </div>
               <div class="keypad-key" role="key" data-value="2">
                 <span>2</span>

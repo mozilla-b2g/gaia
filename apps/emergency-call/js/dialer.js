@@ -34,6 +34,12 @@ var CallHandler = {
 window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {
+  /* Tell the audio channel manager that we want to adjust the "content"
+   * channel when the user presses the volumeup/volumedown buttons. */
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'content';
+  }
+
   window.removeEventListener('load', onload);
-  window.KeypadManager.init();
+  window.KeypadManager.init(/* oncall */ false);
 });
