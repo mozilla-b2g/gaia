@@ -115,7 +115,10 @@ class Calendar(Base):
         return self.wait_for_new_event()
 
     def tap_add_event_button(self):
-        self.marionette.find_element(*self._add_event_button_locator).tap()
+        add_event_button = self.marionette.find_element(*self._add_event_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(add_event_button))
+        Wait(self.marionette).until(expected.element_enabled(add_event_button))
+        add_event_button.tap()
         return self.wait_for_new_event()
 
     def a11y_click_week_display_button(self):
