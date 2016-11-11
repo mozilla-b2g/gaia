@@ -390,6 +390,10 @@ body, html {
   background-position: -29.4rem -6rem;
 }
 
+.sb-icon-emergencycall {
+  background-position: -29.4rem -2rem;
+}
+
 .sb-icon-notification {
   background: none;
   width: 3.2rem;
