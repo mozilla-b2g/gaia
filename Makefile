@@ -112,7 +112,7 @@ TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
 # Enable compatibility to run in Firefox Desktop
-DESKTOP?=$(DEBUG)
+DESKTOP?=0
 # Disable first time experience screen
 NOFTU?=1
 # Disable first time ping
