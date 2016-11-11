@@ -3,8 +3,10 @@
   "default_locale": "en-US",
   "description": "Gaia Test Agent",
   "launch_path": "/index.html",
+  "type": "certified",
   "permissions": {
-    "power": {}
+    "power": {},
+    "contacts": { "access": "readwrite" }
   },
   "locales": {
     "en-US": {
