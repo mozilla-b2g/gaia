@@ -1,6 +1,7 @@
 'use strict';
 /* global ScreenLayout */
 /* global SettingsListener */
+/* global FtuLauncher */
 
 (function(exports) {
 
@@ -143,7 +144,10 @@
         // hide gesture function when utilitytray/lockscreen display
         case 'lockscreen-appopened':
         case 'utilitytrayshow':
-          this.homeBar.classList.remove('visible');
+          // Should enable home gesture function when ftu is running
+          if(!FtuLauncher.isFtuRunning) {
+            this.homeBar.classList.remove('visible');
+          }
           break;
         case 'lockscreen-appclose':
         case 'utilitytrayhide':
