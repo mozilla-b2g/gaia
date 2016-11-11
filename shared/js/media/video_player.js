@@ -64,6 +64,7 @@ function VideoPlayer(container) {
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
   var orientation = 0; // current player orientation
+  var pos = 0;
 
   // These are the raw (unrotated) size of the poster image, which
   // must have the same size as the video.
@@ -429,19 +430,37 @@ function VideoPlayer(container) {
 
     var rect = backgroundBar.getBoundingClientRect();
     var position = computePosition(e.detail.position, rect);
-    var pos = Math.min(Math.max(position, 0), 1);
-    player.currentTime = player.duration * pos;
-    updateTime();
+    pos = Math.min(Math.max(position, 0), 1);
   });
 
   slider.addEventListener('swipe', function swipe(e) {
     e.stopPropagation();
-    dragging = false;
-    if (player.currentTime >= player.duration) {
-      self.pause();
-    } else if (!pausedBeforeDragging) {
-      player.play();
+
+    function doneSeeking() {
+      //Set player.currentTime once inside swipe
+      player.currentTime = player.duration * pos;
+      updateTime();
+
+      //Reset
+      pos = 0;
+      player.onseeked = null;
+      dragging = false;
+
+      if (player.currentTime >= player.duration) {
+        self.pause();
+      } else if (!pausedBeforeDragging) {
+        player.play();
+      }
     }
+    // Check for seeeking event, if true attach eventlistener
+    // to seeked event to start playback and set dragging flag to false
+    // when seeking completes.
+    if (player.seeking) {
+      player.onseeked = doneSeeking;
+    } else {
+      doneSeeking();
+    }
+
   });
 
   function formatTime(time) {
