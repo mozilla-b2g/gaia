@@ -1,0 +1,118 @@
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  min-width: 1200px;
+  color: #999;
+}
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+    color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+
+#configuration td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+
+#configuration tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+.enabled  {
+  color: green;
+}
+
+.xfailed  {
+  color: orange;
+}
+
+.skipped  {
+  color: orange;
+}
+
+.disabled   {
+  color: red;
+}
+
+
+/******************************
+ * RESULTS TABLE
+ * 
+ * 1. Table Layout
+ * 2. Debug
+ * 3. Sorting items
+ * 
+ ******************************/
+
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%
+}
+
+#results-table th, #results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left
+}
+#results-table th {
+  font-weight: bold
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
