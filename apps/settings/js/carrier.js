@@ -136,7 +136,7 @@ var CarrierSettings = (function(window, document, undefined) {
             _mobileConnection.voice && _mobileConnection.voice.type);
           // Show carrier name.
           cs_showCarrierName();
-          cs_disabeEnableDataCallCheckbox();
+          cs_disabeEnableDataCallCheckboxes();
           return;
         }
 
@@ -291,9 +291,11 @@ var CarrierSettings = (function(window, document, undefined) {
    * the panel for the settings for the ICC card which is not the active one
    * for data calls.
    */
-  function cs_disabeEnableDataCallCheckbox() {
-    var menuItem = document.getElementById('menuItem-enableDataCall');
-    var input = menuItem.querySelector('input');
+  function cs_disabeEnableDataCallCheckboxes() {
+    var menuItemDataCall = document.getElementById('menuItem-enableDataCall');
+    var menuItemDataRoaming = document.getElementById('menuItem-enableDataRoaming');
+    var inputDataCall = menuItemDataCall.querySelector('input');
+    var inputDataRoaming = menuItemDataRoaming.querySelector('input');
 
     cs_getDefaultServiceIdForData(
       function getDefaultServiceIdForDataCb(defaultServiceId) {
@@ -302,11 +304,14 @@ var CarrierSettings = (function(window, document, undefined) {
 
         var disable = (defaultServiceId !== currentServiceId);
         if (disable) {
-          menuItem.setAttribute('aria-disabled', true);
+          menuItemDataCall.setAttribute('aria-disabled', true);
+          menuItemDataRoaming.setAttribute('aria-disabled', true);
         } else {
-          menuItem.removeAttribute('aria-disabled');
+          menuItemDataCall.removeAttribute('aria-disabled');
+          menuItemDataRoaming.removeAttribute('aria-disabled');
         }
-        input.disabled = disable;
+        inputDataCall.disabled = disable;
+        inputDataRoaming.disabled = disable;
     });
   }
 
