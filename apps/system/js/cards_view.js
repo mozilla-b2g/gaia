@@ -302,6 +302,7 @@ var CardsView = (function() {
         var cachedLayer = app.requestScreenshotURL();
         if (cachedLayer) {
           screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+          return;
         }
 
         // And then switch it with screenshots when one will be ready
