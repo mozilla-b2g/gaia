@@ -84,7 +84,10 @@
         this.simPinContainer.querySelector('.simpin-enabled-' +
           cardIndex + ' input');
 
-      var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown';
+//      var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown';
+//     in Tarako,CLCK will return failure when pinRequired
+      var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown' &&
+                           icc.cardState !== 'pinRequired' && icc.cardState !== 'pukRequired';
 
       // when fugu is in airplane mode, icc.cardState will not be changed ...
       // in this way, we have to use isAirplaneMode to check this situation
