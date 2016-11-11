@@ -374,6 +374,12 @@ var Browser = {
   },
 
   handleNewTab: function browserHandleNewTab(e) {
+    // Only respond to new tab clicks if not in transition and the current
+    // screen is TABS_Screen, prevents multiple empty tabs from created
+    if (this.inTransition || this.currentScreen !== this.TABS_SCREEN) {
+      return;
+    }
+
     this.inTransition = true;
     // bug 1059650
     this.screenSwipeMngr.gestureDetector.stopDetecting();
@@ -1271,10 +1277,22 @@ var Browser = {
     li.style.transition = 'height 0.2s ease-in';
     ul.insertBefore(li, ul.childNodes[0]);
 
+    var isTransitionend = false;
     li.addEventListener('transitionend', function() {
       // Pause so the user has time to see the new tab
-      setTimeout(showTabCompleteFun, 100);
+      setTimeout(function() {
+        if (!isTransitionend) {
+          isTransitionend = true;
+          showTabCompleteFun();
+        }
+      }, 100);
     });
+
+    setTimeout(function() {
+      if (!isTransitionend) {
+        showTabCompleteFun();
+      }
+    }, 350);
 
     // Hack to force transition to apply synchronously
     // http://lists.w3.org/Archives/Public/www-style/2011Mar/0729.html
