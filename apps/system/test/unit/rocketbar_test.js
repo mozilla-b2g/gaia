@@ -1005,6 +1005,21 @@ suite('system/Rocketbar', function() {
     });
   });
 
+  test('utility tray is active, will fire closing event', function(done) {
+    subject.active = true;
+    MockUtilityTray.active = true;
+
+    var searchWindow = new MockSearchWindow();
+    subject.searchWindow = searchWindow;
+
+    var stub = this.sinon.stub(subject.searchWindow, 'publish');
+    subject.activate().then(() => {
+      assert.ok(stub.calledWith('closing'));
+      MockUtilityTray.active = false;
+      done();
+    });
+  });
+
   suite('activate with a transition', function() {
     test('done after transition and search app load', function(done) {
       this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
