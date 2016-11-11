@@ -195,5 +195,11 @@
     }
     Settings.currentPanel = '#sound-selection';
   };
+
+  window.addEventListener('mozvisibilitychange', function visibilityChange() {
+    if (document.mozHidden) {
+      stopAudioPreview();
+    }
+  });
 })();
 
