@@ -38,7 +38,7 @@ class TestEnduranceSetAlarm(GaiaEnduranceTestCase):
         self.clock = new_alarm.tap_done()
 
         # Verify the banner-countdown message appears
-        alarm_msg = self.clock.banner_countdown_notification
+        alarm_msg = self.clock.banner_notification
         self.assertTrue('The alarm is set for' in alarm_msg, 'Actual banner message was: "' + alarm_msg + '"')
         time.sleep(2)
 
