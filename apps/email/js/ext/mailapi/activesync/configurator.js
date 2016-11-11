@@ -1247,8 +1247,13 @@ ActiveSyncFolderConn.prototype = {
           switch (grandchild.tag) {
           case asb.Type:
             var type = grandchild.children[0].textContent;
-            if (type === asbEnum.Type.HTML)
+            if (type === asbEnum.Type.HTML) {
               bodyType = 'html';
+            }
+            else if (type === asbEnum.Type.RTF) {
+              console.warn('Treating RTF body as HTML');
+              bodyType = 'html';
+            }
             else {
               // I've seen a handful of extra-weird messages with body types
               // that aren't plain or html. Let's assume they're plain, though.
