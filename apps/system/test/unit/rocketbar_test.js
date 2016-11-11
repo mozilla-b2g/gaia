@@ -768,4 +768,3 @@ suite('system/Rocketbar', function() {
     });
   });
 });
-
