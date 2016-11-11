@@ -49,9 +49,6 @@ class Base(object):
 
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
 
         Wait(self.marionette).until(expected.element_present(*_list_item_locator))
 
