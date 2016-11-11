@@ -35,6 +35,7 @@ var ModalDialog = {
 
     this.screen = document.getElementById('screen');
     this.overlay = document.getElementById('dialog-overlay');
+    this.overlay.style.height = 'auto';
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -127,16 +128,10 @@ var ModalDialog = {
           return;
         }
 
-        if (this.isVisible()) {
-          this.updateHeight();
-        }
         break;
 
       case 'system-resize':
       case 'keyboardchange':
-        if (this.isVisible()) {
-          this.updateHeight();
-        }
         break;
     }
   },
@@ -152,12 +147,6 @@ var ModalDialog = {
     }
 
     delete this.currentEvents[this.currentOrigin];
-  },
-
-  updateHeight: function sd_updateHeight() {
-    var height = Service.query('LayoutManager.height') -
-                 Service.query('Statusbar.height');
-    this.overlay.style.height = height + 'px';
   },
 
   _localizeElement: function(node, payload) {
@@ -242,8 +231,6 @@ var ModalDialog = {
         elements.selectOne.focus();
         break;
     }
-
-    this.updateHeight();
   },
 
   hide: function md_hide() {
