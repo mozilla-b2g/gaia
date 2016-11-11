@@ -356,12 +356,12 @@ module.exports = {
       {
         key: 'timer'
       },
-      // {
-      //   key: 'pictureSizes'
-      // },
-      // {
-      //   key: 'recorderProfiles'
-      // },
+      {
+        key: 'pictureSizes'
+      },
+      {
+        key: 'recorderProfiles'
+      },
       {
         key: 'grid'
       }
