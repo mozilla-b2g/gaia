@@ -73,6 +73,18 @@ var MmiUI = {
   },
 
   closeWindow: function mui_closeWindow() {
+    // Establish connection with system app to show call screen
+    // after close MMI/USSD message during phone call
+    var result = navigator.mozApps.getSelf();
+    result.onsuccess = function() {
+      var app = evt.target.result;
+      app.connect('dialercomms').then(function(ports) {
+        ports.forEach(function(port) {
+          port.postMessage('mmi-cancel');
+        });
+      });
+    };
+
     window.postMessage({
       type: 'mmi-cancel'
     }, this.COMMS_APP_ORIGIN);
