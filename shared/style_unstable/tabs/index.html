@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Tabs</title>
+  <meta name="description" content="Allows multiple instances to be contained within a single window. Tabs are used as a navigational widget for switching between sets of views. ">
+
+  <link rel="stylesheet" href="../tabs.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "Open Sans", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    /* icons */
+    #panel1 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAB4CAYAAADogzKiAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTJCMzdGNDQwQzEwMTFFMjk5NTZBOEE4MUY4QjNCN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTJCMzdGNDUwQzEwMTFFMjk5NTZBOEE4MUY4QjNCN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRTZDMjRENzBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRTZDMjREODBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PiUV4d8AAAMBSURBVHja7FexbhNBEPVZERIhSFRAh0AKFJjCMRIEOkh7F+jiLsHQ8EcIGSqgQjKX2l0cKhspQIGQAFFBGgrbEQkhxxs0h46193bXvgVFmpGeFOd25t3O7c7MC5IkKfm0csmzCYEQTG8zDuvOAqf49zbwAdg3etJFy0EItIB+Mmp9frYMBLoYusBVYCOxtx77WBGsADuJu5FP3URAwQ/GOH8ELgJXDCTku6ojWACGGsctXnPJYie7QC2Nmx7TAHgIzBZwMo9wrCB7DyJgocDjX+WYfwjWPNyxtZSALtENDwRLFLvMN/S4B4JjwLly5vrnWfrxPwFfHEhO2tYi2uUF4B0wT445L/JarUXzljf1Da/Nq10Vxec8FSnaxTdgzmInNIJ8Bn7m7OA0/z0ETqTMraR4e5G9yY89nKJH2X5AqeoW+PZUvssuxc7F/ip26imoa8q1rZFvw9RwaMH3CYLvqcHzWialq+OY85pLT842/Tin6dOzW+kHHYfAcnyfeGwJRB8IgRAIgRAcChnbeLkzVYDm4uz/1ckmghBoADfHjJYDoI0M0NAWYyeJyzcgCbRBjsCyZm6d42ctoAuiqi3BCtABrjtqsg5I6iYCCv4UOKr8n4RHBbiaQ0I+T0CyqiMgldlM5adifeAtYDpy5PsAJDWVoHCdDBLRyWadjDSJTjbrZCL4alnWnwO3gfdch0aqKXJeUfy2gzubQ686eYZLbpsLV8nipp6xTGsbu9v3rpNTAirLvQKDvwLWswSU23sWxczG9igW0nOgVlPawV0mm9TI9z6Cd3X94BnvZHeC4D/4zZumjkYLrgGbjjlfVIPn9eQet8yIP9ZgzJoBP6PLdzmbFpepYp2hHVtMc5HoZCEQAiEQAiH43Q/CMJxKJ8dxPBWBUSfz0Aae2K9OjqLIv04GiX+dDBL/Ohkk/nUySEQnm3Uy0iQ6+R/o5GyxQ85HdTKK3eHVydid6GS9TkZ6/OlkBPenkxHcn05Wgxeqk7NpKVQnG8cW0clCIASlXwIMAC/gW4s5FQLKAAAAAElFTkSuQmCC);
+    }
+
+    #panel2 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAB4CAYAAADogzKiAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUU2QzI0RDUwQzBDMTFFMjk5NTZBOEE4MUY4QjNCN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUU2QzI0RDYwQzBDMTFFMjk5NTZBOEE4MUY4QjNCN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRTZDMjREMzBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRTZDMjRENDBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PrKUdlEAAANNSURBVHja7JnPaxNBFMfTGNT2ZISAhRiPCnqSVLCCoKdeDIh4awQVghfv4h/gwaOIxYNW9GLpQUgPPRQqeIitGi9NbW/SqjGQg4I2tBJZvw/e4naZXzu79kecgS9td9+8z87M29n9dvs8z0v9y9bnAA6wpYAB6Bj/vgx1jHoRQKMsNAateX/bGh/L6vrrkuegJU/eljjGGjDh6dukKodqDfLQKq2TbpahI9An0cm0ouMZg+QpjhmWnVQB+iNUY78NYCECYMGmTGl9GgaL3OBYqyoahjYUyTc4xrpMSeegFUHyFT6Xsi3TYNsPXYBO8N8NaApa3/bNTlZFGajC1VFW9B/l0VS4j1EVFaB6YK67UFkQN8rn/FbnvspFzkNNwYKGIeVQcr81OYcUMKsoSR8iS+63WRmgaHBTdTXJ/Vb08wYXecigKPawdG1IVEX7EqzOvSLAjwQBP0WALwkCmiLAhwQBy7Kt4it0KGbyFjQo2ypmErj6GdVe9DwBwIRqN6UH+IGYgO/8puHerh3AARxg5wGuv+5YJXh0ekB5PhMhl5VPThvEZKExqA3VWW0+lo0LyEE16AaPIDgaOlbD1ObiAO4HpkXU6NwDWwD55MsGU3gJozhsA3A+WQt4Dy0aJF/k2MgAj73XL0UMnavgbvZsy5TugRH+r0u40bERJK/F3SpeQkdtfbLpXkSJJllb65NxkzWgCpQxBRSgeeghT8m4BEIm/Al0nGPnASnoALQ9zEEnQ8YvDClz8qAhpD5zgORVa/A0aB4EEL+NS9zmIOc4L3qiFfHjrWbNfgeAShuL8n0XniLnk3vUJ6dDm1crgeQtVNDH3vHJ4Tt5GjqYgE92r+8O4AAO4ADCViqVNvnkarXaSQSAxOSF70BXAla2wy9YtwH6Zg1AcvLArxRWlp69ZwFpb5tPlo4AVx/pezJG4b4n7zafjEUz9skcG71M0VHrkzkm3laBkhV+T0by9Z252eGK6ZXyGnQTuosrfSYZGVnZW9A96DHiuloAOpHXfRGwsmT8roYhnDxoZamSLiJuVQrg7eGNwMpugiCuLLGy9B3uFOI+W/lkJLb3yeicqE/GKJxP/l98cvg+SOR7Miqoh74nO5/sALsA8EeAAQCMPMLp3+w1fQAAAABJRU5ErkJggg==);
+    }
+
+    #panel3 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAB4CAYAAADogzKiAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUU2QzI0RDEwQzBDMTFFMjk5NTZBOEE4MUY4QjNCN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUU2QzI0RDIwQzBDMTFFMjk5NTZBOEE4MUY4QjNCN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRTZDMjRDRjBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRTZDMjREMDBDMEMxMUUyOTk1NkE4QTgxRjhCM0I3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PlXYxucAAAEmSURBVHja7JZNDsFQFEZLjOxGB8Qmugnr0AHrsAcpe/AzqA1gYNIJhiYkdV/y6M3LaySlSSPnJVdaX/XQ9sjXyvM8qHO1g5oXAAAACkBfJncmVcdNPPlE5akn72vA2QO/qO1P+dWTnzXgJHN3DjiWbL/WQW3vnexuz/kGPGTmzgELtb+WydR+Zt97raXzBef2nEGLf1M8wAM8wAM8wAMAAAAAAACgMYCOeRmtbqbDbJxsJxOqXjR28qlMPBt2zedNL+o5+UCyLb2otBfJ5Sl6kVzDyjfR3AM8+N4D2+UreWA9wgM8wAM8+NoDHlMAAAAAAACgGb0oiiJvL0qSJLS5txdJHtvc24sk/5deJD/l573InpNehAd4gAd4gAd4AADA3wCeAgwA2E15Rlze638AAAAASUVORK5CYII=);
+    }
+  </style>
+</head>
+<body role="application">
+
+  <section role="region">
+    <!-- if your tabs are at the top, remove class="bottom" -->
+    <ul role="tablist" data-items="4" class="bottom">
+      <li id="panel1" role="tab">
+        <a href="#panel1" class="icon">comms</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel2" role="tab">
+        <a href="#panel2" class="icon">contacts</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel3" role="tab" aria-disabled="true">
+        <a class="icon">dialer</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel4" role="tab">
+        <a href="#panel4">Tab name</a>
+        <div role="tabpanel"></div>
+      </li>
+    </ul>
+  </section>
+
+</body>
+</html>
