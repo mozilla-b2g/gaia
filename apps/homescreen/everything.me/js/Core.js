@@ -7,7 +7,7 @@ window.Evme = new function Evme_Core() {
 
         CLASS_WHEN_SHOWING_SHORTCUTS = 'evme-display-shortcuts';
 
-    this.shouldSearchOnInputBlur = true;
+    this.shouldSearchOnInputBlur = false;
 
     this.init = function init() {
         data = Evme.__config;
