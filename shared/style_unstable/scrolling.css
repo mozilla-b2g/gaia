@@ -1,0 +1,71 @@
+/* ----------------------------------
+ * Scrolling
+ * ---------------------------------- */
+nav[role="scrollbar"] {
+  font-family: "Open Sans", Sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+ }
+
+/* Mirror */
+nav[role="scrollbar"] p {
+  position: absolute;
+  right: 4rem;
+  top: 30%;
+  margin: 0;
+  width: 10.5rem;
+  height: 10.5rem;
+  opacity: 0;
+  font: 200 6rem/10.5rem "Open Sans", Sans-serif;
+  color: #fff;
+  background: url(scrolling/images/ui/background.png) repeat left top;
+  pointer-events: none;
+  text-align: center;
+  transition: opacity;
+}
+
+nav[role="scrollbar"] ol {
+  padding: 0.3rem 0;
+  margin: 0;
+  border-radius: 4rem;
+  opacity: 0.6;
+  list-style: none;
+}
+
+nav[role="scrollbar"] li {
+  font-size: 1rem;
+  line-height: 1.4em;
+  text-align: center;
+  text-transform: uppercase;
+  width: 4.5rem;
+}
+
+nav[role="scrollbar"] li a {
+  display: block;
+  color: #333;
+  width: 100%;
+  text-indent: 1.5rem;
+  text-decoration: none;
+}
+
+/* Top action icons */
+nav[role="scrollbar"] li .icon-search,
+nav[role="scrollbar"] li .icon-favorites {
+  width: 1.2rem;
+  height: 1.2rem;
+  font: 0/0 a;
+  vertical-align: middle;
+  background: transparent no-repeat center center;
+}
+nav[role="scrollbar"] li span:not([hidden]) {
+  display: inline-block;
+}
+
+nav[role="scrollbar"] li .icon-search {
+  background-image: url(scrolling/images/icons/search.png);
+}
+
+nav[role="scrollbar"] li .icon-favorites {
+  background-image: url(scrolling/images/icons/favorites.png);
+}
