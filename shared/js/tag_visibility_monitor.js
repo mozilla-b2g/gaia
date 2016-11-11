@@ -27,6 +27,8 @@
         - called with the element that is now onscreen
       offscreenCallback
         - called with the element that is now offscreen
+      filterCallback
+        - called when an element is found
 
     ------------------------------------
 
@@ -82,7 +84,8 @@ function monitorTagVisibility(
   scrollMargin,
   scrollDelta,
   onscreenCallback,
-  offscreenCallback
+  offscreenCallback,
+  filterCallback
 ) {
 
   // we need offsetTop to work properly, which will only happen if the container
@@ -121,13 +124,21 @@ function monitorTagVisibility(
     state.observer = new MutationObserver(mutationHandler);
     state.observer.observe(container, { childList: true, subtree: true });
 
-    // we use this to keep track of the relevent children of the container
-    //  - because its a live node list, the indices may change, but the
-    //    variable will always contain everything
-    state.children = container.getElementsByTagName(tag);
+    reloadChildren();
     reset();
 
     updateVisibility(true);
+  }
+
+  function reloadChildren() {
+    var children = container.getElementsByTagName(tag);
+    var filtered = [];
+    for (var i = 0; i < children.length; i++) {
+      if (!filterCallback || filterCallback(children[i])) {
+        filtered.push(children[i]);
+      }
+    }
+    state.children = filtered;
   }
 
   function reset() {
@@ -178,6 +189,7 @@ function monitorTagVisibility(
   //====================================
 
   function mutationHandler(mutations) {
+    reloadChildren();
     // some of the removals may have messed with our first/last child on screen
     fixRange(mutations);
 
@@ -189,12 +201,14 @@ function monitorTagVisibility(
           var child = mutation.addedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE &&
               child.tagName === tag) {
-            if (child === state.firstChild ||
-                child === state.lastChild ||
-                (after(child, state.firstChild) &&
-                before(child, state.lastChild))
-            ) {
-              safeOnscreenCallback(child);
+            if (!filterCallback || filterCallback(child)) {
+              if (child === state.firstChild ||
+                  child === state.lastChild ||
+                  (after(child, state.firstChild) &&
+                  before(child, state.lastChild))
+              ) {
+                safeOnscreenCallback(child);
+              }
             }
           }
         }
@@ -219,13 +233,15 @@ function monitorTagVisibility(
           var child = mutation.addedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE &&
             child.tagName === tag) {
-            numNodesAdded += 1;
-            // Determine if this new child is being appended below the
-            // currently visible area.  This check assumes no nodes were
-            // removed.  If any node is not an append, then we must follow
-            // the slow path below.
-            if (!firstAfterScreen || !after(child, firstAfterScreen)) {
-              nodesAddedAfterScreen = false;
+            if (!filterCallback || filterCallback(child)) {
+              numNodesAdded += 1;
+              // Determine if this new child is being appended below the
+              // currently visible area.  This check assumes no nodes were
+              // removed.  If any node is not an append, then we must follow
+              // the slow path below.
+              if (!firstAfterScreen || !after(child, firstAfterScreen)) {
+                nodesAddedAfterScreen = false;
+              }
             }
           }
         }

@@ -376,7 +376,8 @@ function initThumbnails() {
                          visibilityMargin,    // extra space top and bottom
                          minimumScrollDelta,  // min scroll before we do work
                          thumbnailOnscreen,   // set background image
-                         thumbnailOffscreen); // remove background image
+                         thumbnailOffscreen,  // remove background image
+                         ThumbnailItem.isThumbnailHtmlNode);
 
 
   // Handle clicks on the thumbnails we're about to create
