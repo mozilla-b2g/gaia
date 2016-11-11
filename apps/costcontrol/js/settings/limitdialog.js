@@ -5,7 +5,13 @@
 function dataLimitConfigurer(guiWidget, settings, viewManager) {
   var MINUS_CHAR_CODE = 45,
       COMMA_CHAR_CODE = 44,
-      DOT_CHAR_CODE = 46;
+      DOT_CHAR_CODE = 46,
+      // It Represents any positive real number (up to three digits length),
+      // with optional decimal point, accepting up to 2 decimal places.  It is
+      // not necessary adding the significant number when it is zero (eg. '.5'
+      // is a valid entry)
+      DATA_LIMIT_NUMERIC_FORMAT = new RegExp('^[0-9]{0,3}(\\.[0-9]{1,2})?$');
+
 
   var dialog = document.getElementById('data-limit-dialog');
   var dataLimitInput = dialog.querySelector('input');
@@ -64,7 +70,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     var numberDataLimit = Number(lowLimitValue);
     return (numberDataLimit < 1000 &&
             numberDataLimit > 0 &&
-            Number.isInteger(numberDataLimit * 100));
+            DATA_LIMIT_NUMERIC_FORMAT.test(numberDataLimit));
   }
   // Disable OK button when dataLimitInput not matches any positive real number
   // (up to three digits length), with optional decimal point, accepting up
