@@ -100,7 +100,8 @@ input.cmp-subject-text {
   margin: 1rem 1.5rem;
   display: block;
   padding: 0rem;
-  font-size: 1.7rem;
+  font-family: sans-serif;
+  font-size: 1.6rem;
   line-height: 1.9rem;
   font-weight: normal;
   border: none;
