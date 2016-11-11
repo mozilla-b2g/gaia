@@ -1,0 +1,288 @@
+/* ----------------------------------
+ * Lists: default
+ * ---------------------------------- */
+.block-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Open Sans", Sans-serif;
+}
+
+.block-items li {
+  display: inline-block;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  transition: transform 0.3s ease;
+  border: solid 1px #dbd9d9;
+  border-right: none;
+  border-left: none;
+  margin: -1px 0 0;
+  position: relative;
+}
+
+.block-items li > a:first-of-type,
+.block-items li > a:first-of-type  {
+  text-decoration: none;
+  color: #000;
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+/* State press */
+.block-items li > a:first-of-type:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background-color: #b1f1ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.block-items li > a:first-of-type:active:after {
+  opacity: 0.6;
+}
+
+.block-items li .aside {
+  float: left;
+  display: inline;
+  position: relative;
+  width: 5.5rem;
+  height: 6rem;
+  text-align: center;
+}
+
+.block-items li .aside.end {
+  float: right;
+}
+
+.block-items li .aside:before {
+  content: "";
+  height: 100%;
+  width: 1px;
+  margin-left: -1px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.block-items li .aside time {
+  display: inline-block;
+  vertical-align: super;
+  width: 4rem;
+  padding-right: 1rem;
+  font: 1.1rem/1em "Open Sans", Sans-serif;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.block-items li img {
+  float: right;
+  display: inline;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+.block-items li dl {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0.5rem 0 2rem;
+}
+
+.block-items li .aside ~ dl {
+  padding-left: 0.5rem;
+}
+
+.block-items li dl dt {
+  font: 1.8rem/1.2em "Open Sans", Sans-serif;
+  white-space: nowrap;
+  height: 2.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-items li dl dt strong {
+  font-weight: 600;
+  font-family: "Open Sans", Sans-serif;
+}
+
+.block-items li dl dt em {
+  font-size: 1.3rem;
+  font-style: normal;
+}
+
+.block-items li dl mark {
+  background-color: #cfd3d7;
+}
+
+.block-items li dl dd {
+  font-size: 1.4rem;
+  color: #5b5b5b;
+  white-space: nowrap;
+  height: 1.8rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-items li dl dd strong {
+  font-weight: 600;
+  font-family: "Open Sans", Sans-serif;
+  color: #000;
+}
+
+.block-items li dl dd time {
+  font-size: 1.4rem;
+  color: #5b5b5b;
+  margin-right: 0.3rem;
+}
+
+.block-items li dl dd span {
+  margin-right: 0.3rem;
+}
+
+.block-items li dl dd span:last-child {
+  margin: 0;
+}
+
+/* Icon definitions */
+.block-items li .icon  {
+  display: inline-block;
+  vertical-align: middle;
+  width: 3rem;
+  height: 3rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  font: 0/0 a;
+  overflow: hidden;
+  position: relative;
+}
+
+.block-items li .icon.icon-arrowaction {
+  background-image: url(lists/images/icons/arrowaction.png);
+  width:1rem;
+  height: 1rem;
+  vertical-align: bottom;
+  margin: 0 -3rem 0.5rem 0;
+}
+
+.block-items li .icon.icon-callout {
+  background-image: url(lists/images/icons/callout.png);
+  width: 2.4rem;
+  height: 2rem;
+}
+
+.block-items li .icon.icon-smsin {
+  background-image: url(lists/images/icons/smsin.png);
+  width: 2.5rem;
+  height: 2.2rem;
+}
+
+.block-items li[data-state="new"] .icon.icon-smsin {
+  background-image: url(lists/images/icons/smsin-new.png);
+  width: 2.5rem;
+  height: 2.2rem;
+}
+
+/* State edit*/
+.block-items[data-state="edit"] li {
+  transform: translateX(5rem);
+}
+
+.block-items[data-state="edit"] li > label {
+   opacity: 1;
+}
+
+.block-items li > label {
+  transition: opacity 0.6s ease;
+  width: 5rem;
+  height: 6rem;
+  right: 100%;
+  position: absolute;
+  top: -1px;
+  z-index: 100;
+  opacity: 0;
+  border: solid 1px #DBD9D9;
+  border-left: none;
+  border-right: none;
+}
+
+/* State disabled */
+.block-items li[aria-disabled="true"]:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+.block-items  li[aria-disabled="true"] {
+  pointer-events:none;
+}
+
+/* State new */
+.block-items li[data-state="marked"]:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.6rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-left: 0.5rem;
+  background: url(lists/images/icons/dot.png) no-repeat center;
+  background-size: 100% auto;
+}
+
+.block-items li[data-state="new"] time {
+  color: #52b6cc !important;
+}
+
+/* State tagged */
+.block-items li[data-state="tagged"]:after  {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: 0;
+  width: 0.4rem;
+}
+
+.block-items li[data-tag="A"]:after { background-color: #e7a300; }
+.block-items li[data-tag="B"]:after { background-color: #954fa7; }
+
+
+/* ----------------------------------
+ * Lists: Overlay theme
+ * ---------------------------------- */
+.block-items.skin-overlay li,
+.block-items.skin-overlay li {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(0, 0, 0, 0.6);
+}
+
+.block-items.skin-overlay  li dl dt,
+.block-items.skin-overlay  li dl dt {
+  color: #fff;
+}
+
+.block-items.skin-overlay li dl dd,
+.block-items.skin-overlay li dl dd {
+  color: #ccc;
+}
+
+.block-items.skin-overlay .icon.icon-smsin,
+.block-items.skin-overlay .icon.icon-smsin {
+  background-image: url(lists/images/icons/smsin-overlay.png);
+  width: 3.1rem;
+  height: 3.1rem;
+}
