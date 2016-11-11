@@ -1,0 +1,62 @@
+{
+  "name": "Privacy Panel",
+  "description": "Web app Privacy Panel",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+  },
+  "locales": {
+    "ar": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "de": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "el": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "en-US": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "es": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "fr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "it": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "pt-BR": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "ru": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "tr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "zh-TW": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
