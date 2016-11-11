@@ -50,6 +50,7 @@ WHITELIST = \
  sr-Cyrl.dict \
  sr-Latn.dict \
  sv.dict \
+ ta.dict \
  tr.dict
 
 %.dict: %_wordlist.xml xml2dict.js dependency
