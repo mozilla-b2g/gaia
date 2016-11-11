@@ -268,6 +268,10 @@ instead of the context menu.
   pointer-events: auto;
 }
 
+.group .header .toggle::-moz-focus-inner {
+  border: 0;
+}
+
 .group .header .toggle.toggling {
   opacity: 0.5;
   transition: transform 0.25s;
