@@ -1,6 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import base64
+import json
+import requests
 
 from marionette.by import By
 from gaiatest.apps.base import Base
@@ -29,10 +32,9 @@ class Persona(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._persona_frame_locator)
 
     def login(self, email, password):
+        self.wait_for_persona_frame()
         self.switch_to_persona_frame()
 
         # This is a hack until we are able to run test with a clean profile
@@ -63,6 +65,11 @@ class Persona(Base):
         self.marionette.switch_to_frame(self.frame)
 
         self.wait_for_element_not_present(*self._body_loading_locator)
+
+    def switch_to_app(self, parent_frame, child_frame):
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(parent_frame)
+        self.marionette.switch_to_frame(self.marionette.find_element(*child_frame))
 
     def type_email(self, value):
         email_field = self.marionette.find_element(*self._email_input_locator)
@@ -108,6 +115,10 @@ class Persona(Base):
         self.wait_for_element_displayed(*self._form_section_locator)
         return self.marionette.find_element(*self._form_section_locator).get_attribute('id')
 
+    def wait_for_persona_frame(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._persona_frame_locator)
+
     def wait_for_sign_in_button(self):
         self.wait_for_element_displayed(*self._sign_in_button_locator)
 
@@ -116,3 +127,44 @@ class Persona(Base):
 
     def wait_for_password_input(self):
         self.wait_for_element_displayed(*self._password_input_locator)
+
+    def wait_for_and_tap(self, element):
+        # print self.marionette.page_source.encode('utf-8')
+        self.wait_for_element_displayed(*element, timeout=120)
+        self.marionette.find_element(*element).tap()
+
+    # Persona verify assertion utils
+    def verifyAssertion(self, assertion, AUDIENCE, VERIFIER_URL, **params):
+        data = {'assertion': assertion, 'audience': AUDIENCE}
+        data.update(params)
+
+        return requests.post(VERIFIER_URL, data=data).json()
+
+    def decodeB64(self, b64input):
+        """
+        Add padding to b64input if necessary. I think python's base64
+        implementation is broken and this should not be necessary.
+        """
+        out = b64input.strip()
+        lastBytesLen = len(out) % 4
+        if lastBytesLen == 0:
+            pass
+        elif lastBytesLen == 3:
+            out += '='
+        elif lastBytesLen == 2:
+            out += '=='
+        else:
+            print out, lastBytesLen
+            raise Exception("Bad base64 input; last group contained weird number of bytes.")
+
+        return base64.b64decode(out)
+
+    def decode(self, encoded):
+        return json.loads(self.decodeB64(encoded))
+
+    def unpackAssertion(self, assertion):
+        # ignore signatures; we're not a verifier
+        header, claim, _, payload, _ = assertion.split('.');
+        return {"header": self.decode(header),
+                "claim": self.decode(claim),
+                "payload": self.decode(payload)}
