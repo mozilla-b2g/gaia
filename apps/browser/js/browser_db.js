@@ -7,7 +7,7 @@ var idb = window.indexedDB || window.webkitIndexedDB ||
 var BrowserDB = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
   MAX_ICON_SIZE: 102400, // 100kB
-  TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
+  TOP_SITE_SCREENSHOTS: 6, // Number of top sites to keep screenshots for
   variantObserver: null,
 
   init: function browserDB_init(callback) {

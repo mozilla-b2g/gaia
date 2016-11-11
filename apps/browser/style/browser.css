@@ -418,18 +418,14 @@ input::-moz-focus-inner {
   background: url('/shared/resources/branding/about_logo.png') no-repeat 16.5rem top, -moz-linear-gradient(#f8f8fa, #cadce6);
   background-position: top right;
   background-size: 16.5rem;
-  overflow: hidden;
+  overflow: scroll;
   color: #3e4041;
-}
-
-#startscreen h1 {
-  font-size: 2.5rem;
-  margin: 1rem 1.5rem;
 }
 
 #startscreen h2 {
   font-size: 1.4rem;
-  margin: 0 0 1.5rem 1.5rem;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
 }
 
 #startscreen.hidden {
@@ -437,27 +433,28 @@ input::-moz-focus-inner {
 }
 
 #start-screen-top-sites {
-  width: 29rem;
+  width: 100%;
   margin: 0 auto;
   overflow: hidden;
+  box-sizing: border-box;
+  padding: 0 1rem;
 }
 
 #top-site-thumbnails {
-  margin: 0;
+  max-width: 45rem;
+  margin: 0 auto;
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
 
 #top-site-thumbnails li {
   list-style-type: none;
   text-align: center;
-  float: left;
   position: relative;
   border-bottom: 0.2rem solid #CCC;
-  margin-bottom: 2rem;
-}
-
-#top-site-thumbnails li:nth-child(2n) {
-  margin-left: 1rem;
+  margin-bottom: 1rem;
 }
 
 #top-site-thumbnails li a {
