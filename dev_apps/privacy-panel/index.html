@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+
+    <!-- Components -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+
+    <!-- Custom styles for Privacy Panel -->
+    <link rel="stylesheet" type="text/css" href="/style/custom.css" />
+
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script src="shared/js/l10n.js"></script>
+    <script defer="" src="shared/js/l10n_date.js"></script>
+    <script src="shared/js/crypto.js"></script>
+
+    <title>Privacy Panel</title>
+
+    <script src="js/template.js"></script>
+  </head>
+
+  <body>
+    <!-- main view with menu -->
+    <section role="region" id="root" class="current skin-dark" data-rendered="true">
+      <header>
+        <h1 data-l10n-id="privacy-panel">Privacy Panel</h1>
+      </header>
+      <div>
+        <ul>
+          <li>
+            <a id="menuItem-ALA" class="menu-item" data-icon="notifications" href="#location-accuracy">
+              <span data-l10n-id="location-accuracy">Location Accuracy</span>
+            </a>
+          </li>
+          <li>
+            <a id="menuItem-RPP" class="menu-item" data-icon="notifications" href="#remote-privacy-protection">
+              <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+            </a>
+          </li>
+          <li>
+            <a id="menuItem-GT" class="menu-item" data-icon="notifications" href="#guided-tour">
+              <span data-l10n-id="guided-tour">Guided Tour</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Location Accuracy -->
+    <section role="region" id="ALA" class="current skin-dark" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#" id="ALA-back"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul id="geolocation-switch-box">
+          <li>
+            <label class="pack-switch">
+              <input id="geolocation-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="useGeolocation">Use geolocation</span>
+            </label>
+          </li>
+        </ul>
+        <ul id="geolocation-box" class="settings-disabled">
+          <li id="settings-switch-box">
+            <label class="pack-switch">
+              <input id="settings-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="useLocationBlur">Use location blur</span>
+            </label>
+          </li>
+
+          <li class="setting-box description">
+            <p class="description-for-root">
+              <small data-l10n-id="locationBlurDescritpion">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+            </p>
+          </li>
+
+          <li class="setting-box">
+            <p></p>
+            <span class="button icon icon-dialog">
+              <select id="ALA-type">
+                <option value="blur" data-l10n-id="typeBlur">Blur</option>
+                <option value="user-defined" data-l10n-id="typeUserDefined">User Defined</option>
+                <option value="no-location" data-l10n-id="typeNoLocation" selected>No Location</option>
+                <option value="precise" data-l10n-id="typePrecise">Precise</option>
+              </select>
+            </span>
+          </li>
+
+          <li id="type-blur" class="type-box setting-box disabled">
+            <label>
+              <p id="blur-label"></p>
+              <input id="blur-slider" class="blur-slider" step="1" min="1" max="12" type="range" >
+            </label>
+          </li>
+
+          <li id="type-custom-location" class="type-box setting-box disabled">
+            <a class="menu-item" data-icon="notifications" href="#set-custom-location">
+              <span data-l10n-id="set-custom-location">Set custom location</span>
+            </a>
+          </li>
+
+          <li class="setting-box">
+            <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
+              <span data-l10n-id="addException">Add exceptions</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </section>
+
+    <!-- Remote Privacy Protection -->
+    <section role="region" id="RPP" class="current skin-dark" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#" id="RPP-back"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+      </header>
+
+      <div id="RPP-new-password" >
+        <ul>
+          <li class="description">
+            <p data-l10n-id="rpp-new-password-description">
+              Please set a pass phrase to secure your remote features (maximum 30 characters).
+            </p>
+          </li>
+          <li>
+            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
+          </li>
+          <li>
+            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li class="action-button-box-one">
+            <button class="rpp-new-password-ok">OK</button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="RPP-login">
+        <ul>
+          <li class="description">
+            <p data-l10n-id="rpp-login-description">
+              Please enter your pass phrase.
+            </p>
+          </li>
+          <li>
+            <input id="rpp-login-pass" type="password" placeholder="Pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li class="action-button-box-one">
+            <button class="rpp-login-ok">OK</button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="RPP-menu">
+        <ul>
+          <li class="remote-locate hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteLocate">Remote Locate</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteLocateDesc">You can locate this device via SMS as following: “FmD: LocateDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-ring hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteRing">Remote Ring</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteRingDesc">You can ring this device via SMS as following: “FmD: SoundAlarm YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-lock hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteLock">Remote Lock</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteLockDesc">You can lock this device via SMS as following: “FmD: LockDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-wipe hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteWipe">Remote Wipe</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “FmD: WipeDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="unlock hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="unlockViaPasscodeLockOrSimPin">Unlock via Passcode lock or SIM Pin</span>
+            </label>
+            <p class="explanation" data-l10n-id="unlockViaPasscodeLockOrSimPinDesc">With this function, you can unlock your Remote Security settings, if you forgot your pass phrase.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
