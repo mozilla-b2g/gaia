@@ -29,7 +29,7 @@ if (!utils.alphaScroll) {
 
     var RESET_TRANSITION = '0s';
 
-    var offset = 0, lastY = 0;
+    var offset = 0, lastY = 0, lastX = 0;
 
     var isTouch = 'ontouchstart' in window;
     var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -39,6 +39,11 @@ if (!utils.alphaScroll) {
     var getY = (function getYWrapper() {
       return isTouch ? function(e) { return e.touches[0].pageY; } :
                        function(e) { return e.pageY; };
+    })();
+
+    var getX = (function getXWrapper() {
+      return isTouch ? function(e) { return e.touches[0].pageX; } :
+                       function(e) { return e.pageX; };
     })();
 
     var getTarget = (function getTargetWrapper() {
@@ -141,6 +146,7 @@ if (!utils.alphaScroll) {
       }
 
       var currentY = getY(evt);
+      var currentX = getX(evt);
       // We set the threshold of updating the shortcut to half of the offset
       // to avoid when touch already moved to center of the certain letter but
       // shows another letter.
@@ -149,6 +155,7 @@ if (!utils.alphaScroll) {
       }
 
       lastY = currentY;
+      lastX = currentX;
 
       var elem = getTarget(evt);
       if (!elem) {
@@ -204,6 +211,16 @@ if (!utils.alphaScroll) {
       evt.stopPropagation();
       var transitionDelay = TRANSITION_DELAY;
       var transitionDuration = TRANSITION_DURATION;
+
+      // If I finish on search button, I click on search bar 
+      // and launch the search event
+      var target = document.elementFromPoint(lastX, lastY);
+      var anch = target.dataset.anchor;
+
+      if (anch == 'search-container'){
+        document.getElementById('search-start').click();
+      }
+
       // In the case of the scroll ending when we are at the
       // bottom or the top, remove the transition inmediately
       if (overlay.textContent === '#' || overlay.textContent === '') {
@@ -216,6 +233,7 @@ if (!utils.alphaScroll) {
       overlay.textContent = null;
       isScrolling = false;
       lastY = 0;
+      lastX = 0;
     }
 
     // Cache images refered in 'data-img'es
