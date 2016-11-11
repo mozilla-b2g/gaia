@@ -494,6 +494,7 @@ var Camera = {
 
   cancelPick: function camera_cancelPick() {
     if (this._pendingPick) {
+      this.showSpinner();
       this._pendingPick.postError('pick cancelled');
     }
     this._pendingPick = null;
