@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Date Picker</title>
+  <script src="js/date_picker.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="style/value_selector/date_picker.css" title="" type="text/css" />
+  <style type="text/css" media="all">
+    * {
+      -moz-box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      height: 100%;
+      font-family: 'Open Sans';
+      background: white;
+      line-height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+<section role="dialog">
+  <div id="date-picker">
+    <h3>Select day</h3>
+    <header id="date-picker-controls">
+      <button class="previous">Previous</button>
+      <h1 id="current-month"></h1>
+      <button class="next">Next</button>
+    </header>
+
+    <ol id="date-picker-weekdays">
+      <li data-l10n-id="weekday-0-short">SUN</li>
+      <li data-l10n-id="weekday-1-short">MON</li>
+      <li data-l10n-id="weekday-2-short">TUE</li>
+      <li data-l10n-id="weekday-3-short">WED</li>
+      <li data-l10n-id="weekday-4-short">THU</li>
+      <li data-l10n-id="weekday-5-short">FRI</li>
+      <li data-l10n-id="weekday-6-short">SAT</li>
+    </ol>
+
+    <section id="date-picker-container">
+    </section>
+
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button id="date-picker-confirm" class="affirmative">Action</button>
+    </menu>
+  </div>
+</section>
+
+<script type="text/javascript" charset="utf-8">
+  /** this is just an example for usage */
+  var picker = new DatePicker(document.querySelector('#date-picker-container'));
+  var currentMonth = document.getElementById('current-month');
+  var date = new Date();
+  var nextEl = document.querySelector('.next');
+  var prevEl = document.querySelector('.previous');
+  var accept = document.querySelector('#date-picker-confirm');
+
+  accept.onclick = function() {
+    alert('Selected:' + picker.value);
+  }
+
+  nextEl.onclick = function() {
+    picker.next();
+  }
+
+  prevEl.onclick = function() {
+    picker.previous();
+  }
+
+  function updateMonth(date) {
+    picker.value = null;
+    currentMonth.textContent = date.toLocaleFormat('%B %Y');
+  }
+
+  picker.onmonthchange = updateMonth;
+  picker.display(date.getFullYear(), date.getMonth());
+</script>
+
+</body>
+</html>
