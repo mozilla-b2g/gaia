@@ -543,7 +543,7 @@
       this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
       this.pid = this._get_mb_uint32();
       this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
-      this._decoder = TextDecoder(this.charset);
+      this._decoder = new TextDecoder(this.charset);
 
       var tbl_len = this._get_mb_uint32();
       this.strings = new StringTable(this._get_slice(tbl_len), this._decoder);
@@ -894,7 +894,7 @@
       if (charsetNum === undefined)
         throw new Error('unknown charset '+charset);
     }
-    var encoder = this._encoder = TextEncoder(charset);
+    var encoder = this._encoder = new TextEncoder(charset);
 
     this._write(v);
     this._write(pid);
