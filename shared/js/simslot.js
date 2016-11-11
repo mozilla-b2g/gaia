@@ -42,8 +42,7 @@
                    'sendStkTimerExpiration', 'sendStkEventDownload'];
   SIMSlot.DOM_REQUEST_METHODS = ['getCardLock', 'unlockCardLock', 'setCardLock',
                        'getCardLockRetryCount', 'readContacts',
-                       'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
-                       'iccCloseChannel'];
+                       'updateContact'];
 
   SIMSlot.ABSENT_TYPES = ['permanentBlocked'];
   SIMSlot.LOCK_TYPES = ['pinRequired', 'pukRequired', 'networkLocked',
