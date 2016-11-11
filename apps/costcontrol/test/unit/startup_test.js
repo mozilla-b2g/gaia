@@ -106,6 +106,7 @@ suite('Application Startup Modes Test Suite >', function() {
   });
 
   suiteTeardown(function() {
+    CostControlApp.reset();
     window.Common = realCommon;
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozL10n = realMozL10n;
