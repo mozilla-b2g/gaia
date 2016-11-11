@@ -1084,6 +1084,37 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Recipient interact with subject', function() {
+    setup(function() {
+      var node = document.createElement('span');
+      node.isPlaceholder = true;
+      node.textContent = '999';
+      ThreadUI.container.textContent =
+        '<div><h2></h2><ul><li></li>contacts<li></li></ul></div>';
+
+      this.sinon.spy(ThreadUI.recipients, 'add');
+      window.location.hash = '#new';
+
+      ThreadUI.recipientsList.appendChild(node);
+      Compose.toggleSubject();
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+      ThreadUI.container.textContent = '';
+      ThreadUI.recipients.length = 0;
+      ThreadUI.recipients.inputValue = '';
+    });
+
+    test('Recipient assimilate is called when focus on subject', function() {
+      subject.dispatchEvent(new CustomEvent('focus'));
+
+      // recipient added and container is cleared
+      sinon.assert.called(ThreadUI.recipients.add);
+      assert.equal(ThreadUI.container.textContent, '');
+    });
+  });
+
   suite('subject max length banner', function() {
     var banner,
         localize;
