@@ -1024,7 +1024,9 @@ suite('thread_ui.js >', function() {
         assert.isTrue(shouldEnableSend);
       });
 
-      test('banner is displayed', function() {
+      test('banner is and stays displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+        this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
       });
 
@@ -1061,7 +1063,9 @@ suite('thread_ui.js >', function() {
         assert.isFalse(shouldEnableSend);
       });
 
-      test('banner is displayed', function() {
+      test('banner is and stays displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+        this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
       });
 
@@ -1087,8 +1091,7 @@ suite('thread_ui.js >', function() {
         localize;
 
     setup(function() {
-      banner = document.getElementById('messages-max-length-notice');
-      localize = this.sinon.spy(navigator.mozL10n, 'localize');
+      banner = document.getElementById('messages-subject-max-length-notice');
       Compose.toggleSubject();
     });
 
@@ -1128,11 +1131,6 @@ suite('thread_ui.js >', function() {
 
       test('should be visible', function() {
         assert.isFalse(banner.classList.contains('hide'));
-      });
-
-      test('should be localized', function() {
-        assert.ok(localize.calledWith(banner.querySelector('p'),
-                  'messages-max-subject-length-text'));
       });
 
       test('should be hidden if focus is away', function() {
