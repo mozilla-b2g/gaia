@@ -216,8 +216,8 @@ html[dir="rtl"] .appWindow.invoked {
 }
 
 @keyframes closeApp {
-  0%   { transform: scale(1.0); opacity: 1;}
-  100% { transform: scale(0.01); opacity: 0;}
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(0.01); }
 }
 
 @keyframes closeAppTowardsCardView {
