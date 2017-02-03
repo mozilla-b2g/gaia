@@ -1315,10 +1315,7 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   // Crop handle styles
   context.translate(25, 15);
   context.lineCap = 'round';
-  // XXX
-  // Please turn on the followig line when Bug 937529 is fixed. This is an
-  // workaround to have active handles drawn.
-  // context.lineJoin = 'round';
+  context.lineJoin = 'round';
   context.strokeStyle = 'rgba(255,255,255,1)';
 
   // Start off with a crop region that is the one passed in, if it is not null.
