@@ -47,17 +47,17 @@
   -->
 </head>
 <body role="application">
-  <gaia-header id="header" no-font-fit>
+  <header id="header">
     <h1 id="header-title"></h1>
     <button id="player-button" data-icon="play-circle" data-l10n-id="go-to-player-view" hidden></button>
     <button id="activity-done-button" hidden></button>
-  </gaia-header>
+  </header>
 
-  <music-view-stack id="view-stack">
+  <div id="view-stack">
     <iframe src="/views/home/index.html"></iframe>
-  </music-view-stack>
+  </div>
 
-  <music-tab-bar id="tab-bar">
+  <div id="tab-bar">
     <button value="home"
         data-url="/home"
         data-icon="grid"
@@ -83,32 +83,32 @@
         data-icon="songs"
         data-l10n-id="songs-tab">
     </button>
-  </music-tab-bar>
+  </div>
 
-  <music-overlay id="empty-overlay"
+  <div id="empty-overlay"
       heading-l10n-id="empty-title"
       message-l10n-id="empty-text" hidden>
-  </music-overlay>
+  </div>
 
-  <music-overlay id="no-card-overlay"
+  <div id="no-card-overlay"
       heading-l10n-id="nocard2-title"
       message-l10n-id="nocard3-text" hidden>
-  </music-overlay>
+  </div>
 
-  <music-overlay id="plugged-in-overlay"
+  <div id="plugged-in-overlay"
       heading-l10n-id="pluggedin-title"
       message-l10n-id="pluggedin-text" hidden>
-  </music-overlay>
+  </div>
 
-  <music-overlay id="upgrade-overlay"
+  <div id="upgrade-overlay"
       heading-l10n-id="upgrade-title"
       message-l10n-id="upgrade-text" hidden>
-  </music-overlay>
+  </div>
 
-  <music-scan-progress id="scan-progress"
+  <div id="scan-progress"
       heading-l10n-id="unknownArtist"
       subheading-l10n-id="unknownTitle">
-  </music-scan-progress>
+  </div>
 
   <audio id="audio"></audio>
 </body>
