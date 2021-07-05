@@ -551,8 +551,8 @@ var GestureDetector = (function() {
       d.touch2 = t.identifier;
 
       // Get the two Touch objects
-      var t1 = e.touches.identifiedTouch(d.touch1);
-      var t2 = e.touches.identifiedTouch(d.touch2);
+      var t1 = e.touches.item(d.touch1);
+      var t2 = e.touches.item(d.touch2);
 
       // Compute and remember the initial distance and angle
       d.startDistance = d.lastDistance = touchDistance(t1, t2);
@@ -569,8 +569,8 @@ var GestureDetector = (function() {
       }
 
       // Get the two Touch objects
-      var t1 = e.touches.identifiedTouch(d.touch1);
-      var t2 = e.touches.identifiedTouch(d.touch2);
+      var t1 = e.touches.item(d.touch1);
+      var t2 = e.touches.item(d.touch2);
 
       // Compute the new midpoints, distance and direction
       var midpoint = midpoints(e, t1, t2);
